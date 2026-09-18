@@ -329,7 +329,7 @@ function bashy_version() {
 function bashy_check_deployment() {
 	local source_dir=${1:-}
 	if [ -z "${source_dir}" ]; then
-		for source_dir in "${REPOS_FOLDER}/bashy" "${REPOS_FOLDER}/veltzer/bashy" "${HOME}/bashy" ""; do
+		for source_dir in "${REPOS_FOLDER}/bash-bashy" "${REPOS_FOLDER}/veltzer/bash-bashy" "${HOME}/bash-bashy" ""; do
 			[ -n "${source_dir}" ] && [ -r "${source_dir}/bashy.sh" ] && break
 		done
 	fi

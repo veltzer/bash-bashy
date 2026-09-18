@@ -1,11 +1,11 @@
 <!-- This file is generated. Do not edit it by hand: your changes will be
      lost on the next build. Edit the template it is rendered from, or the
      values that template reads, and build again. -->
-# *bashy* project by Mark Veltzer
+# *bash-bashy* project by Mark Veltzer
 
 description: bashy handles bash configuration for you
 
-project website: https://veltzer.github.io/bashy
+project website: https://veltzer.github.io/bash-bashy
 
 author: Mark Veltzer
 
@@ -15,17 +15,17 @@ version: 0.0.99
 
 ## github
 
-![License](https://img.shields.io/github/license/veltzer/bashy)
+![License](https://img.shields.io/github/license/veltzer/bash-bashy)
 
 ## build
 
-![build](https://github.com/veltzer/bashy/workflows/build/badge.svg)
+![build](https://github.com/veltzer/bash-bashy/workflows/build/badge.svg)
 Bashy is bash based system to enable you control of your bash with precision and elegance.
 It is plugin based and allows for easy extension.
 
 ## Build status
 
-![build](https://github.com/veltzer/bashy/workflows/build/badge.svg)
+![build](https://github.com/veltzer/bash-bashy/workflows/build/badge.svg)
 
 ## Demo
 
@@ -36,7 +36,7 @@ It is plugin based and allows for easy extension.
 First clone the repository into your home directory:
 
 ```bash
-git clone --branch master --depth 1 https://github.com/veltzer/bashy.git ~/.bashy && rm -rf ~/.bashy/.git
+git clone --branch master --depth 1 https://github.com/veltzer/bash-bashy.git ~/.bashy && rm -rf ~/.bashy/.git
 ```
 
 Then edit `~/.bashrc` and add the following line as the last line:
