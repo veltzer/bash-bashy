@@ -76,6 +76,26 @@ function _install_nvim_ubuntu() {
 }
 
 function _install_nvim_lazy() {
+	# The starter repo (LazyVim/starter) is a template with no releases, so the
+	# version that matters is the LazyVim plugin it pulls in. lazy.nvim clones
+	# that into its own tree and checks out the release tag, so the installed
+	# version is the tag sitting on HEAD there.
+	local release
+	bashy_github_release "LazyVim/LazyVim" release || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release}")
+	local lazyvim="${HOME}/.local/share/nvim/lazy/LazyVim"
+	local installed_version=""
+	if [ -d "${lazyvim}/.git" ]
+	then
+		# --points-at lists every tag on HEAD, which includes the moving
+		# "stable" tag, so keep only the version one
+		installed_version=$(git -C "${lazyvim}" tag --points-at HEAD 2>/dev/null | sed --quiet 's/^v//; /^[0-9]/p' | head -1)
+	fi
+	if bashy_install_check "nvim-lazy" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
 	# remove previous config
 	rm -rf "${HOME}/.config/nvim"
 	# Clone starter
