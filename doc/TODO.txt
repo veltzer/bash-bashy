@@ -1,10 +1,9 @@
 - add saving a stack of all previous commands
 
 - I have way too many plugins/prompt_*.sh plugins and a lot of them do the same thing.
-	prompt_gems and prompt_node now share git_prompt_repo_path in core/git.sh.
-	prompt_aws and prompt_k8s still each read a conf file at the repo root by hand,
-	and the auto plugin can take care of most of the rest.
-	try to reduce and simplify.
+	prompt_gems and prompt_node share git_prompt_repo_path, and prompt_aws,
+	prompt_k8s and prompt_gcp share git_prompt_repo_conf, both in core/git.sh.
+	prompt_auto could probably sit on git_prompt_repo_conf as well.
 
 - allow to activate only specific plugins when logging.
 

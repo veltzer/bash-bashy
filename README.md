@@ -195,6 +195,22 @@ root of the repository. Both remember the answer per directory, which took about
 `git rev-parse`. Call `git_is_inside_flush` if a repository appears or disappears
 under a directory you are already in.
 
+Two helpers in `core/git.sh` cover the common shapes, so a plugin only says what
+to do rather than how to notice when to do it. `git_prompt_repo_path` keeps a
+folder of the repository on `PATH` while inside it, which is all `prompt_gems` and
+`prompt_node` are. `git_prompt_repo_conf` watches for a file at the repository
+root and calls an enter function on every prompt that finds it and an exit
+function once on the way out, which is what `prompt_k8s`, `prompt_aws` and
+`prompt_gcp` are built on:
+
+```bash
+function _prompt_hello_enter() { export HELLO_CONF="$1"; }
+function _prompt_hello_exit() { unset HELLO_CONF; }
+function prompt_hello() {
+	git_prompt_repo_conf "prompt_hello" PROMPT_HELLO_CONF ".hello.conf" _prompt_hello_enter _prompt_hello_exit
+}
+```
+
 Registration prepends, so prompt functions run in reverse registration order: a
 plugin listed later in `bashy.list` gets to set `PS1` before an earlier one.
 

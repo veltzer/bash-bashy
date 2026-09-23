@@ -123,3 +123,50 @@ function git_prompt_repo_path() {
 		_bashy_pathutils_add_head PATH "${wanted}"
 	fi
 }
+
+# git_prompt_repo_conf <log tag> <variable> <file name> <enter function> <exit function>
+# Watch for <file name> at the root of the git repository PWD is in.
+#
+# On every prompt that finds the file, <enter function> runs with its path. That
+# is every prompt, not only the first one, so a plugin that reads the file sees an
+# edit at the next prompt; keep it cheap and idempotent. On the first prompt that
+# no longer finds it, whether because PWD left the repository or the file went
+# away, <exit function> runs once. <variable> is the exported variable that
+# remembers the active file across prompts, so the exit side also works in a
+# child shell started inside the repository.
+#
+# prompt_aws, prompt_k8s and prompt_gcp each carried this state machine by hand,
+# and each copy had the same bugs. Meant to be called from a prompt function.
+function git_prompt_repo_conf() {
+	local tag=$1
+	local name=$2
+	local file=$3
+	local enter=$4
+	local exit=$5
+	local wanted=""
+	if git_is_inside
+	then
+		local root
+		git_top_level root
+		if [ -r "${root}/${file}" ]
+		then
+			wanted="${root}/${file}"
+		fi
+	fi
+	local current="${!name-}"
+	if [ -n "${current}" ] && [ "${current}" != "${wanted}" ]
+	then
+		bashy_log "${tag}" "${BASHY_LOG_INFO}" "down"
+		"${exit}" "${current}"
+		unset "${name}"
+	fi
+	if [ -n "${wanted}" ]
+	then
+		if [ "${current}" != "${wanted}" ]
+		then
+			bashy_log "${tag}" "${BASHY_LOG_INFO}" "up"
+			export "${name}=${wanted}"
+		fi
+		"${enter}" "${wanted}"
+	fi
+}

@@ -3,44 +3,26 @@
 # Here is what it does:
 # - Whenever you 'cd' into a git repo which has a .k8s.conf file in its root
 # it will set it to be the current KUBECONFIG.
+#
+# The watching is done by git_prompt_repo_conf in core/git.sh, shared with
+# prompt_aws and prompt_gcp. This file only says what to do on the way in and out.
 
 k8s_conf_file_name=".k8s.conf"
 
-function prompt_k8s() {
-	local git_root k8s_configuration_name
-	if ! git_is_inside
+function _prompt_k8s_enter() {
+	local conf=$1
+	if [ "${KUBECONFIG-}" != "${conf}" ]
 	then
-		if var_is_defined KUBECONFIG
-		then
-			bashy_log "prompt_k8s" "${BASHY_LOG_INFO}" "down"
-			unset KUBECONFIG
-		fi
-		return
+		export KUBECONFIG="${conf}"
 	fi
+}
 
-	git_root=""
-	git_top_level git_root
-	k8s_configuration_name="${git_root}/${k8s_conf_file_name}"
-	if [ -r "${k8s_configuration_name}" ]
-	then
-		if ! var_is_defined KUBECONFIG
-		then
-			bashy_log "prompt_k8s" "${BASHY_LOG_INFO}" "up"
-			export KUBECONFIG="${k8s_configuration_name}"
-			return
-		fi
-		if [ "${KUBECONFIG}" != "${k8s_configuration_name}" ]
-		then
-			bashy_log "prompt_k8s" "${BASHY_LOG_INFO}" "up"
-			export KUBECONFIG="${k8s_configuration_name}"
-		fi
-	else
-		if var_is_defined KUBECONFIG
-		then
-			bashy_log "prompt_k8s" "${BASHY_LOG_INFO}" "down"
-			unset KUBECONFIG
-		fi
-	fi
+function _prompt_k8s_exit() {
+	unset KUBECONFIG
+}
+
+function prompt_k8s() {
+	git_prompt_repo_conf "prompt_k8s" PROMPT_K8S_CONF "${k8s_conf_file_name}" _prompt_k8s_enter _prompt_k8s_exit
 }
 
 function _activate_prompt_k8s() {

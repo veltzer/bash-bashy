@@ -155,3 +155,57 @@ function testGitPromptRepoPathMissingFolder() {
 	cd / || _bashy_assert_fail
 	rm -rf "${repo}"
 }
+
+# the enter and exit sides record what they were called with
+function _test_conf_enter() { _test_conf_log="${_test_conf_log}enter:${1##*/};"; }
+function _test_conf_exit() { _test_conf_log="${_test_conf_log}exit:${1##*/};"; }
+
+function testGitPromptRepoConfEntersExits() {
+	local repo
+	_test_git_repo repo
+	git_is_inside_flush
+	unset TEST_CONF_ACTIVE
+	_test_conf_log=""
+	# direct calls first, so the helpers have a visible call site
+	_test_conf_enter "/x/a"
+	_test_conf_exit "/x/a"
+	_bashy_assert_equal "${_test_conf_log}" "enter:a;exit:a;"
+	_test_conf_log=""
+	cd "${repo}/sub" || _bashy_assert_fail
+	# no conf file yet: nothing happens
+	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
+	_bashy_assert_equal "${_test_conf_log}" ""
+	touch "${repo}/.t.conf"
+	# enter runs on every prompt that finds the file, so an edit is seen
+	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
+	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
+	_bashy_assert_equal "${_test_conf_log}" "enter:.t.conf;enter:.t.conf;"
+	_bashy_assert_equal "${TEST_CONF_ACTIVE}" "$(realpath "${repo}")/.t.conf"
+	# leaving runs exit exactly once, with the file that was active
+	cd / || _bashy_assert_fail
+	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
+	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
+	_bashy_assert_equal "${_test_conf_log}" "enter:.t.conf;enter:.t.conf;exit:.t.conf;"
+	if var_is_defined TEST_CONF_ACTIVE
+	then
+		_bashy_assert_fail
+	fi
+	rm -rf "${repo}"
+}
+
+function testGitPromptRepoConfFileRemoved() {
+	local repo
+	_test_git_repo repo
+	git_is_inside_flush
+	unset TEST_CONF_ACTIVE
+	_test_conf_log=""
+	cd "${repo}" || _bashy_assert_fail
+	touch "${repo}/.t.conf"
+	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
+	# the file going away while still inside the repo is a leave as well
+	rm "${repo}/.t.conf"
+	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
+	_bashy_assert_equal "${_test_conf_log}" "enter:.t.conf;exit:.t.conf;"
+	cd / || _bashy_assert_fail
+	rm -rf "${repo}"
+}

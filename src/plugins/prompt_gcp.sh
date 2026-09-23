@@ -106,72 +106,65 @@ function _prompt_gcp_apply_identity() {
 	export GOOGLE_APPLICATION_CREDENTIALS="${tmpfile}"
 }
 
-function prompt_gcp() {
+# runs on every prompt inside a repo that has .gcp.conf, so an edit to it shows
+# at the next prompt. Reading the file is builtin "read"; the identity switch
+# below has its own guard against redoing work that is already done.
+function _prompt_gcp_enter() {
+	local conf=$1
 	# _prompt_gcp_apply_identity reads this too, through dynamic scoping
 	# shellcheck disable=SC2034 # filled and read by name through assoc_*
 	local -A gcp_conf=()
-	local git_root gcp_home_conf_file CLOUDSDK_ACTIVE_CONFIG_NAME_NEW
+	# ~/.gcp.conf supplies defaults, the repo file overrides them
+	local home_conf="${HOME}/${gcp_conf_file_name}"
+	if [ -r "${home_conf}" ]
+	then
+		assoc_config_read gcp_conf "${home_conf}"
+	fi
+	assoc_config_read gcp_conf "${conf}"
 
-	if ! git_is_inside
+	# Export PROJECT_ID while inside a repo that has a .gcp.conf. This replaces
+	# the per-repo .auto.enter.sh/.auto.exit.sh that used to do this.
+	if ! var_is_defined PROJECT_ID
+	then
+		bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
+		export PROJECT_ID
+		PROJECT_ID="$(pygooglecloud get_project_id)"
+	fi
+	# Activate the identity (default account or a named service account)
+	# selected by gcp_identity in .gcp.conf.
+	_prompt_gcp_apply_identity
+
+	local new_name=""
+	assoc_get gcp_conf new_name "gcp_configuration_name"
+	if [ "${CLOUDSDK_ACTIVE_CONFIG_NAME-}" != "${new_name}" ]
 	then
 		if var_is_defined CLOUDSDK_ACTIVE_CONFIG_NAME
 		then
 			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "down"
 			unset CLOUDSDK_ACTIVE_CONFIG_NAME
 		fi
-		_prompt_gcp_unset_project_id
-		_prompt_gcp_unset_gac
-		return
-	fi
-
-	git_root=""
-	git_top_level git_root
-
-	gcp_home_conf_file="${HOME}/${gcp_conf_file_name}"
-	if [ -r "${gcp_home_conf_file}" ]
-	then
-		assoc_config_read gcp_conf "${gcp_home_conf_file}"
-	fi
-
-	if [ -r "${git_root}/${gcp_conf_file_name}" ]
-	then
-		assoc_config_read gcp_conf "${git_root}/${gcp_conf_file_name}"
-	fi
-
-	# Export PROJECT_ID while inside a repo that has a .gcp.conf, and unset it
-	# otherwise. This replaces the per-repo .auto.enter.sh/.auto.exit.sh that
-	# used to do this.
-	if [ -r "${git_root}/${gcp_conf_file_name}" ]
-	then
-		if ! var_is_defined PROJECT_ID
+		if ! _bashy_null_is_null "${new_name}"
 		then
 			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
-			export PROJECT_ID
-			PROJECT_ID="$(pygooglecloud get_project_id)"
+			export CLOUDSDK_ACTIVE_CONFIG_NAME="${new_name}"
 		fi
-		# Activate the identity (default account or a named service account)
-		# selected by gcp_identity in .gcp.conf.
-		_prompt_gcp_apply_identity
-	else
-		_prompt_gcp_unset_project_id
-		_prompt_gcp_unset_gac
 	fi
+}
 
-	CLOUDSDK_ACTIVE_CONFIG_NAME_NEW=""
-	assoc_get gcp_conf CLOUDSDK_ACTIVE_CONFIG_NAME_NEW "gcp_configuration_name"
-	if [ "${CLOUDSDK_ACTIVE_CONFIG_NAME}" != "${CLOUDSDK_ACTIVE_CONFIG_NAME_NEW}" ]
+function _prompt_gcp_exit() {
+	if var_is_defined CLOUDSDK_ACTIVE_CONFIG_NAME
 	then
-		if var_is_defined CLOUDSDK_ACTIVE_CONFIG_NAME
-		then
-			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "down"
-			unset CLOUDSDK_ACTIVE_CONFIG_NAME
-		fi
-		if ! _bashy_null_is_null "${CLOUDSDK_ACTIVE_CONFIG_NAME_NEW}"
-		then
-			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
-			export CLOUDSDK_ACTIVE_CONFIG_NAME="${CLOUDSDK_ACTIVE_CONFIG_NAME_NEW}"
-		fi
+		unset CLOUDSDK_ACTIVE_CONFIG_NAME
 	fi
+	_prompt_gcp_unset_project_id
+	_prompt_gcp_unset_gac
+}
+
+# The watching is done by git_prompt_repo_conf in core/git.sh, shared with
+# prompt_aws and prompt_k8s. The two functions above say what to do on the way
+# in and out.
+function prompt_gcp() {
+	git_prompt_repo_conf "prompt_gcp" PROMPT_GCP_CONF "${gcp_conf_file_name}" _prompt_gcp_enter _prompt_gcp_exit
 }
 
 function _activate_prompt_gcp() {
