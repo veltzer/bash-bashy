@@ -106,6 +106,42 @@ function _prompt_gcp_apply_identity() {
 	export GOOGLE_APPLICATION_CREDENTIALS="${tmpfile}"
 }
 
+# _prompt_gcp_project_id <configuration name> <out variable>
+# The [core] project of the named gcloud configuration, read from its file under
+# ${CLOUDSDK_CONFIG:-~/.config/gcloud}/configurations the way "gcloud config
+# get-value project" would, with the "read" builtin.
+#
+# This used to shell out to "pygooglecloud get_project_id", which does exactly
+# this file read in python. That tool lives in ~/.venv, and inside a uv project
+# prompt_uv has already swapped ~/.venv out for the project's venv by the time a
+# second gcp repo is entered, so PROJECT_ID came back empty there. Reading the
+# file here depends on nothing and costs no process.
+function _prompt_gcp_project_id() {
+	local name=$1
+	local -n __prompt_gcp_project=$2
+	__prompt_gcp_project=""
+	local config="${CLOUDSDK_CONFIG:-${HOME}/.config/gcloud}/configurations/config_${name}"
+	if [ ! -r "${config}" ]
+	then
+		return 1
+	fi
+	local line section=""
+	while read -r line || [ -n "${line}" ]
+	do
+		if [[ "${line}" =~ ^\[([^]]+)\] ]]
+		then
+			section="${BASH_REMATCH[1]}"
+			continue
+		fi
+		if [ "${section}" = "core" ] && [[ "${line}" =~ ^project[[:space:]]*=[[:space:]]*(.*[^[:space:]])[[:space:]]*$ ]]
+		then
+			__prompt_gcp_project="${BASH_REMATCH[1]}"
+			return 0
+		fi
+	done < "${config}"
+	return 1
+}
+
 # runs on every prompt inside a repo that has .gcp.conf, so an edit to it shows
 # at the next prompt. Reading the file is builtin "read"; the identity switch
 # below has its own guard against redoing work that is already done.
@@ -121,32 +157,38 @@ function _prompt_gcp_enter() {
 		assoc_config_read gcp_conf "${home_conf}"
 	fi
 	assoc_config_read gcp_conf "${conf}"
+	local conf_name=""
+	assoc_get gcp_conf conf_name "gcp_configuration_name"
 
 	# Export PROJECT_ID while inside a repo that has a .gcp.conf. This replaces
 	# the per-repo .auto.enter.sh/.auto.exit.sh that used to do this.
 	if ! var_is_defined PROJECT_ID
 	then
-		bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
-		export PROJECT_ID
-		PROJECT_ID="$(pygooglecloud get_project_id)"
+		local project=""
+		if ! _bashy_null_is_null "${conf_name}" && _prompt_gcp_project_id "${conf_name}" project
+		then
+			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
+			export PROJECT_ID="${project}"
+		else
+			bashy_log "prompt_gcp" "${BASHY_LOG_ERROR}" \
+				"no project in gcloud configuration [${conf_name}] named by ${conf}"
+		fi
 	fi
 	# Activate the identity (default account or a named service account)
 	# selected by gcp_identity in .gcp.conf.
 	_prompt_gcp_apply_identity
 
-	local new_name=""
-	assoc_get gcp_conf new_name "gcp_configuration_name"
-	if [ "${CLOUDSDK_ACTIVE_CONFIG_NAME-}" != "${new_name}" ]
+	if [ "${CLOUDSDK_ACTIVE_CONFIG_NAME-}" != "${conf_name}" ]
 	then
 		if var_is_defined CLOUDSDK_ACTIVE_CONFIG_NAME
 		then
 			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "down"
 			unset CLOUDSDK_ACTIVE_CONFIG_NAME
 		fi
-		if ! _bashy_null_is_null "${new_name}"
+		if ! _bashy_null_is_null "${conf_name}"
 		then
 			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
-			export CLOUDSDK_ACTIVE_CONFIG_NAME="${new_name}"
+			export CLOUDSDK_ACTIVE_CONFIG_NAME="${conf_name}"
 		fi
 	fi
 }
