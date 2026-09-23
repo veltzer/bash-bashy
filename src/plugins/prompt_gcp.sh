@@ -107,7 +107,10 @@ function _prompt_gcp_apply_identity() {
 }
 
 function prompt_gcp() {
-	assoc_new gcp_conf
+	# _prompt_gcp_apply_identity reads this too, through dynamic scoping
+	# shellcheck disable=SC2034 # filled and read by name through assoc_*
+	local -A gcp_conf=()
+	local git_root gcp_home_conf_file CLOUDSDK_ACTIVE_CONFIG_NAME_NEW
 
 	if ! git_is_inside
 	then
@@ -169,7 +172,6 @@ function prompt_gcp() {
 			export CLOUDSDK_ACTIVE_CONFIG_NAME="${CLOUDSDK_ACTIVE_CONFIG_NAME_NEW}"
 		fi
 	fi
-	unset CLOUDSDK_ACTIVE_CONFIG_NAME_NEW
 }
 
 function _activate_prompt_gcp() {

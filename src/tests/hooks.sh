@@ -4,12 +4,16 @@ source src/core/assoc.sh
 source src/core/misc.sh
 source src/core/hooks.sh
 
-# hooks registers into these two globals, so each test starts from a clean pair
+# hooks registers into these globals, so each test starts from a clean set
 function _test_hooks_reset() {
 	unset _bashy_array_function
 	unset _bashy_assoc_function
+	unset _bashy_assoc_deactivate
+	unset _bashy_assoc_install
 	declare -g -a _bashy_array_function=()
 	declare -g -A _bashy_assoc_function=()
+	declare -g -A _bashy_assoc_deactivate=()
+	declare -g -A _bashy_assoc_install=()
 }
 
 function testRegisterCoreRecordsFunction() {
@@ -46,11 +50,39 @@ function testRegisterUsesSourceName() {
 	_bashy_assert_equal "${_bashy_assoc_function[_activate_from_test]}" "hooks"
 }
 
-function testRegisterInstallIsANoop() {
+function testRegisterInstallIsNotAHook() {
 	_test_hooks_reset
 	register_install "_install_thing"
 	# install functions are not hooks, they are only called on demand
 	_bashy_assert_equal "${#_bashy_array_function[@]}" 0
+}
+
+function testRegisterInstallRemembersByPlugin() {
+	_test_hooks_reset
+	register_install "_install_thing"
+	# keyed on the plugin name, which is the file that called register_install
+	_bashy_assert_equal "${_bashy_assoc_install[hooks]}" "_install_thing"
+}
+
+function testRegisterCoreRemembersDeactivate() {
+	_test_hooks_reset
+	register_core "_activate_thing" "thing" "_deactivate_thing"
+	_bashy_assert_equal "${_bashy_assoc_deactivate[thing]}" "_deactivate_thing"
+	# the deactivate function is not a startup hook
+	_bashy_assert_equal "${#_bashy_array_function[@]}" 1
+}
+
+function testRegisterWithoutDeactivateRemembersNone() {
+	_test_hooks_reset
+	register "_activate_plain"
+	_bashy_assert_equal "${#_bashy_assoc_deactivate[@]}" 0
+}
+
+function testRegisterPassesDeactivate() {
+	_test_hooks_reset
+	# this second argument used to be silently dropped
+	register "_activate_with_off" "_deactivate_with_off"
+	_bashy_assert_equal "${_bashy_assoc_deactivate[hooks]}" "_deactivate_with_off"
 }
 
 function testRegisterInteractiveSkipsWhenNotInteractive() {

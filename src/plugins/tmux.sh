@@ -34,12 +34,16 @@ function _activate_tmux() {
 	# if in tmux, don't do anything
 	if [[ -z ${TMUX+x} ]]
 	then
-		sessions=$(tmux ls | wc -l)
-		if [ "${sessions}" -gt 0 ]
+		# "tmux ls" complains on stderr when no server is running, which is
+		# exactly the case that leads to a new session below
+		local -a sessions=()
+		readarray -t sessions < <(tmux ls -F '#{session_name}' 2> /dev/null)
+		if [ "${#sessions[@]}" -gt 0 ]
 		then
-			options="new $(tmux ls -F '#{session_name}')"
-			# vim syntax hightlighting is bad at the next line
-			select sel in "${options}"
+			# one menu entry per session. This used to pass the list as one
+			# quoted word, so the menu had a single entry holding every name.
+			local sel
+			select sel in "new" "${sessions[@]}"
 			do
 				break
 			done
@@ -63,7 +67,7 @@ function _activate_tmux_old() {
 	# if not in tmux
 	if [[ -z ${TMUX+x} ]]
 	then
-		session="0"
+		local session="0"
 		if tmux has-session -t "${session}" 2> /dev/null
 		then
 			exec tmux attach-session -t "${session}"

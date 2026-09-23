@@ -2,7 +2,7 @@
 #
 # Here is the general flow here:
 #
-# _bashy_load_core - loads core functions under ~/.bashy/core/*.bash
+# _bashy_load_core - loads core functions under ~/.bashy/core/*.sh
 # _bashy_read_plugins - reads which plugins you want loaded
 # 	from either ~/.bashy.list or ~/.bashy/bashy.list
 # _bashy_load_plugins - loads the plugins you wanted from
@@ -30,6 +30,17 @@
 #
 # Add a new module wherever its dependencies are already satisfied. Anything not
 # named here still gets loaded afterwards, so a forgotten module is not fatal.
+
+# Where bashy lives: the folder holding this file. Everything else (core,
+# plugins, bashy.list) is found relative to it, so bashy runs the same from
+# ~/.bashy and from a source checkout. Sourced as a bare "bashy.sh" there is no
+# slash to strip, which is what the second line is for.
+_BASHY_HOME="${BASH_SOURCE[0]%/*}"
+if [ "${_BASHY_HOME}" = "${BASH_SOURCE[0]}" ]
+then
+	_BASHY_HOME="."
+fi
+
 bashy_core_order=(
 	# standalone building blocks
 	null
@@ -100,6 +111,7 @@ function _bashy_load_core() {
 
 function _bashy_read_plugins_filename() {
 	local filename=$1
+	local line plugin enabled
 	while read -r line; do
 		if [[ "${line}" =~ ^#.* ]]; then
 			continue
@@ -126,7 +138,7 @@ function _bashy_read_plugins_filename() {
 }
 
 function _bashy_read_plugins() {
-	filename="${HOME}/.bashy/bashy.list"
+	local filename="${_BASHY_HOME}/bashy.list"
 	_bashy_read_plugins_filename "${filename}"
 	filename="${HOME}/.bashy.list"
 	if [ -f "${filename}" ]; then
@@ -135,8 +147,9 @@ function _bashy_read_plugins() {
 }
 
 function _bashy_load_plugins() {
+	local plugin current_filename
 	for plugin in "${bashy_array_plugin[@]}"; do
-		current_filename="${HOME}/.bashy/plugins/${plugin}.sh"
+		current_filename="${_BASHY_HOME}/plugins/${plugin}.sh"
 		if [[ -r "${current_filename}" ]]; then
 			assoc_set bashy_assoc_found "${plugin}" 1
 			assoc_set bashy_assoc_filename "${plugin}" "${current_filename}"
@@ -166,6 +179,7 @@ function _bashy_load_config() {
 }
 
 function _bashy_run_plugins() {
+	local function
 	for function in "${_bashy_array_function[@]}"; do
 		local plugin
 		assoc_get _bashy_assoc_function plugin "${function}"
@@ -199,6 +213,7 @@ function _bashy_run_plugins() {
 }
 
 function bashy_status_core() {
+	local i name res
 	((i = 0))
 	for name in "${bashy_core_names[@]}"; do
 		_bashy_cecho gr "${name}" 1
@@ -218,6 +233,7 @@ function bashy_status_core() {
 # handlers which may have succeeded in initializing
 # or not
 function bashy_status_plugins() {
+	local plugin
 	for plugin in "${bashy_array_plugin[@]}"; do
 		_bashy_cecho gr "${plugin}" 1
 		local enabled
@@ -274,7 +290,7 @@ function bashy_status_plugins() {
 }
 
 function bashy_errors() {
-	local i
+	local i plugin
 	((i = 0))
 	for plugin in "${bashy_array_plugin[@]}"; do
 		local enabled
@@ -323,40 +339,82 @@ function bashy_version() {
 }
 
 # bashy_check_deployment [source checkout]
-# Compare the running ~/.bashy against a checkout of the repository and say what
+# Compare the running bashy against a checkout of the repository and say what
 # differs. A deployment that has drifted from the source is otherwise invisible:
 # everything keeps working, just not with the code you think you are running.
+#
+# The argument is the root of the checkout, the folder holding src/ and
+# scripts/. Without one the usual places are tried.
 function bashy_check_deployment() {
 	local source_dir=${1:-}
-	if [ -z "${source_dir}" ]; then
-		for source_dir in "${REPOS_FOLDER}/bash-bashy" "${REPOS_FOLDER}/veltzer/bash-bashy" "${HOME}/bash-bashy" ""; do
-			[ -n "${source_dir}" ] && [ -r "${source_dir}/bashy.sh" ] && break
+	if [ -z "${source_dir}" ]
+	then
+		local candidate
+		for candidate in "${REPOS_FOLDER:-${HOME}/git}/bash-bashy" "${REPOS_FOLDER:-${HOME}/git}/veltzer/bash-bashy" "${HOME}/bash-bashy"
+		do
+			if [ -r "${candidate}/src/bashy.sh" ]
+			then
+				source_dir="${candidate}"
+				break
+			fi
 		done
 	fi
-	if [ -z "${source_dir}" ] || [ ! -r "${source_dir}/bashy.sh" ]; then
-		echo "no bashy checkout found, pass one: bashy_check_deployment <dir>"
+	if [ -z "${source_dir}" ] || [ ! -r "${source_dir}/src/bashy.sh" ]
+	then
+		echo "no bashy checkout found, pass one: bashy_check_deployment <checkout>"
 		return 1
 	fi
-	echo "comparing [${HOME}/.bashy] against [${source_dir}]"
+	local src="${source_dir}/src"
+	echo "comparing [${_BASHY_HOME}] against [${src}]"
 	local source_version
-	source_version=$(sed -n 's/^export BASHY_VERSION_STR="\(.*\)"/\1/p' "${source_dir}/core/version.sh" 2>/dev/null)
-	if [ -n "${source_version}" ] && [ "${source_version}" != "${BASHY_VERSION_STR}" ]; then
+	source_version=$(sed -n 's/^export BASHY_VERSION_STR="\(.*\)"/\1/p' "${src}/core/version.sh" 2>/dev/null)
+	if [ -n "${source_version}" ] && [ "${source_version}" != "${BASHY_VERSION_STR}" ]
+	then
 		echo "  version: running ${BASHY_VERSION_STR}, source ${source_version}"
 	fi
 	local differing
 	differing=$(
-		diff --recursive --brief "${source_dir}/core" "${HOME}/.bashy/core" 2>&1
-		diff --recursive --brief "${source_dir}/plugins" "${HOME}/.bashy/plugins" 2>&1
-		diff --brief "${source_dir}/bashy.sh" "${HOME}/.bashy/bashy.sh" 2>&1
-		diff --brief "${source_dir}/bashy.list" "${HOME}/.bashy/bashy.list" 2>&1
+		diff --recursive --brief "${src}/core" "${_BASHY_HOME}/core" 2>&1
+		diff --recursive --brief "${src}/plugins" "${_BASHY_HOME}/plugins" 2>&1
+		diff --brief "${src}/bashy.sh" "${_BASHY_HOME}/bashy.sh" 2>&1
+		diff --brief "${src}/bashy.list" "${_BASHY_HOME}/bashy.list" 2>&1
 	)
-	if [ -z "${differing}" ]; then
+	if [ -z "${differing}" ]
+	then
 		echo "  up to date"
 		return 0
 	fi
 	printf '  %s\n' "${differing}"
-	echo "  run ${source_dir}/scripts/install_in_home.bash to update"
+	echo "  run ${source_dir}/scripts/install_in_home.sh to update"
 	return 1
+}
+
+# bashy_install <plugin>
+# Run the installer a plugin registered with register_install.
+function bashy_install() {
+	local plugin=$1
+	local installer
+	assoc_get _bashy_assoc_install installer "${plugin}"
+	if _bashy_null_is_null "${installer}"
+	then
+		echo "no installer registered for [${plugin}]"
+		return 1
+	fi
+	"${installer}"
+}
+
+# bashy_deactivate <plugin>
+# Run the deactivate function a plugin registered alongside its activate one.
+function bashy_deactivate() {
+	local plugin=$1
+	local deactivate
+	assoc_get _bashy_assoc_deactivate deactivate "${plugin}"
+	if _bashy_null_is_null "${deactivate}"
+	then
+		echo "[${plugin}] has no deactivate function"
+		return 1
+	fi
+	"${deactivate}"
 }
 
 function _bashy_init() {
@@ -369,6 +427,8 @@ function _bashy_init() {
 	_bashy_load_core
 	declare -ga _bashy_array_function
 	assoc_new _bashy_assoc_function
+	assoc_new _bashy_assoc_deactivate
+	assoc_new _bashy_assoc_install
 	declare -ga bashy_array_plugin
 	assoc_new bashy_assoc_found
 	assoc_new bashy_assoc_filename

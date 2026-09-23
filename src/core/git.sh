@@ -38,29 +38,76 @@ function git_is_inside_flush() {
 }
 
 # returns the top level of a git tree
+#
+# The nameref carries the function's name so that a caller which is itself
+# holding a nameref (git_repo_name below) does not clash with it: two nested
+# "local -n __var" resolve to the same variable, and the inner assignment lands
+# in the wrong place. No other local either, so a caller passing a variable
+# named "toplevel" gets its own and not ours.
 function git_top_level() {
-	local -n __var=$1
-	local toplevel
-	toplevel=$(git rev-parse --show-toplevel)
-	__var="${toplevel}"
+	local -n __git_top_level_var=$1
+	__git_top_level_var=$(git rev-parse --show-toplevel)
 }
 
 # returns the name of the current git repo
 function git_repo_name() {
-	local -n __var=$1
+	local -n __git_repo_name_var=$1
 	local toplevel
-	git_top_levl toplevel
-	local name=${toplevel##*/}
-	__var="${name}"
+	git_top_level toplevel
+	__git_repo_name_var="${toplevel##*/}"
 }
 
 # go to the root of the current git repo
+#
+# This is called from an interactive shell, so a failure has to "return", never
+# "exit": the exit would take the whole shell with it.
 function git_root() {
-	# go to the root of the current git repo (if indeed inside a git repo)
 	# the "git rev-parse" will also print an error if not inside a git repo
-	cd_arg="$(git rev-parse --show-cdup)"
+	local cd_arg
+	cd_arg="$(git rev-parse --show-cdup)" || return 1
 	if [ -n "${cd_arg}" ]
 	then
-		cd "${cd_arg}" || exit
+		cd "${cd_arg}" || return 1
+	fi
+}
+
+# git_prompt_repo_path <log tag> <variable> <subdir>
+# Keep <repo root>/<subdir> at the head of PATH while inside a git repository
+# that has that folder, and take it off again on the way out. <variable> is the
+# exported variable that remembers what was added, so the next prompt knows what
+# to remove. Meant to be called from a prompt function, once per prompt.
+#
+# prompt_gems and prompt_node were the same forty lines with a different folder
+# name, so the logic lives here once and each of them is a one line call.
+function git_prompt_repo_path() {
+	local tag=$1
+	local name=$2
+	local subdir=$3
+	local wanted=""
+	if git_is_inside
+	then
+		local root
+		git_top_level root
+		if [ -d "${root}/${subdir}" ]
+		then
+			wanted="${root}/${subdir}"
+		fi
+	fi
+	local current="${!name-}"
+	if [ "${current}" = "${wanted}" ]
+	then
+		return
+	fi
+	if [ -n "${current}" ]
+	then
+		bashy_log "${tag}" "${BASHY_LOG_INFO}" "down"
+		_bashy_pathutils_remove PATH "${current}"
+		unset "${name}"
+	fi
+	if [ -n "${wanted}" ]
+	then
+		bashy_log "${tag}" "${BASHY_LOG_INFO}" "up"
+		export "${name}=${wanted}"
+		_bashy_pathutils_add_head PATH "${wanted}"
 	fi
 }

@@ -1,4 +1,4 @@
-function _activate_local_install() {
+function _activate_homedir_install() {
 	local -n __var=$1
 	local -n __error=$2
 	LOCAL_INSTALL_BIN="${HOME}/install/bin"
@@ -13,4 +13,4 @@ function _activate_local_install() {
 	__var=0
 }
 
-register _activate_local_install
+register _activate_homedir_install

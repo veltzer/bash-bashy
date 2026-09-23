@@ -1,7 +1,8 @@
 # floating point utilities
 # https://stackoverflow.com/questions/8654051/how-to-compare-two-floating-point-numbers-in-bash
-
-ASSERT_FAILED_CODE=128
+#
+# The assert helpers at the bottom use ASSERT_FAILED_CODE from assert.sh, which
+# is loaded before this module.
 
 function float_gt() {
 	local a=$1
@@ -45,7 +46,7 @@ function float_add() {
 	local b=$3
 	local result
 	result=$(echo "${a}+${b}" |bc -l)
-	eval "${__user_var}=${result}"
+	printf -v "${__user_var}" '%s' "${result}"
 }
 
 function float_sub() {
@@ -54,7 +55,7 @@ function float_sub() {
 	local b=$3
 	local result
 	result=$(echo "${a}-${b}" |bc -l)
-	eval "${__user_var}=${result}"
+	printf -v "${__user_var}" '%s' "${result}"
 }
 
 function float_mul() {
@@ -63,7 +64,7 @@ function float_mul() {
 	local b=$3
 	local result
 	result=$(echo "${a}*${b}" |bc -l)
-	eval "${__user_var}=${result}"
+	printf -v "${__user_var}" '%s' "${result}"
 }
 
 function float_div() {
@@ -72,7 +73,7 @@ function float_div() {
 	local b=$3
 	local result
 	result=$(echo "${a}/${b}" |bc -l)
-	eval "${__user_var}=${result}"
+	printf -v "${__user_var}" '%s' "${result}"
 }
 
 function _bashy_assert_lt() {

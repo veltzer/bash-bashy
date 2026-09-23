@@ -29,6 +29,7 @@ function _prompt_auto_source() {
 # Exit the currently active auto environment (if any): source its
 # .auto.exit.sh and unset AUTO_ACTIVE.
 function _prompt_auto_exit() {
+	local auto_file_exit_full
 	if var_is_defined AUTO_ACTIVE
 	then
 		auto_file_exit_full="${AUTO_ACTIVE}/${auto_file_exit}"
@@ -42,6 +43,7 @@ function _prompt_auto_exit() {
 }
 
 function prompt_auto() {
+	local git_root auto_file_enter_full
 	if ! git_is_inside
 	then
 		_prompt_auto_exit

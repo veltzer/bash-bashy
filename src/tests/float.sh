@@ -1,3 +1,4 @@
+source src/core/assert.sh
 source src/core/float.sh
 
 function test_gt() {

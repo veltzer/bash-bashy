@@ -11,7 +11,7 @@ function python_version_short() {
 	version="${version##* }"
 	# retain only what is before the last dot (3.5.3 -> 3.5)
 	version="${version%.*}"
-	eval "${__user_var}=\"${version}\""
+	printf -v "${__user_var}" '%s' "${version}"
 }
 
 function old_python_activate() {

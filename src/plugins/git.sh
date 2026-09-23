@@ -6,7 +6,7 @@ function _activate_git() {
 	if ! source /usr/share/bash-completion/completions/git
 	then
 		__var=1
-		__error="problem in sourcing hugo completion"
+		__error="problem in sourcing git completion"
 		return
 	fi
 	__var=0

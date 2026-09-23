@@ -7,6 +7,7 @@
 k8s_conf_file_name=".k8s.conf"
 
 function prompt_k8s() {
+	local git_root k8s_configuration_name
 	if ! git_is_inside
 	then
 		if var_is_defined KUBECONFIG

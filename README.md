@@ -33,10 +33,12 @@ It is plugin based and allows for easy extension.
 
 ## Installing Bashy
 
-First clone the repository into your home directory:
+Clone the repository and install the runtime part of it into `~/.bashy`:
 
 ```bash
-git clone --branch master --depth 1 https://github.com/veltzer/bash-bashy.git ~/.bashy && rm -rf ~/.bashy/.git
+git clone --depth 1 https://github.com/veltzer/bash-bashy.git
+cd bash-bashy
+./scripts/install_in_home.sh
 ```
 
 Then edit `~/.bashrc` and add the following line as the last line:
@@ -47,24 +49,24 @@ source ~/.bashy/bashy.sh
 
 In my own setup this is the only line I have in my `~/.bashrc`
 
-### Installing from a working copy
+The install script copies only what is needed at runtime, listed in `.includes`,
+and it is incremental: it prints the files that changed and copies nothing else.
+`--delete` prunes anything in `~/.bashy` that is no longer part of the install, so
+a renamed or removed plugin does not linger. Run it again after every `git pull`.
 
-If you develop bashy rather than just use it, clone the repository somewhere else
-and install from there:
+Bashy finds its own core, plugins and `bashy.list` next to `bashy.sh`, so you can
+also skip the install and source the checkout directly, which is handy while
+developing a plugin:
 
 ```bash
-./scripts/install_in_home.bash
+source ~/git/bash-bashy/src/bashy.sh
 ```
 
-That copies only what is needed at runtime, listed in `.includes`, and it is
-incremental: it prints the files that changed and copies nothing else. `--delete`
-prunes anything in `~/.bashy` that is no longer part of the install, so a renamed or
-removed plugin does not linger.
-
-To check whether the running `~/.bashy` still matches your checkout:
+To check whether the running `~/.bashy` still matches your checkout, pass the root
+of the checkout (or nothing, to try the usual places):
 
 ```bash
-bashy_check_deployment
+bashy_check_deployment ~/git/bash-bashy
 ```
 
 ## Debugging Bashy
@@ -79,11 +81,16 @@ To see all errors use:
 bashy_errors
 ```
 
-To get debug messages you can create a `~/.bashy.config` and put the following content into it:
+To get debug messages from the plugins as they load, create a `~/.bashy.config`
+and set the log level in it. The levels are `BASHY_LOG_NONE` (0) up to
+`BASHY_LOG_DEBUG` (5):
 
-```text
-readonly BASHY_DEBUG=0
+```bash
+export BASHY_LOG_LEVEL=5
 ```
+
+In a running shell `bashy_log_debug`, `bashy_log_info` and `bashy_log_none` switch
+the level without editing anything.
 
 ## Working with Bashy
 
@@ -99,28 +106,34 @@ To check the status of plugins of Bashy use:
 bashy_status_plugins
 ```
 
-To disable or enable a plugins or to change the order in which
-they are applied just edit `~/.bashy.list`
+The plugins to run, and the order to run them in, are listed in
+`~/.bashy/bashy.list`. To add to that without editing the installed copy, create
+`~/.bashy.list`: it is read after the installed list and a plugin named in both
+takes the setting from the later file, so it can disable one that the installed
+list enables:
 
 ```text
 # this file supports hash comments
-by_host
-meta
-path_mine
--path_pycharm_add
-pylogconf
+tmux
+prompt
+git
+-careful_aliases
+history
 ```
 
-To reread the plugins use:
+Bashy is set up once, when the shell starts, so after installing a new version or
+editing the plugin list open a new shell, or replace the current one:
 
 ```bash
-bashy_load_plugins
+exec bash
 ```
 
-To reinit Bashy when a new version is installed or pulled:
+A plugin that registered an installer can be installed from the shell, and one
+that registered a deactivate function can be turned off in the running shell:
 
 ```bash
-bashy_init
+bashy_install uv
+bashy_deactivate prompt_error
 ```
 
 ## Writing Bashy plugins
@@ -138,6 +151,16 @@ function _activate_hello_plugin() {
 	__var=0
 }
 register _activate_hello_plugin
+```
+
+`register` takes an optional second function that undoes the activation, which
+`bashy_deactivate <plugin>` runs on demand. `register_interactive` is the same but
+only registers in an interactive shell. `register_install` names the plugin's
+installer, for `bashy_install <plugin>`:
+
+```bash
+register_interactive _activate_hello_plugin _deactivate_hello_plugin
+register_install _install_hello
 ```
 
 ### Writing a prompt plugin
@@ -173,6 +196,10 @@ repository appears or disappears under a directory you are already in.
 
 Registration prepends, so prompt functions run in reverse registration order: a
 plugin listed later in `bashy.list` gets to set `PS1` before an earlier one.
+
+The exit status of the command the user just ran is in `BASHY_PROMPT_STATUS`. It
+is captured once before any prompt function runs, so read that rather than `$?`,
+which by then is the status of whatever prompt function ran before yours.
 
 ### Shell completions
 

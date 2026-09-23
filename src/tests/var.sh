@@ -17,6 +17,13 @@ function testInFunction() {
 	in_function
 }
 
+function testSetByNameKeepsQuotes() {
+	local v=""
+	# the eval based version broke on a single quote and expanded a dollar
+	var_set_by_name v "it's \$HOME \`x\`"
+	_bashy_assert_equal "${v}" "it's \$HOME \`x\`"
+}
+
 function testDefinedPATH() {
 	if ! var_is_defined PATH
 	then

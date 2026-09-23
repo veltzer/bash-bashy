@@ -1,7 +1,8 @@
 # This is an error prompt which prints a message if $? is not 0
 
 function prompt_error() {
-	ret=$?
+	local ret="${BASHY_PROMPT_STATUS}"
+	local sig reason
 	bashy_log "prompt_error" "${BASHY_LOG_DEBUG}" "got ret [${ret}]"
 	if [ "${ret}" -ne 0 ]
 	then

@@ -2,7 +2,9 @@ function _activate_encfs() {
 	local -n __var=$1
 	local -n __error=$2
 	if ! checkInPath "encfs" __var __error; then return; fi
-	if ! "${ENCFS_ENABLED}"
+	# a plain string test: this used to run the value as a command, which works
+	# for "true" and "false" and does something else for anything unset or typo'd
+	if [ "${ENCFS_ENABLED:-false}" != "true" ]
 	then
 		__error="encfs not enabled"
 		__var=1

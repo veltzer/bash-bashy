@@ -7,8 +7,9 @@
 aws_conf_file_name=".aws.conf"
 
 function prompt_aws() {
-	assoc_new aws_conf
-	export aws_conf
+	# shellcheck disable=SC2034 # filled and read by name through assoc_*
+	local -A aws_conf=()
+	local git_root aws_home_conf_file aws_configuration_name
 
 	if ! git_is_inside
 	then

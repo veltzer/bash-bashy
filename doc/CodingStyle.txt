@@ -16,7 +16,7 @@ done
 
 
 names of files:
-all bash files are .bash
+all bash files are .sh
 this includes all include file.
 
 We prefer to code static strings with single quotes ('NULL') and not with double quotes because

@@ -1,21 +1,10 @@
-NOTE: three rounds of planned work are recorded in doc/plan_done.md,
-doc/plan_done2.md and doc/plan_done3.md. Some items below were done there:
-- "do an install hook ... $ bashy install [name]" - install functions are
-  _install_<name>, with shared helpers in core/install.sh, see README.md
-- "allow to deactivate plugins" - a leading minus in bashy.list disables one
-- "use associate array for bashys internal structures" - done, core/assoc.sh
-The rest of this file has not been reconciled with those plans.
-
 - add saving a stack of all previous commands
 
-- I have way too many plugins/prompt_*.bash plugins and a lot of them do the same thing.
-	It seems like the auto plugin can take care of most of them.
-	prompt_gems and prompt_node do almost the same thing:
-		they add an element to the path if a directtory is there!
-		possibly define an environment variable.
-	same for many others.
+- I have way too many plugins/prompt_*.sh plugins and a lot of them do the same thing.
+	prompt_gems and prompt_node now share git_prompt_repo_path in core/git.sh.
+	prompt_aws and prompt_k8s still each read a conf file at the repo root by hand,
+	and the auto plugin can take care of most of the rest.
 	try to reduce and simplify.
-
 
 - allow to activate only specific plugins when logging.
 
@@ -25,29 +14,18 @@ The rest of this file has not been reconciled with those plans.
 - add feature to allow to set the name of the current window in tmux to the name of the git
 	repo that you are in.
 	This will save me the trouble of having to do that myself all the time.
-- improve bashy:
-	move to assoc data strcutures.
-	allow to deactivate plugins.
-	do plugin for poetry
+- do plugin for poetry
 - have a "strict" mode for bashy where it does not accept failures.
 - have a command to bashy to print a list of correctly running plugins (and nothing else)
 	so that I could compare the list between my desktop and my laptop.
-- use associate array for bashys internal structures.
-	this will allow us to do more for other TODO items.
 - read all plugins at startup and not just those marked in bashy.list
-- do an install hook where each module could hook up an install function and you
-	could install every prereq using:
-	$ bashy install [name]
 - bashy should source all plugins and so we would need to list just the ones
 	we want to activate in the bashy.list file.
 	This way we could also activate plugins that we did not want activate
 	right when we login.
-- allow plugins to turn themsevles on and off.
-	$ bashy activate [pluginname]
-	$ bashy deactivate [pluginname]
-	write deactivate methods for all my default plugins and make it easy to write
-	them.
-- allow to see the status of plugins which are activateed
+- write deactivate functions for all my default plugins. The registration side
+	is there (register <activate> <deactivate>, bashy_deactivate <plugin>) but
+	only prompt_error uses it.
 - do everything with one command: "bashy":
 	$ bashy errors
 	$ bashy debug
@@ -59,10 +37,9 @@ The rest of this file has not been reconciled with those plans.
 	/home/mark/.bash_completion.d/bashy
 - pimp up my powerline-shell
 	add powerline line feel to tmux.
-- create more check functions in core/check.bash and use them all over my plugins.
+- create more check functions in core/check.sh and use them all over my plugins.
 - create distributions on github as a result of bashy workflow with proper versioning
 	and change the instructions about using bashy to get bashy from last version.
-- make sure that we have no "evals" left in the code.
 - allow plugins to depend on other plugins and deduce right order and plugins
 	to activate automatically.
 - consider using libraries from https://github.com/juan131/bash-libraries
@@ -70,17 +47,9 @@ The rest of this file has not been reconciled with those plans.
 - clean our path (remove duplicate entries) in bashy.
 - put all the extra paths we have at the end of the path and not in the beginging.
 	(actauly have a config for that).
-- make a script that installs bashy locally without the .git
-	folder.
-- make a script run_tests.bash
-	that runs all tests and makes sure that everything is fine.
 - bashy should not pollute the users bash namespace with too many functions.
 	this is a work in progress, look at core/misc.sh.
 - make bashy be reloadable (currently it is not as the array just keep growing).
-- make every bashy plugin have turn on and turn off so that we could turn them
-	on and off.
-	do commands for that.
-- make bashy have uninstall for each plugin and install.
 - if a plugin needs a configuration option let him declare that and documentation for it.
 	Let it read it from the ~/.bashy.config file (the file already exists)
 - separate myenv from bashy.

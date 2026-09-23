@@ -84,6 +84,49 @@ function testPromptRunsEveryFunction() {
 	unset -f _test_prompt_a _test_prompt_b
 }
 
+function testPromptCapturesStatus() {
+	_test_prompt_reset
+	function _test_prompt_seen() { _test_prompt_seen_status="${BASHY_PROMPT_STATUS}"; }
+	# a direct call first, so the helper has a visible call site (see above)
+	BASHY_PROMPT_STATUS=7
+	_test_prompt_seen
+	_bashy_assert_equal "${_test_prompt_seen_status}" 7
+	_bashy_prompt_register "_test_prompt_seen"
+	# the status of the command before bashy_prompt is what every prompt function
+	# sees, however many of them ran before it
+	( exit 3 )
+	bashy_prompt
+	_bashy_assert_equal "${_test_prompt_seen_status}" 3
+	true
+	bashy_prompt
+	_bashy_assert_equal "${_test_prompt_seen_status}" 0
+	unset -f _test_prompt_seen
+}
+
+function testPromptTakesStatusFromStarship() {
+	_test_prompt_reset
+	function _test_prompt_seen_ss() { _test_prompt_seen_status="${BASHY_PROMPT_STATUS}"; }
+	# a direct call first, so the helper has a visible call site (see above)
+	BASHY_PROMPT_STATUS=7
+	_test_prompt_seen_ss
+	_bashy_assert_equal "${_test_prompt_seen_status}" 7
+	_bashy_prompt_register "_test_prompt_seen_ss"
+	# under starship "$?" is already 0 when we run, and the real status is in
+	# STARSHIP_CMD_STATUS. Without starship in PROMPT_COMMAND that variable is
+	# ignored, so a stale one cannot leak in.
+	local PROMPT_COMMAND="starship_precmd"
+	# shellcheck disable=SC2034 # read by bashy_prompt
+	local STARSHIP_CMD_STATUS=5
+	true
+	bashy_prompt
+	_bashy_assert_equal "${_test_prompt_seen_status}" 5
+	PROMPT_COMMAND=""
+	( exit 2 )
+	bashy_prompt
+	_bashy_assert_equal "${_test_prompt_seen_status}" 2
+	unset -f _test_prompt_seen_ss
+}
+
 function testPromptWithNothingRegistered() {
 	_test_prompt_reset
 	# an empty prompt list must not error, a shell would break on every command

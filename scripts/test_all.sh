@@ -19,7 +19,7 @@ count_er=0
 for f in $(declare -F)
 do
 	name="${f:11}"
-	if [[ "${name}" =~ ^test* ]]
+	if [[ "${name}" =~ ^test ]]
 	then
 		echo -n "running [${name}]..."
 		res=0
