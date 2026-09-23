@@ -10,33 +10,30 @@ function _activate_gradle() {
 
 function _install_gradle() {
 	# this function installs the latest gradle from a binary zip file distribution
-	version=$(curl -fsSL https://services.gradle.org/versions/current | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
-	if [ -z "${version}" ]; then
-		echo "Could not determine latest Gradle version"
-		return 1
-	fi
-	folder="gradle-${version}"
-	filename="${folder}-bin.zip"
-	installed=""
+	local latest_version
+	latest_version=$(curl --fail --silent --location "https://services.gradle.org/versions/current" | jq --raw-output '.version')
+	local toplevel="gradle-${latest_version}"
+	local installed_version=""
 	if [ -x "${HOME}/install/gradle/bin/gradle" ]
 	then
-		installed=$("${HOME}/install/gradle/bin/gradle" --version 2>/dev/null | awk '/^Gradle /{print $2; exit}')
+		installed_version=$("${HOME}/install/gradle/bin/gradle" --version 2>/dev/null | awk '/^Gradle /{print $2; exit}')
 	fi
-	if bashy_install_check "gradle" "${installed}" "${version}"
+	if bashy_install_check "gradle" "${installed_version}" "${latest_version}"
 	then
 		return
 	fi
-	rm -rf "${HOME}/install/${folder}" "${HOME}/install/gradle"
+	local download_file="https://downloads.gradle.org/distributions/${toplevel}-bin.zip"
+	bashy_install_download "${download_file}"
 	local archive
-	bashy_download "https://downloads.gradle.org/distributions/${filename}" archive || return
-	bashy_verify_sha256 "${archive}" "https://downloads.gradle.org/distributions/${filename}.sha256" || return
+	bashy_download "${download_file}" archive || return
+	bashy_verify_sha256 "${archive}" "${download_file}.sha256" || return
+	rm -rf "${HOME}/install/${toplevel}" "${HOME}/install/gradle"
 	bashy_install_extract "${archive}" "${HOME}/install"
-	cd "${HOME}/install" || return
-	ln -s "${folder}" "gradle"
+	ln -sfn "${HOME}/install/${toplevel}" "${HOME}/install/gradle"
 }
 
 function _install_gradle_apt() {
-	sudo apt install gradle
+	bashy_install_apt "gradle" "gradle"
 }
 function _uninstall_gradle() {
 	# the symlink points at the versioned directory, drop both

@@ -14,19 +14,13 @@
 #
 # Upstream script, for comparison: https://aka.ms/InstallAzureCLIDeb
 function _install_azurecli_deb() {
-	before_strict
 	local keyring="/etc/apt/keyrings/microsoft.gpg"
 	local sources="/etc/apt/sources.list.d/azure-cli.sources"
-	sudo apt-get update
-	sudo apt-get install --assume-yes --no-install-recommends \
-		apt-transport-https ca-certificates curl gnupg lsb-release
+	bashy_install_apt "azure-cli prerequisites" \
+		apt-transport-https ca-certificates curl gnupg lsb-release || return 1
 	# the key is armoured, dearmour it into the keyring apt expects
 	local key
-	if ! bashy_download "https://packages.microsoft.com/keys/microsoft.asc" key
-	then
-		after_strict
-		return 1
-	fi
+	bashy_download "https://packages.microsoft.com/keys/microsoft.asc" key || return 1
 	sudo mkdir -p /etc/apt/keyrings
 	gpg --dearmor < "${key}" | sudo tee "${keyring}" > /dev/null
 	sudo chmod go+r "${keyring}"
@@ -43,7 +37,6 @@ function _install_azurecli_deb() {
 			Debian) repo="bookworm" ;;
 			*)
 				echo "no azure-cli repository for [${dist} ${repo}], see https://packages.microsoft.com/repos/azure-cli/dists/" >&2
-				after_strict
 				return 1
 				;;
 		esac
@@ -53,75 +46,55 @@ function _install_azurecli_deb() {
 	sudo rm -f /etc/apt/sources.list.d/azure-cli.list
 	printf 'Types: deb\nURIs: https://packages.microsoft.com/repos/azure-cli/\nSuites: %s\nComponents: main\nArchitectures: %s\nSigned-by: %s\n' \
 		"${repo}" "$(dpkg --print-architecture)" "${keyring}" | sudo tee "${sources}" > /dev/null
-	sudo apt-get update
-	sudo apt-get install --assume-yes azure-cli
-	after_strict
+	bashy_install_apt "azure-cli" "azure-cli"
 }
 
 # The standalone installer is a python bootstrap with no packaged equivalent, so
 # there is nothing to reimplement here. Download it first and run that file, rather
 # than piping it into a root shell, so there is something on disk to look at.
 function _install_azurecli_standalone() {
-	before_strict
+	echo "Installing azure-cli via the vendor install script"
 	local script
-	if ! bashy_download "https://aka.ms/InstallAzureCLI" script
-	then
-		after_strict
-		return 1
-	fi
+	bashy_download "https://aka.ms/InstallAzureCLI" script || return 1
 	echo "running [${script}] as root, inspect it first if you like"
 	sudo bash "${script}"
-	after_strict
 }
 
-function _install_azurecli_doesnt_work() {
-	# set -e
-	local install_dir="${HOME}/install/azurecli"
-	local bin_dir="${install_dir}/bin"
-	local tmp_dir="/tmp/azurecli_install"
-	local tarball="/tmp/azure-cli.tar.gz"
-
-	echo "Installing Azure CLI to [${install_dir}]..."
-
-	# Clean up previous installations and temporary files
-	rm -rf "${install_dir}" "${tmp_dir}" "${tarball}"
-	mkdir -p "${tmp_dir}"
-
-	# Download
-	echo "Downloading Azure CLI..."
-	curl --fail --location --show-error "https://azurecliprod.blob.core.windows.net/msi/azure-cli-latest.tar.gz" --output "${tarball}"
-
-	# Extract
-	echo "Extracting..."
-	bashy_install_extract "${tarball}" "${tmp_dir}"
-
-	# Find the extracted directory (it has a versioned name)
-	local extracted_dir
-	extracted_dir=$(find "${tmp_dir}" -mindepth 1 -maxdepth 1 -type d)
-
-	if [ -z "${extracted_dir}" ]; then
-		echo "ERROR: Failed to find extracted directory." >&2
-		exit 1
+# The tarball install has never worked: the bundle expects to build its own python
+# and fails part way through. Kept so the approach is not tried again from scratch.
+function _install_azurecli_tarball() {
+	local folder="${HOME}/install/azurecli"
+	local download_file="https://azurecliprod.blob.core.windows.net/msi/azure-cli-latest.tar.gz"
+	echo "Installing azure-cli from a tarball into [${folder}]"
+	bashy_install_download "${download_file}"
+	local archive
+	bashy_download "${download_file}" archive || return 1
+	rm -rf "${folder}"
+	# unpack into a private directory, a predictable path under /tmp is a
+	# world writable place and anyone could have created it first
+	local tmp_dir
+	tmp_dir=$(mktemp --directory)
+	bashy_install_extract "${archive}" "${tmp_dir}" || { rm -rf "${tmp_dir}"; return 1; }
+	# the tarball unpacks into a single versioned directory
+	local extracted
+	extracted=$(find "${tmp_dir}" -mindepth 1 -maxdepth 1 -type d)
+	if [ -z "${extracted}" ]
+	then
+		echo "azure-cli: the tarball did not unpack into a directory" >&2
+		rm -rf "${tmp_dir}"
+		return 1
 	fi
-
-	# Run the install script non-interactively
-	echo "Running install script from [${extracted_dir}]..."
-	"${extracted_dir}/install" --install-dir "${install_dir}" --bin-dir "${bin_dir}"
-
-	# Clean up
-	echo "Cleaning up..."
-	rm -rf "${tmp_dir}" "${tarball}"
-
-	echo "Azure CLI installation complete. Add [${bin_dir}] to your PATH."
-	# set +e
+	"${extracted}/install" --install-dir "${folder}" --bin-dir "${folder}/bin"
+	rm -rf "${tmp_dir}"
 }
 
 function _install_azurecli_extensions() {
+	echo "Installing azure-cli extensions [azure-devops]"
 	az extension add --name "azure-devops"
 }
 
 function _uninstall_azurecli() {
-	:
+	bashy_uninstall_apt "azure-cli" "azure-cli"
 }
 
 function _activate_azurecli() {
@@ -152,5 +125,5 @@ function _activate_azurecli_manual() {
 	__var=0
 }
 
-register_install _install_azurecli
+register_install _install_azurecli_deb
 register_interactive _activate_azurecli

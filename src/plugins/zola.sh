@@ -16,10 +16,12 @@ function _activate_zola() {
 function _install_zola() {
 	local release_json
 	bashy_github_release "getzola/zola" release_json || return
+	local latest_version
 	latest_version=$(bashy_github_version "${release_json}")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/zola"
-	installed_version=""
+	local executable="${folder}/zola"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | awk '/^zola /{print $2; exit}')

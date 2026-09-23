@@ -21,12 +21,23 @@ function _activate_google_cloud_sdk() {
 	__var=0
 }
 
+# The vendor installer is a shell script with no release asset to download and
+# verify instead, so it is fetched first and then run from disk rather than piped
+# straight into a shell.
 function _install_google_cloud_sdk() {
 	export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 	export CLOUDSDK_INSTALL_DIR="${HOME}/install"
-	curl --show-error --fail --silent "https://sdk.cloud.google.com" | bash
+	echo "Installing google-cloud-sdk via the vendor install script"
+	local script
+	bashy_download "https://sdk.cloud.google.com" script || return
+	echo "running [${script}], inspect it first if you like"
+	bash "${script}"
 	gcloud auth login
 	gcloud components update
+}
+
+function _uninstall_google_cloud_sdk() {
+	bashy_uninstall_directory "google-cloud-sdk" "${HOME}/install/google-cloud-sdk"
 }
 
 function _bashy_gcloud_update() {

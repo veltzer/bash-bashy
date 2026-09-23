@@ -57,9 +57,13 @@ function _install_rust_rustup() {
 	rm -rf "${runner_dir}"
 }
 
-function _install_rust_ubuntu() {
-	# these are the ubuntu package for rust
-	sudo apt install cargo rustc rust-src
+function _install_rust_apt() {
+	# these are the ubuntu packages for rust
+	bashy_install_apt "rust" "cargo" "rustc" "rust-src"
+}
+
+function _uninstall_rust_apt() {
+	bashy_uninstall_apt "rust" "cargo" "rustc" "rust-src"
 }
 function _uninstall_rust() {
 	bashy_uninstall_directory "rust" "${HOME}/install/cargo" "${HOME}/.cargo" "${HOME}/.rustup"

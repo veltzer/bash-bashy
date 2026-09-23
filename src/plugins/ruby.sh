@@ -11,8 +11,13 @@ function _activate_ruby() {
 }
 
 function _install_bundler() {
-	sudo apt install ruby ruby-dev ruby-bundler
-	# sudo gem install bundler
+	# the alternative is "gem install bundler", but the distribution packages
+	# bring ruby itself along with it
+	bashy_install_apt "bundler" "ruby" "ruby-dev" "ruby-bundler"
+}
+
+function _uninstall_bundler() {
+	bashy_uninstall_apt "bundler" "ruby" "ruby-dev" "ruby-bundler"
 }
 
 register _activate_ruby

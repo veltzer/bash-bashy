@@ -14,43 +14,36 @@ function _activate_ai_claude() {
 	__var=0
 }
 
+# The native installer is a shell script with no release asset to download and
+# verify instead, so it is fetched first and then run from disk rather than piped
+# straight into a shell.
 function _install_claude_native() {
-	before_strict
-	curl -fsSL https://claude.ai/install.sh | bash
-	after_strict
+	echo "Installing claude via the native installer"
+	local script
+	bashy_download "https://claude.ai/install.sh" script || return
+	echo "running [${script}], inspect it first if you like"
+	bash "${script}"
 }
 
 function _uninstall_claude_native() {
-	before_strict
-	rm -f ~/.local/bin/claude
-	rm -rf ~/.local/share/claude
-	after_strict
+	bashy_uninstall_binary "claude" "${HOME}/.local/bin/claude"
+	bashy_uninstall_directory "claude" "${HOME}/.local/share/claude"
 }
 
 function _install_claude_npm() {
-	before_strict
-	# sudo npm install -g "@anthropic-ai/claude-code"
-	npm install -g "@anthropic-ai/claude-code@latest"
-	after_strict
+	bashy_install_npm "claude" "@anthropic-ai/claude-code@latest"
 }
 
 function _uninstall_claude_npm() {
-	before_strict
-	# sudo npm uninstall -g "@anthropic-ai/claude-code"
-	npm uninstall -g "@anthropic-ai/claude-code"
-	after_strict
+	bashy_uninstall_npm "claude" "@anthropic-ai/claude-code"
 }
 
 function _install_claude_brew() {
-	before_strict
-	brew upgrade claude-code
-	after_strict
+	bashy_install_brew "claude" "claude-code"
 }
 
 function _uninstall_claude_brew() {
-	before_strict
-	brew uninstall claude-code
-	after_strict
+	bashy_uninstall_brew "claude" "claude-code"
 }
 
 register_interactive _activate_ai_claude

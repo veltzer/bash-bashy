@@ -12,6 +12,6 @@ function _activate_aws_bash_completions() {
 	__var=0
 }
 
-
+# the completions ship with the awscli package, so installing them is
+# _install_awscli in the awscli plugin - there is nothing separate to register
 register_interactive _activate_aws_bash_completions
-register_install _install_bash_completion_aws

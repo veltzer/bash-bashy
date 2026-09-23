@@ -18,11 +18,14 @@ function _install_oc() {
 	# instructions for installing oc are at
 	# https://access.redhat.com/documentation/en-us/red_hat_build_of_microshift/4.12/html/cli_tools/microshift-oc-cli-install
 	# But I'm using a different download link to account the need to log-in with a redhat account
-	url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz"
+	local base="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest"
+	local download_file="${base}/openshift-client-linux.tar.gz"
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/oc"
-	latest_version=$(curl --fail --silent --location "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/release.txt" | grep -oP 'Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-	installed_version=""
+	local executable="${folder}/oc"
+	local latest_version
+	latest_version=$(curl --fail --silent --location "${base}/release.txt" | grep -oP 'Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" version --client 2>/dev/null | grep -oP 'Client Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
@@ -31,25 +34,16 @@ function _install_oc() {
 	then
 		return
 	fi
-	bashy_install_download "${url}"
+	bashy_install_download "${download_file}"
 	local tar
-	bashy_download "${url}" tar || return
-	bashy_verify_sha256 "${tar}" "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/sha256sum.txt" || return
+	bashy_download "${download_file}" tar || return
+	bashy_verify_sha256 "${tar}" "${base}/sha256sum.txt" || return
 	rm -f "${executable}"
 	bashy_install_extract "${tar}" "${folder}" oc
-	chmod +x "${executable}"
 }
 
 function _uninstall_oc() {
-	folder=$(bashy_install_dir)
-	executable="${folder}/oc"
-	if [ -f "${executable}" ]
-	then
-		echo "removing ${executable}"
-		rm "${executable}"
-	else
-		echo "no oc detected"
-	fi
+	bashy_uninstall_binary "oc"
 }
 
 register _activate_oc

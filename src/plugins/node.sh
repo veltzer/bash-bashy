@@ -10,26 +10,26 @@ function _activate_node() {
 }
 
 function _install_node() {
-	if ! dpkg -l npm > /dev/null
+	if ! _bashy_pathutils_is_in_path "npm"
 	then
-		sudo apt-get install npm
-		echo "installed the \"npm\" package for you"
+		bashy_install_apt "node" "npm" || return
 	else
-		echo "you already have the \"npm\" package"
+		echo "node npm is already installed (latest)"
 	fi
 	if [ ! -f "${HOME}/.bash_completion.d/npm" ]
 	then
+		echo "Installing node npm completions"
+		mkdir -p "${HOME}/.bash_completion.d"
 		npm completion > "${HOME}/.bash_completion.d/npm"
-		echo "setup npm completion for you"
 	else
-		echo "you already have npm completions"
+		echo "node npm completions are already installed (latest)"
 	fi
-	if [ -d "${HOME}/install/node/node_modules/.bin" ]
+	if [ ! -d "${HOME}/install/node/node_modules/.bin" ]
 	then
-		echo "you already have a node_modules folder"
-	else
+		echo "Installing node node_modules folder"
 		mkdir -p "${HOME}/install/node/node_modules/.bin"
-		echo "made a \"node_modules\" folder for you"
+	else
+		echo "node node_modules folder is already installed (latest)"
 	fi
 }
 

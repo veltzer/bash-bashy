@@ -2,14 +2,16 @@
 
 # https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 function _install_dotnet() {
+	# the microsoft repository package has to land before the sdk can be installed
 	local ubuntu_version
 	ubuntu_version=$(lsb_release -rs)
-	local deb="/tmp/packages-microsoft-prod.deb"
-	wget -qO "${deb}" "https://packages.microsoft.com/config/ubuntu/${ubuntu_version}/packages-microsoft-prod.deb"
-	sudo dpkg -i "${deb}"
-	rm -f "${deb}"
-	sudo apt-get update
-	sudo DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-8.0
+	bashy_install_deb "microsoft apt repository" \
+		"https://packages.microsoft.com/config/ubuntu/${ubuntu_version}/packages-microsoft-prod.deb" || return
+	bashy_install_apt "dotnet" "dotnet-sdk-8.0"
+}
+
+function _uninstall_dotnet() {
+	bashy_uninstall_apt "dotnet" "dotnet-sdk-8.0"
 }
 
 function _activate_dotnet() {

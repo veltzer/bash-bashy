@@ -21,7 +21,11 @@ function _activate_pypowerline() {
 }
 
 function _install_pypowerline() {
-	pip install --upgrade pypowerline
+	bashy_install_pip "pypowerline" "pypowerline"
+}
+
+function _uninstall_pypowerline() {
+	bashy_uninstall_pip "pypowerline" "pypowerline"
 }
 
 register_interactive _activate_pypowerline

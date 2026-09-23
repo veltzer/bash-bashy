@@ -181,11 +181,13 @@ the pieces so that every plugin behaves and reports the same way.
 function _install_hello() {
 	local release_json
 	bashy_github_release "someorg/hello" release_json || return
+	local latest_version
 	latest_version=$(bashy_github_version "${release_json}")
-	folder="${HOME}/install/binaries"
-	executable="${folder}/hello"
+	local folder
+	folder=$(bashy_install_dir)
+	local executable="${folder}/hello"
 	# an empty installed version means "not installed yet"
-	installed_version=""
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null)
@@ -225,8 +227,32 @@ The helpers involved:
 | `bashy_download <url> [out]` | download through the cache, revalidating against the origin |
 | `bashy_verify_sha256 <file> <url or digest>` | check a download against a published sha256 |
 | `bashy_install_extract <archive> <folder> [members...]` | unpack and stamp with the install time rather than the archive mtime |
+| `bashy_install_dir` | the install directory, created if it is not there yet |
+| `bashy_install_binary <name> <url> [path]` | fetch a single executable and install it, the cached copy is never chmod'ed in place |
+| `bashy_install_deb <name> <url>` | fetch a `.deb` and install it, falling back to apt for its dependencies |
+| `bashy_install_marker <folder> <name> [version]` | the file recording what is installed, for artifacts that cannot report their own version |
+| `bashy_install_marker_version <folder> <name> <executable>` | read that file back, empty unless the executable is really there |
 | `bashy_uninstall_binary <name> [path]` | remove a single binary from `~/install/binaries` |
 | `bashy_uninstall_directory <name> <dir...>` | remove the directory tree(s) a plugin installed |
+
+When the project ships through a package manager rather than as a release asset,
+there is a helper per manager. These do no version arithmetic of their own: the
+package manager already knows what is installed, and a second opinion here would
+only be a slower, worse version of the one it has.
+
+| function | purpose |
+| --- | --- |
+| `bashy_install_apt <name> <package...>` | install distribution packages |
+| `bashy_uninstall_apt <name> <package...>` | purge them, reporting either way |
+| `bashy_install_npm <name> <package...>` | install global npm packages |
+| `bashy_uninstall_npm <name> <package...>` | remove them |
+| `bashy_install_pip <name> <package...>` | install python packages |
+| `bashy_uninstall_pip <name> <package...>` | remove them |
+| `bashy_install_brew <name> <formula...>` | install homebrew formulae |
+| `bashy_uninstall_brew <name> <formula...>` | remove them |
+| `bashy_install_gh_extension <name> <owner/repo>` | install a `gh(1)` extension |
+| `bashy_uninstall_gh_extension <name> <extension>` | remove one |
+| `bashy_install_git <name> <url> <folder> [git args...]` | install by cloning, replacing any previous clone |
 
 Downloads are cached under `${XDG_CACHE_HOME:-~/.cache}/bashy/downloads`, overridable
 with `BASHY_DOWNLOAD_CACHE`. Cached files are revalidated with the origin, so a
@@ -234,7 +260,13 @@ rolling `latest` asset that keeps one filename forever is still refetched when i
 changes upstream. Use `bashy_download_clean` to drop the cache.
 
 Never pipe a remote script into a shell when the project ships a release asset that
-can be downloaded and verified instead.
+can be downloaded and verified instead. When a vendor genuinely ships nothing but an
+install script, download it first and run that file, so there is something on disk to
+look at before it executes.
+
+The `_uninstall_<name>` counterpart uses the matching helper, so that removing
+something reports as consistently as installing it does: either `removing <path>`
+for each thing it took away, or `no <name> detected` when there was nothing there.
 
 ## Core module load order
 

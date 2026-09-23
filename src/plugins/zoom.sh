@@ -1,64 +1,37 @@
 # this is a plugin for zoom
 
-function _install_zoom_latest_force() {
-  # old version - always downloads and installs
-	before_strict
-	url="https://zoom.us/client/latest/zoom_amd64.deb"
-	local_file="/tmp/zoom_amd64.deb"
-	curl --fail --location --silent --output "${local_file}" "${url}"
-	sudo dpkg --install "${local_file}"
-	rm --force "${local_file}"
-	after_strict
-}
-
-function _install_zoom_latest() {
-	before_strict
-	url="https://zoom.us/client/latest/zoom_amd64.deb"
-	local_file="/tmp/zoom_amd64.deb"
-	# Extract remote version from the redirect URL
-	effective_url=$(curl --fail --silent --head --location --output /dev/null --write-out '%{url_effective}' "${url}")
-	remote_version=$(echo "${effective_url}" | grep -oP '/prod/\K[^/]+')
-	if [ -z "${remote_version}" ]
-	then
-		echo "could not determine remote zoom version from [${effective_url}]" >&2
-		after_strict
-		return 1
-	fi
-	# Get installed version (empty if not installed)
+function _install_zoom() {
+	local download_file="https://zoom.us/client/latest/zoom_amd64.deb"
+	# zoom publishes no version endpoint, but the download redirects to a versioned
+	# cdn path, so the effective url names the version on offer
+	local effective_url
+	effective_url=$(curl --fail --silent --head --location --output /dev/null --write-out '%{url_effective}' "${download_file}")
+	local latest_version
+	latest_version=$(echo "${effective_url}" | grep -oP '/prod/\K[^/]+')
+	local installed_version
 	installed_version=$(dpkg-query -W -f='${Version}' zoom 2>/dev/null || true)
-	if bashy_install_check "zoom" "${installed_version}" "${remote_version}"
+	if bashy_install_check "zoom" "${installed_version}" "${latest_version}"
 	then
-		after_strict
 		return
 	fi
-	curl --fail --location --silent --output "${local_file}" "${url}"
-	sudo dpkg --install "${local_file}"
-	rm --force "${local_file}"
-	after_strict
+	bashy_install_deb "zoom" "${download_file}"
 }
 
+# This pins a version on purpose: it exists to downgrade from the 7.x line back to
+# the last 6.x build, so it must not ask the project what the latest release is.
 function _install_zoom_6() {
-  # Install Zoom 6.4.6.1370 (downgrade from 7.x)
-  # This downloads the last available 6.x .deb from Zoom's CDN and installs it.
-
-  ZOOM_VERSION="6.4.6.1370"
-  ZOOM_URL="https://cdn.zoom.us/prod/${ZOOM_VERSION}/zoom_amd64.deb"
-  TMPFILE=$(mktemp /tmp/zoom_XXXXXX.deb)
-
-  echo "Downloading Zoom ${ZOOM_VERSION}..."
-  wget -O "${TMPFILE}" "${ZOOM_URL}"
-
-  echo "Installing Zoom ${ZOOM_VERSION} (will downgrade if newer version is installed)..."
-  sudo dpkg -i "${TMPFILE}" || sudo apt-get install -f -y
-  rm --force "${TMPFILE}"
-  echo "Installed version:"
-  dpkg -l zoom | tail -1
+	local latest_version="6.4.6.1370"
+	local installed_version
+	installed_version=$(dpkg-query -W -f='${Version}' zoom 2>/dev/null || true)
+	if bashy_install_check "zoom" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
+	bashy_install_deb "zoom" "https://cdn.zoom.us/prod/${latest_version}/zoom_amd64.deb"
 }
 
 function _uninstall_zoom() {
-	before_strict
-	sudo dpkg --purge zoom
-	after_strict
+	bashy_uninstall_apt "zoom" "zoom"
 }
 
 function _activate_zoom() {

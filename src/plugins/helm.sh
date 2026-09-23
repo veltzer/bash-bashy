@@ -16,10 +16,12 @@ function _install_helm() {
 	# get.helm.sh publishes the latest tag of each line; "helm-latest-version" is the
 	# current one. The upstream get-helm-3 script is pinned to the v3 line, so using it
 	# here would forever reinstall v3 while this check compared against v4.
+	local latest_version
 	latest_version=$(curl --fail --silent --location "https://get.helm.sh/helm-latest-version")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/helm"
-	installed_version=""
+	local executable="${folder}/helm"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" version --short 2>/dev/null | grep -oP '^v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
@@ -28,14 +30,14 @@ function _install_helm() {
 	then
 		return
 	fi
-	download_file="https://get.helm.sh/helm-${latest_version}-linux-amd64.tar.gz"
+	local download_file="https://get.helm.sh/helm-${latest_version}-linux-amd64.tar.gz"
 	bashy_install_download "${download_file}"
 	local tar
 	bashy_download "${download_file}" tar || return
 	bashy_verify_sha256 "${tar}" "${download_file}.sha256sum" || return
 	rm -f "${executable}"
-	# --touch so the installed file is stamped now, not with the release build time
-	tar xf "${tar}" -m -C "${folder}" --strip-components=1 linux-amd64/helm
+	# the binary sits under linux-amd64/, flatten it into folder
+	bashy_install_extract "${tar}" "${folder}" --strip-components=1 linux-amd64/helm
 }
 
 function _uninstall_helm() {

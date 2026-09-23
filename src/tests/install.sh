@@ -97,3 +97,62 @@ function testInstallExtractStampsMtime() {
 	_bashy_assert_equal "${year}" "$(date +%Y)"
 	rm -rf "${dir}"
 }
+
+function testUninstallBinaryReports() {
+	local dir
+	dir=$(mktemp --directory)
+	local out
+	# nothing there yet
+	out=$(bashy_uninstall_binary "thing" "${dir}/thing")
+	_bashy_assert_equal "${out}" "no thing detected"
+	# and once it is
+	touch "${dir}/thing"
+	out=$(bashy_uninstall_binary "thing" "${dir}/thing")
+	_bashy_assert_equal "${out}" "removing ${dir}/thing"
+	[ -f "${dir}/thing" ] && _bashy_assert_fail
+	rm -rf "${dir}"
+	return 0
+}
+
+function testUninstallDirectoryReports() {
+	local dir
+	dir=$(mktemp --directory)
+	local out
+	out=$(bashy_uninstall_directory "thing" "${dir}/tree")
+	_bashy_assert_equal "${out}" "no thing detected"
+	mkdir -p "${dir}/tree"
+	out=$(bashy_uninstall_directory "thing" "${dir}/tree")
+	_bashy_assert_equal "${out}" "removing ${dir}/tree"
+	[ -d "${dir}/tree" ] && _bashy_assert_fail
+	rm -rf "${dir}"
+	return 0
+}
+
+function testInstallMarkerRoundTrip() {
+	local dir
+	dir=$(mktemp --directory)
+	local marker
+	marker=$(bashy_install_marker "${dir}" "thing")
+	_bashy_assert_equal "${marker}" "${dir}/.thing_version"
+	# writing one and reading it back needs the executable to be there too
+	bashy_install_marker "${dir}" "thing" "1.2.3" > /dev/null
+	_bashy_assert_equal "$(cat "${marker}")" "1.2.3"
+	# a marker with no executable next to it must not read as installed
+	_bashy_assert_equal "$(bashy_install_marker_version "${dir}" "thing" "${dir}/thing")" ""
+	touch "${dir}/thing"
+	chmod +x "${dir}/thing"
+	_bashy_assert_equal "$(bashy_install_marker_version "${dir}" "thing" "${dir}/thing")" "1.2.3"
+	rm -rf "${dir}"
+}
+
+function testInstallExtractZipStripsNothing() {
+	# the zip branch has to unpack a named member just like the tar one does
+	local dir
+	dir=$(mktemp --directory)
+	mkdir -p "${dir}/src"
+	echo hello > "${dir}/src/thing"
+	(cd "${dir}/src" && zip --quiet "${dir}/a.zip" thing)
+	bashy_install_extract "${dir}/a.zip" "${dir}" thing
+	_bashy_assert_equal "$(cat "${dir}/thing")" "hello"
+	rm -rf "${dir}"
+}

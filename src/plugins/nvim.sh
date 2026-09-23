@@ -22,10 +22,14 @@ function _activate_nvim_with_folder() {
 
 function _install_nvim() {
 	# https://github.com/neovim/neovim/blob/master/INSTALL.md
-	latest_version=$(curl --fail --silent --location "https://api.github.com/repos/neovim/neovim/releases/latest" | jq --raw-output '.tag_name' | sed 's/^v//')
+	local release_json
+	bashy_github_release "neovim/neovim" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/nvim"
-	installed_version=""
+	local executable="${folder}/nvim"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | awk '/^NVIM v/{print substr($2,2); exit}')
@@ -34,16 +38,21 @@ function _install_nvim() {
 	then
 		return
 	fi
-	rm -f "${executable}"
-	curl --fail --location --silent --output "${executable}" "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.appimage"
-	chmod +x "${executable}"
+	local download_file
+	bashy_github_asset "${release_json}" "nvim-linux-x86_64\\.appimage$" download_file || return
+	# neovim publishes no checksums for its release assets, so there is nothing
+	# to hand bashy_verify_sha256 here
+	bashy_install_binary "nvim" "${download_file}" "${executable}"
 }
 
 function _install_nvim_latest_tar() {
-	latest_version=$(curl --fail --silent --location "https://api.github.com/repos/neovim/neovim/releases/latest" | jq --raw-output '.tag_name' | sed 's/^v//')
-	folder="${HOME}/install/nvim-linux-x86_64"
-	executable="${folder}/bin/nvim"
-	installed_version=""
+	local release_json
+	bashy_github_release "neovim/neovim" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}")
+	local folder="${HOME}/install/nvim-linux-x86_64"
+	local executable="${folder}/bin/nvim"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | awk '/^NVIM v/{print substr($2,2); exit}')
@@ -52,18 +61,22 @@ function _install_nvim_latest_tar() {
 	then
 		return
 	fi
-	download_file="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+	local download_file
+	bashy_github_asset "${release_json}" "nvim-linux-x86_64\\.tar\\.gz$" download_file || return
 	bashy_install_download "${download_file}"
 	local tar
+	# neovim publishes no checksums for its release assets
 	bashy_download "${download_file}" tar || return
 	rm -rf "${folder}"
 	bashy_install_extract "${tar}" "${HOME}/install"
 }
 
 function _install_nvim_nightly_tar() {
-	version="nightly"
-	folder="${HOME}/install/nvim-linux-x86_64"
-	download_file="https://github.com/neovim/neovim-releases/releases/download/${version}/nvim-linux-x86_64.tar.gz"
+	# the nightly is a moving tag, so there is no version to compare against -
+	# taking it again is the only way to be current
+	local download_file="https://github.com/neovim/neovim-releases/releases/download/nightly/nvim-linux-x86_64.tar.gz"
+	local folder="${HOME}/install/nvim-linux-x86_64"
+	echo "Installing nvim nightly"
 	bashy_install_download "${download_file}"
 	local tar
 	bashy_download "${download_file}" tar || return
@@ -71,8 +84,8 @@ function _install_nvim_nightly_tar() {
 	bashy_install_extract "${tar}" "${HOME}/install"
 }
 
-function _install_nvim_ubuntu() {
-	sudo apt install neovim
+function _install_nvim_apt() {
+	bashy_install_apt "nvim" "neovim"
 }
 
 function _install_nvim_lazy() {
@@ -96,10 +109,7 @@ function _install_nvim_lazy() {
 	then
 		return
 	fi
-	# remove previous config
-	rm -rf "${HOME}/.config/nvim"
-	# Clone starter
-	git clone https://github.com/LazyVim/starter ~/.config/nvim
+	bashy_install_git "nvim-lazy" "https://github.com/LazyVim/starter" "${HOME}/.config/nvim" || return
 	nvim --headless "+Lazy! sync" +qa
 }
 

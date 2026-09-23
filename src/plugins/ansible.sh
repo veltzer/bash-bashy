@@ -7,7 +7,11 @@ function _activate_ansible() {
 }
 
 function _install_ansible() {
-	sudo apt install ansible
+	bashy_install_apt "ansible" "ansible"
+}
+
+function _uninstall_ansible() {
+	bashy_uninstall_apt "ansible" "ansible"
 }
 
 register _activate_ansible

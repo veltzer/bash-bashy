@@ -35,7 +35,11 @@ function encfs_umount() {
 }
 
 function _install_encfs() {
-	sudo apt install encfs
+	bashy_install_apt "encfs" "encfs"
+}
+
+function _uninstall_encfs() {
+	bashy_uninstall_apt "encfs" "encfs"
 }
 
 register _activate_encfs

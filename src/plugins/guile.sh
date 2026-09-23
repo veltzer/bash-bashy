@@ -7,7 +7,11 @@ function _activate_guile() {
 }
 
 function _install_guile() {
-	sudo apt install "guile-2.2" "guile-2.2-dev"
+	bashy_install_apt "guile" "guile-2.2" "guile-2.2-dev"
+}
+
+function _uninstall_guile() {
+	bashy_uninstall_apt "guile" "guile-2.2" "guile-2.2-dev"
 }
 
 register _activate_guile

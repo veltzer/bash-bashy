@@ -33,10 +33,13 @@ function _activate_fzf() {
 function _install_fzf() {
 	# this installs fzf for fuzzy matching
 	# https://github.com/junegunn/fzf
-	rm -rf "${HOME}/install/fzf" > /dev/null 2> /dev/null
-	git clone --depth 1 https://github.com/junegunn/fzf.git "${HOME}/install/fzf" > /dev/null 2> /dev/null
-	"${HOME}/install/fzf/install" --no-update-rc --key-bindings --completion > /dev/null 2> /dev/null
-	# sudo apt install fzf
+	local folder="${HOME}/install/fzf"
+	bashy_install_git "fzf" "https://github.com/junegunn/fzf.git" "${folder}" --depth 1 || return
+	"${folder}/install" --no-update-rc --key-bindings --completion > /dev/null
+}
+
+function _install_fzf_apt() {
+	bashy_install_apt "fzf" "fzf"
 }
 function _uninstall_fzf() {
 	bashy_uninstall_directory "fzf" "${HOME}/install/fzf" "${HOME}/.fzf"

@@ -19,10 +19,12 @@ function _install_starship() {
 	# into a shell, which would run unverified code from the network
 	local release_json
 	bashy_github_release "starship/starship" release_json || return
+	local latest_version
 	latest_version=$(bashy_github_version "${release_json}")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/starship"
-	installed_version=""
+	local executable="${folder}/starship"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | awk '/^starship /{print $2; exit}')

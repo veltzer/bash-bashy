@@ -10,34 +10,31 @@ function _activate_ai_copilot() {
 	__var=0
 }
 
+# The vendor installer is a shell script with no release asset to download and
+# verify instead, so it is fetched first and then run from disk rather than piped
+# straight into a shell.
 function _install_copilot_script() {
-	before_strict
-	curl -fsSL https://gh.io/copilot-install | bash
-	after_strict
+	echo "Installing copilot via the vendor install script"
+	local script
+	bashy_download "https://gh.io/copilot-install" script || return
+	echo "running [${script}], inspect it first if you like"
+	bash "${script}"
 }
 
 function _install_copilot_npm() {
-	before_strict
-	npm install -g "@github/copilot"
-	after_strict
+	bashy_install_npm "copilot" "@github/copilot"
 }
 
 function _uninstall_copilot_npm() {
-	before_strict
-	npm uninstall -g "@github/copilot"
-	after_strict
+	bashy_uninstall_npm "copilot" "@github/copilot"
 }
 
 function _install_copilot_gh() {
-	before_strict
-	gh extension install "github/gh-copilot"
-	after_strict
+	bashy_install_gh_extension "copilot" "github/gh-copilot"
 }
 
 function _uninstall_copilot_gh() {
-	before_strict
-	gh extension remove copilot
-	after_strict
+	bashy_uninstall_gh_extension "copilot" "copilot"
 }
 
 register _activate_ai_copilot

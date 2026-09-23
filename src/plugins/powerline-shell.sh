@@ -19,8 +19,12 @@ function _activate_powerline_shell() {
 }
 
 function _install_powerline_shell() {
-	pip install powerline-shell
-	sudo apt-get install fonts-powerline
+	bashy_install_pip "powerline-shell" "powerline-shell" || return
+	bashy_install_apt "powerline-shell fonts" "fonts-powerline"
+}
+
+function _uninstall_powerline_shell() {
+	bashy_uninstall_pip "powerline-shell" "powerline-shell"
 }
 
 register_interactive _activate_powerline_shell

@@ -23,7 +23,11 @@ function _activate_powerline() {
 }
 
 function _install_powerline() {
-	sudo apt update && sudo apt install powerline fonts-powerline
+	bashy_install_apt "powerline" "powerline" "fonts-powerline"
+}
+
+function _uninstall_powerline() {
+	bashy_uninstall_apt "powerline" "powerline" "fonts-powerline"
 }
 
 register_interactive _activate_powerline

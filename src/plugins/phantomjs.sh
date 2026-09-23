@@ -11,26 +11,26 @@ function _activate_phantomjs() {
 }
 
 function _install_phantomjs() {
-	before_strict
-	base="phantomjs-2.1.1-linux-x86_64"
-	full="${base}.tar.bz2"
-	installed_version=""
-	if [ -d "${HOME}/install/${base}" ]
+	# phantomjs was archived in 2018 with no releases to query, so this is the
+	# one installer that legitimately carries a version literal
+	local latest_version="2.1.1"
+	local toplevel="phantomjs-${latest_version}-linux-x86_64"
+	local installed_version=""
+	if [ -d "${HOME}/install/${toplevel}" ]
 	then
-		installed_version="${base}"
+		installed_version="${latest_version}"
 	fi
-	if bashy_install_check "phantomjs" "${installed_version}" "${base}"
+	if bashy_install_check "phantomjs" "${installed_version}" "${latest_version}"
 	then
-		after_strict
 		return
 	fi
-	url="https://bitbucket.org/ariya/phantomjs/downloads/${full}"
+	local download_file="https://bitbucket.org/ariya/phantomjs/downloads/${toplevel}.tar.bz2"
+	bashy_install_download "${download_file}"
 	local archive
-	bashy_download "${url}" archive || { after_strict; return; }
+	bashy_download "${download_file}" archive || return
+	rm -rf "${HOME}/install/${toplevel}" "${HOME}/install/phantomjs"
 	bashy_install_extract "${archive}" "${HOME}/install"
-	rm -f "${HOME}/install/phantomjs" || true
-	ln -sfn "${HOME}/install/${base}" "${HOME}/install/phantomjs"
-	after_strict
+	ln -sfn "${HOME}/install/${toplevel}" "${HOME}/install/phantomjs"
 }
 function _uninstall_phantomjs() {
 	# the symlink points at the versioned directory and may be relative, so

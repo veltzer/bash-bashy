@@ -13,50 +13,44 @@ function _activate_hugo() {
 	__var=0
 }
 
-function _install_hugo_2() {
-	sudo apt install hugo
+function _install_hugo_apt() {
+	bashy_install_apt "hugo" "hugo"
 }
 
 function _install_hugo() {
 	# instructions for installing hugo are at https://gohugo.io/installation/linux/
-	before_strict
-	release_json=$(curl --fail --silent --location "https://api.github.com/repos/gohugoio/hugo/releases/latest")
-	latest_version=$(echo "${release_json}" | jq --raw-output '.tag_name' | sed 's/^v//')
+	local release_json
+	bashy_github_release "gohugoio/hugo" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/hugo"
-	installed_version=""
+	local executable="${folder}/hugo"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" version 2>/dev/null | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 	fi
 	if bashy_install_check "hugo" "${installed_version}" "${latest_version}"
 	then
-		after_strict
 		return
 	fi
 	# the release also ships a hugo_extended_withdeploy_... build, exclude it so this
 	# matches exactly one asset rather than returning two urls
-	download_file=$(echo "${release_json}" | jq --raw-output '.assets[].browser_download_url | select(test("hugo_extended_[0-9][^/]*_linux-amd64\\.tar\\.gz$"))')
+	local download_file
+	bashy_github_asset "${release_json}" "hugo_extended_[0-9][^/]*_linux-amd64\\.tar\\.gz$" download_file || return
 	bashy_install_download "${download_file}"
 	local tar
-	bashy_download "${download_file}" tar || { after_strict; return; }
-	checksums=$(echo "${release_json}" | jq --raw-output '.assets[].browser_download_url | select(endswith("checksums.txt"))')
-	bashy_verify_sha256 "${tar}" "${checksums}" || { after_strict; return; }
+	bashy_download "${download_file}" tar || return
+	local checksums
+	bashy_github_asset "${release_json}" "checksums\\.txt$" checksums || return
+	bashy_verify_sha256 "${tar}" "${checksums}" || return
 	rm -f "${executable}"
 	bashy_install_extract "${tar}" "${folder}" hugo
-	after_strict
 }
 
 function _uninstall_hugo() {
-	folder=$(bashy_install_dir)
-	executable="${folder}/hugo"
-	if [ -f "${executable}" ]
-	then
-		echo "removing ${executable}"
-		rm "${executable}"
-	else
-		echo "no hugo detected"
-	fi
+	bashy_uninstall_binary "hugo"
 }
 
 register_interactive _activate_hugo

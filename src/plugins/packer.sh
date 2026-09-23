@@ -7,30 +7,29 @@ function _activate_packer() {
 }
 
 function _install_packer() {
-	before_strict
 	# latest version: https://github.com/hashicorp/terraform/issues/9803
-	version=$(curl --fail --show-error --silent "https://checkpoint-api.hashicorp.com/v1/check/packer" | jq -r -M ".current_version")
+	local latest_version
+	latest_version=$(curl --fail --show-error --silent "https://checkpoint-api.hashicorp.com/v1/check/packer" | jq --raw-output --monochrome-output ".current_version")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/packer"
-	installed_version=""
+	local executable="${folder}/packer"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 	fi
-	if bashy_install_check "packer" "${installed_version}" "${version}"
+	if bashy_install_check "packer" "${installed_version}" "${latest_version}"
 	then
-		after_strict
 		return
 	fi
-	file="packer_${version}_linux_amd64.zip"
-	url="https://releases.hashicorp.com/packer/${version}/${file}"
-	rm -f "${executable}"
+	local base="https://releases.hashicorp.com/packer/${latest_version}"
+	local download_file="${base}/packer_${latest_version}_linux_amd64.zip"
+	bashy_install_download "${download_file}"
 	local archive
-	bashy_download "${url}" archive || { after_strict; return; }
-	sums="https://releases.hashicorp.com/packer/${version}/packer_${version}_SHA256SUMS"
-	bashy_verify_sha256 "${archive}" "${sums}" || { after_strict; return; }
+	bashy_download "${download_file}" archive || return
+	bashy_verify_sha256 "${archive}" "${base}/packer_${latest_version}_SHA256SUMS" || return
+	rm -f "${executable}"
 	bashy_install_extract "${archive}" "${folder}" packer
-	after_strict
 }
 
 function _uninstall_packer() {

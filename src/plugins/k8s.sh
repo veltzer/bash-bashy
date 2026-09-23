@@ -15,36 +15,31 @@ function _activate_k8s() {
 }
 
 function _install_k8s() {
-	before_strict
 	# instructions for installing k8s are at
 	# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
-	version=$(curl --fail --silent --location "https://dl.k8s.io/release/stable.txt")
+	local latest_version
+	latest_version=$(curl --fail --silent --location "https://dl.k8s.io/release/stable.txt")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/kubectl"
-	installed_version=""
+	local executable="${folder}/kubectl"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" version --client 2>/dev/null | grep -oP 'Client Version: \K[^\s]+' | head -1)
 	fi
-	if bashy_install_check "kubectl" "${installed_version}" "${version}"
+	if bashy_install_check "kubectl" "${installed_version}" "${latest_version}"
 	then
-		after_strict
 		return
 	fi
-	curl --fail --location --silent --output "${executable}" "https://dl.k8s.io/release/${version}/bin/linux/amd64/kubectl"
-	chmod +x "${executable}"
-	after_strict
+	local download_file="https://dl.k8s.io/release/${latest_version}/bin/linux/amd64/kubectl"
+	local binary
+	bashy_download "${download_file}" binary || return
+	bashy_verify_sha256 "${binary}" "${download_file}.sha256" || return
+	bashy_install_binary "kubectl" "${download_file}" "${executable}"
 }
 
 function _uninstall_k8s() {
-	folder=$(bashy_install_dir)
-	executable="${folder}/kubectl"
-	if [ -f "${executable}" ]; then
-		echo "removing ${executable}"
-		rm "${executable}"
-	else
-		echo "no kubectl detected"
-	fi
+	bashy_uninstall_binary "kubectl"
 }
 
 register _activate_k8s

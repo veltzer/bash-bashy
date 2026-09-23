@@ -7,7 +7,11 @@ function _activate_fuck() {
 }
 
 function _install_fuck() {
-	pip install thefuck
+	bashy_install_pip "thefuck" "thefuck"
+}
+
+function _uninstall_fuck() {
+	bashy_uninstall_pip "thefuck" "thefuck"
 }
 
 register_interactive _activate_fuck

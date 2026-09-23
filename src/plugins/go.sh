@@ -23,31 +23,38 @@ function _activate_go() {
 }
 
 function _install_go() {
-	before_strict
 	# https://go.dev/dl/
-	folder="${HOME}/install/"
-	full_folder="${folder}/go"
-	version=$(curl --fail --show-error --silent "https://go.dev/VERSION?m=text" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
-	executable="${full_folder}/bin/go"
-	installed_version=""
+	local folder="${HOME}/install"
+	local full_folder="${folder}/go"
+	local latest_version
+	latest_version=$(curl --fail --show-error --silent "https://go.dev/VERSION?m=text" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
+	local executable="${full_folder}/bin/go"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" version 2>/dev/null | grep -oP 'go\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 	fi
-	if bashy_install_check "go" "${installed_version}" "${version}"
+	if bashy_install_check "go" "${installed_version}" "${latest_version}"
 	then
-		after_strict
 		return
 	fi
-	url="https://go.dev/dl/go${version}.linux-amd64.tar.gz"
-	bashy_install_download "${url}"
+	local download_file="https://go.dev/dl/go${latest_version}.linux-amd64.tar.gz"
+	bashy_install_download "${download_file}"
 	local tar
-	bashy_download "${url}" tar || { after_strict; return; }
+	bashy_download "${download_file}" tar || return
+	# go publishes the sha256 of each archive on its download page
+	local expected
+	expected=$(curl --fail --silent --location "https://go.dev/dl/?mode=json&include=all" \
+		| jq --raw-output --arg f "go${latest_version}.linux-amd64.tar.gz" \
+			'.[].files[] | select(.filename==$f) | .sha256' | head -1)
+	if [ -n "${expected}" ]
+	then
+		bashy_verify_sha256 "${tar}" "${expected}" || return
+	fi
 	rm -rf "${full_folder}"
 	bashy_install_extract "${tar}" "${folder}"
 	rm -rf "${HOME}/.cache/go-build" "${HOME}/install/gopath"
 	mkdir -p "${HOME}/install/gopath/bin"
-	after_strict
 }
 function _uninstall_go() {
 	bashy_uninstall_directory "go" "${HOME}/install/go" "${HOME}/install/gopath"

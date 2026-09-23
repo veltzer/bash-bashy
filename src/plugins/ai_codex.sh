@@ -21,13 +21,15 @@ function _install_codex() {
 	local release_json
 	bashy_github_release "openai/codex" release_json || return
 	# codex tags its releases "rust-v<version>"
+	local latest_version
 	latest_version=$(bashy_github_version "${release_json}" "rust-v")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/codex"
+	local executable="${folder}/codex"
 	# codex spawns codex-code-mode-host next to itself, so an install without it is
 	# incomplete and gets redone even when the version matches
 	local host="${folder}/codex-code-mode-host"
-	installed_version=""
+	local installed_version=""
 	if [ -x "${executable}" ] && [ -x "${host}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | awk '/^codex-cli/{print $2; exit}')
@@ -57,27 +59,19 @@ function _uninstall_codex() {
 }
 
 function _install_codex_npm() {
-	before_strict
-	npm install -g "@openai/codex@latest"
-	after_strict
+	bashy_install_npm "codex" "@openai/codex@latest"
 }
 
 function _uninstall_codex_npm() {
-	before_strict
-	npm uninstall -g "@openai/codex"
-	after_strict
+	bashy_uninstall_npm "codex" "@openai/codex"
 }
 
 function _install_codex_brew() {
-	before_strict
-	brew install codex
-	after_strict
+	bashy_install_brew "codex" "codex"
 }
 
 function _uninstall_codex_brew() {
-	before_strict
-	brew uninstall codex
-	after_strict
+	bashy_uninstall_brew "codex" "codex"
 }
 
 register_interactive _activate_ai_codex

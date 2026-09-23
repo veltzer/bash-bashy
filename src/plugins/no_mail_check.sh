@@ -16,4 +16,4 @@ function _activate_nomailcheck() {
 	__var=0
 }
 
-register_interactive _activate_no_mail_check
+register_interactive _activate_nomailcheck

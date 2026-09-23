@@ -13,33 +13,33 @@ function _activate_kurtosis() {
 }
 
 function _install_kurtosis() {
-	local e
-	errexit_save_and_start e
-	local release_json latest_version url
-	release_json=$(curl --fail --silent --location "https://api.github.com/repos/kurtosis-tech/kurtosis-cli-release-artifacts/releases/latest")
-	latest_version=$(echo "${release_json}" | jq --raw-output '.tag_name')
-	local install_dir="${BASHY_INSTALL_DIR}"
-	local kurtosis_path="${install_dir}/kurtosis"
+	local release_json
+	bashy_github_release "kurtosis-tech/kurtosis-cli-release-artifacts" release_json || return
+	# kurtosis tags with the bare version number, there is no v to strip
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}" "")
+	local folder
+	folder=$(bashy_install_dir)
+	local executable="${folder}/kurtosis"
 	local installed_version=""
-	if [ -x "${kurtosis_path}" ]
+	if [ -x "${executable}" ]
 	then
-		installed_version=$("${kurtosis_path}" version 2>/dev/null | grep -oP 'CLI Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$("${executable}" version 2>/dev/null | grep -oP 'CLI Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 	fi
 	if bashy_install_check "kurtosis" "${installed_version}" "${latest_version}"
 	then
-		errexit_restore "${e}"
 		return
 	fi
-	url=$(echo "${release_json}" | jq --raw-output '.assets[].browser_download_url | select(endswith("_linux_amd64.tar.gz"))')
-	echo "url is [${url}]..."
-	local local_file
-	bashy_download "${url}" local_file || { errexit_restore "${e}"; return 1; }
+	local download_file
+	bashy_github_asset "${release_json}" "_linux_amd64\\.tar\\.gz$" download_file || return
+	bashy_install_download "${download_file}"
+	local tar
+	bashy_download "${download_file}" tar || return
 	local checksums
-	checksums=$(echo "${release_json}" | jq --raw-output '.assets[].browser_download_url | select(endswith("checksums.txt"))')
-	bashy_verify_sha256 "${local_file}" "${checksums}" || { errexit_restore "${e}"; return 1; }
-	bashy_install_extract "${local_file}" "${install_dir}" kurtosis
-	chmod +x "${kurtosis_path}"
-	errexit_restore "${e}"
+	bashy_github_asset "${release_json}" "checksums\\.txt$" checksums || return
+	bashy_verify_sha256 "${tar}" "${checksums}" || return
+	rm -f "${executable}"
+	bashy_install_extract "${tar}" "${folder}" kurtosis
 }
 
 function _uninstall_kurtosis() {

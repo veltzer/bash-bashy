@@ -8,15 +8,18 @@ function _activate_gh() {
 }
 
 function _install_gh_apt() {
-	sudo apt install gh
+	bashy_install_apt "gh" "gh"
 }
 
 function _install_gh() {
-	release_json=$(curl --fail --silent --location "https://api.github.com/repos/cli/cli/releases/latest")
-	latest_version=$(echo "${release_json}" | jq --raw-output '.tag_name' | sed 's/^v//')
+	local release_json
+	bashy_github_release "cli/cli" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/gh"
-	installed_version=""
+	local executable="${folder}/gh"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | awk '/^gh version/{print $3; exit}')
@@ -25,15 +28,17 @@ function _install_gh() {
 	then
 		return
 	fi
-	download_file=$(echo "${release_json}" | jq --raw-output '.assets[].browser_download_url | select(endswith("_linux_amd64.tar.gz"))')
+	local download_file
+	bashy_github_asset "${release_json}" "_linux_amd64\\.tar\\.gz$" download_file || return
 	bashy_install_download "${download_file}"
 	local tar
 	bashy_download "${download_file}" tar || return
-	checksums=$(echo "${release_json}" | jq --raw-output '.assets[].browser_download_url | select(endswith("_checksums.txt"))')
+	local checksums
+	bashy_github_asset "${release_json}" "_checksums\\.txt$" checksums || return
 	bashy_verify_sha256 "${tar}" "${checksums}" || return
 	rm -f "${executable}"
-	# --touch so the installed file is stamped now, not with the release build time
-	tar xf "${tar}" -m -C "${folder}" --wildcards "*/bin/gh" --transform 's/.*\/bin\/gh/gh/g'
+	# the binary sits under gh_<version>_linux_amd64/bin/, flatten it into folder
+	bashy_install_extract "${tar}" "${folder}" --wildcards "*/bin/gh" --transform 's/.*\/bin\/gh/gh/g'
 }
 
 function _uninstall_gh() {

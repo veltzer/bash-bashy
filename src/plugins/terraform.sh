@@ -7,30 +7,29 @@ function _activate_terraform() {
 }
 
 function _install_terraform() {
-	before_strict
 	# latest version: https://github.com/hashicorp/terraform/issues/9803
-	version=$(curl --fail --silent "https://checkpoint-api.hashicorp.com/v1/check/terraform" | jq -r -M ".current_version")
+	local latest_version
+	latest_version=$(curl --fail --silent "https://checkpoint-api.hashicorp.com/v1/check/terraform" | jq --raw-output --monochrome-output ".current_version")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/terraform"
-	installed_version=""
+	local executable="${folder}/terraform"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" version 2>/dev/null | grep -oP '^Terraform v\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 	fi
-	if bashy_install_check "terraform" "${installed_version}" "${version}"
+	if bashy_install_check "terraform" "${installed_version}" "${latest_version}"
 	then
-		after_strict
 		return
 	fi
-	file="terraform_${version}_linux_amd64.zip"
-	download="https://releases.hashicorp.com/terraform/${version}/${file}"
-	rm -f "${executable}"
+	local base="https://releases.hashicorp.com/terraform/${latest_version}"
+	local download_file="${base}/terraform_${latest_version}_linux_amd64.zip"
+	bashy_install_download "${download_file}"
 	local archive
-	bashy_download "${download}" archive || { after_strict; return; }
-	sums="https://releases.hashicorp.com/terraform/${version}/terraform_${version}_SHA256SUMS"
-	bashy_verify_sha256 "${archive}" "${sums}" || { after_strict; return; }
+	bashy_download "${download_file}" archive || return
+	bashy_verify_sha256 "${archive}" "${base}/terraform_${latest_version}_SHA256SUMS" || return
+	rm -f "${executable}"
 	bashy_install_extract "${archive}" "${folder}" terraform
-	after_strict
 }
 
 function _uninstall_terraform() {

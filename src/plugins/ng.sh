@@ -12,7 +12,11 @@ function _activate_ng() {
 }
 
 function _install_ng() {
-	npm install -g @angular/cli
+	bashy_install_npm "ng" "@angular/cli"
+}
+
+function _uninstall_ng() {
+	bashy_uninstall_npm "ng" "@angular/cli"
 }
 
 register_interactive _activate_ng

@@ -19,67 +19,48 @@ Architectures: amd64
 Signed-By: ${MSRING}
 EOF
 	fi
-	sudo apt update
-	sudo DEBIAN_FRONTEND=noninteractive apt-get install -y code
-	# sudo apt install code
+	bashy_install_apt "code" "code"
 }
 
 function _install_code_direct() {
-  # Get the latest version available from the VS Code update API
-  LATEST=$(curl -fsSL "https://update.code.visualstudio.com/api/update/linux-deb-x64/stable/latest" | python3 -c "import sys,json; print(json.load(sys.stdin)['productVersion'])")
-
-  INSTALLED=""
-  if command -v code &>/dev/null
-  then
-    INSTALLED=$(code --version | head -1)
-  fi
-  if bashy_install_check "code" "${INSTALLED}" "${LATEST}"
-  then
-    return
-  fi
-
-  echo "Downloading VS Code .deb package..."
-  DEB=$(mktemp --suffix=.deb)
-  wget -qO "${DEB}" "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64"
-
-  echo "Installing..."
-  sudo apt-get install -y "${DEB}"
-
-  rm -f "${DEB}"
-  echo "VS Code installed successfully!"
-  code --version
+	# Get the latest version available from the VS Code update API
+	local latest_version
+	latest_version=$(curl --fail --silent --location "https://update.code.visualstudio.com/api/update/linux-deb-x64/stable/latest" | jq --raw-output '.productVersion')
+	local installed_version=""
+	if _bashy_pathutils_is_in_path "code"
+	then
+		installed_version=$(code --version 2>/dev/null | head -1)
+	fi
+	if bashy_install_check "code" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
+	# the update api serves the deb itself from a versioned url, which is what the
+	# download cache needs to tell one build from the next
+	bashy_install_deb "code" "https://update.code.visualstudio.com/${latest_version}/linux-deb-x64/stable"
 }
 
 function _uninstall_code() {
+	bashy_uninstall_apt "code" "${PACKAGE_NAME}"
 	if sudo gpg --list-keys "${MSKEYID}" &> /dev/null
-    then
-		echo "Key [${MSKEYID}] found in personal keyring. Deleting..."
+	then
+		echo "removing ${MSKEYID}"
 		sudo gpg --delete-keys --batch --yes "${MSKEYID}"
 	else
-		echo "Key [${MSKEYID}] not found in personal keyring. Nothing to do."
+		echo "no ${MSKEYID} detected"
 	fi
-	if [ -f "${MSAPT}" ]
-	then
-		sudo rm "${MSAPT}"
-	else
-		echo "file [${MSAPT}] is not there, not removing"
-	fi
-	if [ -f "${MSRING}" ]
-	then
-		sudo rm "${MSRING}"
-	else
-		echo "file [${MSRING}] is not there, not removing"
-	fi
-	if dpkg-query -W -f='${Status}' "${PACKAGE_NAME}" 2>/dev/null | grep -q "install ok installed"
-	then
-		echo "Package [${PACKAGE_NAME}] is installed. Removing..."
-		# Run the non-interactive removal
-		# sudo DEBIAN_FRONTEND=noninteractive apt-get remove -y "${PACKAGE_NAME}"
-		sudo dpkg --purge code
-	else
-		echo "Package [${PACKAGE_NAME}] is not installed. Nothing to do."
-	fi
-	sudo apt update
+	local file
+	for file in "${MSAPT}" "${MSRING}"
+	do
+		if [ -f "${file}" ]
+		then
+			echo "removing ${file}"
+			sudo rm -f "${file}"
+		else
+			echo "no ${file} detected"
+		fi
+	done
+	sudo apt-get update
 }
 
 function _activate_code() {
@@ -88,5 +69,5 @@ function _activate_code() {
 	__var=0
 }
 
-register_install _install_code
+register_install _install_code_apt
 register_interactive _activate_code

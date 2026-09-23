@@ -1,25 +1,43 @@
-# Shared reporting for plugin installers.
+# Shared mechanics and reporting for plugin installers.
 #
 # Every _install_* function used to hand roll the same three messages, which
 # drifted over time ("is already installed", "is already up to date",
-# "Upgrading foo from [x] to [y]", ...). This module keeps that wording in one
-# place so all plugins report identically.
+# "Upgrading foo from [x] to [y]", ...), and to hand roll the download, the
+# checksum check and the removal around them. This module keeps all of that in
+# one place so every plugin behaves and reports identically.
 #
-# Usage from a plugin:
+# An installer is always the same shape: work out the latest version, work out
+# the installed one, hand both to bashy_install_check, and only then fetch and
+# unpack.
 #
-#	if bashy_install_check "gh" "${installed_version}" "${latest_version}"
-#	then
-#		return
-#	fi
-#	# ... download and install ...
+#	function _install_gh() {
+#		local release_json
+#		bashy_github_release "cli/cli" release_json || return
+#		local latest_version
+#		latest_version=$(bashy_github_version "${release_json}")
+#		local folder
+#		folder=$(bashy_install_dir)
+#		local executable="${folder}/gh"
+#		local installed_version=""
+#		if [ -x "${executable}" ]
+#		then
+#			installed_version=$("${executable}" --version 2>/dev/null | awk '{print $3; exit}')
+#		fi
+#		if bashy_install_check "gh" "${installed_version}" "${latest_version}"
+#		then
+#			return
+#		fi
+#		# ... download, verify and unpack ...
+#	}
 #
-# and with strict mode:
+# The helpers below cover the ways a project actually ships: a single binary, an
+# archive, a deb package, or a package in apt/npm/pip. The package manager ones
+# do no version arithmetic of their own - the package manager already knows what
+# is installed, and a second opinion here would only be a worse one.
 #
-#	if bashy_install_check "gh" "${installed_version}" "${latest_version}"
-#	then
-#		after_strict
-#		return
-#	fi
+# This module is loaded before download.sh, so it may only call into it from
+# inside a function body, never at load time. pathutils.sh loads earlier, so
+# _bashy_pathutils_is_in_path is available throughout.
 
 # Where plugins put the single binaries they install. Override in ~/.bashy.config.
 if [ -z "${BASHY_INSTALL_DIR+x}" ]
@@ -196,4 +214,232 @@ function bashy_install_extract() {
 			tar xf "${archive}" -m -C "${folder}" "$@" || return 1
 			;;
 	esac
+}
+
+# bashy_install_binary <name> <url> [executable path]
+# Install a single executable fetched from <url> into BASHY_INSTALL_DIR.
+# The download goes through the cache, so the bytes are never chmod'ed in place -
+# the cached copy stays a plain file and a copy of it becomes the executable.
+# The path defaults to ${BASHY_INSTALL_DIR}/<name>.
+function bashy_install_binary() {
+	local name=$1
+	local url=$2
+	local executable=${3:-$(bashy_install_dir)/${name}}
+	bashy_install_download "${url}"
+	local binary
+	bashy_download "${url}" binary || return 1
+	rm -f "${executable}"
+	cp "${binary}" "${executable}"
+	chmod +x "${executable}"
+	return 0
+}
+
+# bashy_install_deb <name> <url>
+# Download a .deb through the cache and install it with dpkg, falling back to
+# apt-get to pull in dependencies dpkg alone cannot resolve.
+function bashy_install_deb() {
+	local name=$1
+	local url=$2
+	echo "Installing ${name} from a deb package"
+	bashy_install_download "${url}"
+	local deb
+	bashy_download "${url}" deb || return 1
+	sudo dpkg --install "${deb}" || sudo apt-get install --fix-broken --assume-yes
+	return 0
+}
+
+# bashy_install_marker <folder> <name> [version]
+# Echo the path of the file recording which version of <name> is installed in
+# <folder>, and write <version> into it when one is given. Some projects ship an
+# artifact that cannot report its own version (an AppImage, a rolling download),
+# so the installer has to remember what it put there.
+function bashy_install_marker() {
+	local folder=$1
+	local name=$2
+	local marker="${folder}/.${name}_version"
+	if [ -n "${3:-}" ]
+	then
+		echo "$3" > "${marker}"
+	fi
+	echo "${marker}"
+}
+
+# bashy_install_marker_version <folder> <name> <executable>
+# Echo the version recorded by bashy_install_marker, but only when <executable>
+# is really there - a marker left behind by a removed binary must not read as
+# "installed".
+function bashy_install_marker_version() {
+	local folder=$1
+	local name=$2
+	local executable=$3
+	local marker="${folder}/.${name}_version"
+	if [ -x "${executable}" ] && [ -f "${marker}" ]
+	then
+		cat "${marker}"
+	fi
+}
+
+# bashy_install_apt <name> <package...>
+# Install distribution packages, reporting in the standard format. There is no
+# version comparison here on purpose: apt already knows what is installed and
+# what the archive offers, and duplicating that check would only be a slower,
+# worse version of what "apt install" does by itself.
+function bashy_install_apt() {
+	local name=$1
+	shift
+	echo "Installing ${name} via apt [$*]"
+	sudo apt-get update
+	sudo DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes "$@"
+}
+
+# bashy_uninstall_apt <name> <package...>
+# Remove distribution packages, reporting either way.
+function bashy_uninstall_apt() {
+	local name=$1
+	shift
+	local package
+	local found=1
+	for package in "$@"
+	do
+		if dpkg-query -W -f='${Status}' "${package}" 2>/dev/null | grep -q "install ok installed"
+		then
+			found=0
+		fi
+	done
+	if [ "${found}" -ne 0 ]
+	then
+		echo "no ${name} detected"
+		return 0
+	fi
+	echo "removing ${name} via apt [$*]"
+	sudo DEBIAN_FRONTEND=noninteractive apt-get purge --assume-yes "$@"
+}
+
+# bashy_install_npm <name> <package...>
+# Install global npm packages, reporting in the standard format. npm resolves
+# "latest" itself, which is why nothing is pinned here.
+function bashy_install_npm() {
+	local name=$1
+	shift
+	if ! _bashy_pathutils_is_in_path "npm"
+	then
+		echo "${name}: npm not found - install node first" >&2
+		return 1
+	fi
+	echo "Installing ${name} via npm [$*]"
+	npm install --global "$@"
+}
+
+# bashy_uninstall_npm <name> <package...>
+# Remove global npm packages, reporting either way.
+function bashy_uninstall_npm() {
+	local name=$1
+	shift
+	if ! _bashy_pathutils_is_in_path "npm"
+	then
+		echo "no ${name} detected"
+		return 0
+	fi
+	echo "removing ${name} via npm [$*]"
+	npm uninstall --global "$@"
+}
+
+# bashy_install_pip <name> <package...>
+# Install python packages, reporting in the standard format.
+function bashy_install_pip() {
+	local name=$1
+	shift
+	if ! _bashy_pathutils_is_in_path "pip"
+	then
+		echo "${name}: pip not found - install python first" >&2
+		return 1
+	fi
+	echo "Installing ${name} via pip [$*]"
+	pip install --upgrade "$@"
+}
+
+# bashy_uninstall_pip <name> <package...>
+# Remove python packages, reporting either way.
+function bashy_uninstall_pip() {
+	local name=$1
+	shift
+	if ! _bashy_pathutils_is_in_path "pip"
+	then
+		echo "no ${name} detected"
+		return 0
+	fi
+	echo "removing ${name} via pip [$*]"
+	pip uninstall --yes "$@"
+}
+
+# bashy_install_git <name> <url> <folder> [git arguments...]
+# Install by cloning a repository, reporting in the standard format. The previous
+# clone is removed first: a project installed this way carries no version we can
+# compare, so the only way to be current is to take it again.
+function bashy_install_git() {
+	local name=$1
+	local url=$2
+	local folder=$3
+	shift 3
+	echo "Installing ${name} by cloning [${url}] into [${folder}]"
+	rm -rf "${folder}"
+	git clone "$@" "${url}" "${folder}"
+}
+
+# bashy_install_brew <name> <formula...>
+# Install homebrew formulae, reporting in the standard format. "brew install"
+# already upgrades a formula that is out of date, so there is no version
+# arithmetic to do here either.
+function bashy_install_brew() {
+	local name=$1
+	shift
+	if ! _bashy_pathutils_is_in_path "brew"
+	then
+		echo "${name}: brew not found - install brew first" >&2
+		return 1
+	fi
+	echo "Installing ${name} via brew [$*]"
+	brew install "$@"
+}
+
+# bashy_uninstall_brew <name> <formula...>
+# Remove homebrew formulae, reporting either way.
+function bashy_uninstall_brew() {
+	local name=$1
+	shift
+	if ! _bashy_pathutils_is_in_path "brew"
+	then
+		echo "no ${name} detected"
+		return 0
+	fi
+	echo "removing ${name} via brew [$*]"
+	brew uninstall "$@"
+}
+
+# bashy_install_gh_extension <name> <owner/repo>
+# Install a gh(1) extension, reporting in the standard format.
+function bashy_install_gh_extension() {
+	local name=$1
+	local extension=$2
+	if ! _bashy_pathutils_is_in_path "gh"
+	then
+		echo "${name}: gh not found - install gh first" >&2
+		return 1
+	fi
+	echo "Installing ${name} via a gh extension [${extension}]"
+	gh extension install "${extension}"
+}
+
+# bashy_uninstall_gh_extension <name> <extension>
+# Remove a gh(1) extension, reporting either way.
+function bashy_uninstall_gh_extension() {
+	local name=$1
+	local extension=$2
+	if ! _bashy_pathutils_is_in_path "gh"
+	then
+		echo "no ${name} detected"
+		return 0
+	fi
+	echo "removing ${name} via a gh extension [${extension}]"
+	gh extension remove "${extension}"
 }

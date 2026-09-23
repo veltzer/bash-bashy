@@ -11,7 +11,11 @@ function _activate_zoxide() {
 }
 
 function _install_zoxide() {
-	sudo apt install zoxide
+	bashy_install_apt "zoxide" "zoxide"
+}
+
+function _uninstall_zoxide() {
+	bashy_uninstall_apt "zoxide" "zoxide"
 }
 
 register_interactive _activate_zoxide

@@ -19,9 +19,14 @@ function _activate_eksctl() {
 }
 
 function _install_eksctl() {
-	latest_version=$(curl --fail --silent --location "https://api.github.com/repos/eksctl-io/eksctl/releases/latest" | jq --raw-output '.tag_name' | sed 's/^v//')
-	executable="${BASHY_INSTALL_DIR}/eksctl"
-	installed_version=""
+	local release_json
+	bashy_github_release "eksctl-io/eksctl" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}")
+	local folder
+	folder=$(bashy_install_dir)
+	local executable="${folder}/eksctl"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" version 2>/dev/null | head -1)
@@ -30,17 +35,16 @@ function _install_eksctl() {
 	then
 		return
 	fi
-	download_file="https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz"
+	local download_file
+	bashy_github_asset "${release_json}" "eksctl_$(uname -s)_amd64\\.tar\\.gz$" download_file || return
 	bashy_install_download "${download_file}"
 	local tar
 	bashy_download "${download_file}" tar || return
-	bashy_verify_sha256 "${tar}" "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" || return
+	local checksums
+	bashy_github_asset "${release_json}" "eksctl_checksums\\.txt$" checksums || return
+	bashy_verify_sha256 "${tar}" "${checksums}" || return
 	rm -f "${executable}"
-	bashy_install_extract "${tar}" "${BASHY_INSTALL_DIR}" eksctl
-}
-
-function eksctl_uninstall() {
-	rm -f "${EKSCTL_BINARY}"
+	bashy_install_extract "${tar}" "${folder}" eksctl
 }
 
 function _uninstall_eksctl() {

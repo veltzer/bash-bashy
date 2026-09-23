@@ -31,78 +31,76 @@ function _activate_awscli_wrapper() {
 }
 
 function _install_awscli_wrapper() {
-	# installation using pip of wrapper - this is not official aws
-	/usr/bin/pip install --user awscliv2
-}
-
-function _install_awscli_old() {
-	# installation using a bundle
-	local bundle
-	bashy_download "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" bundle || return 1
-	# unpack privately, /tmp/awscli-bundle is a predictable path in a world writable place
-	local tmp_dir
-	tmp_dir=$(mktemp --directory)
-	bashy_install_extract "${bundle}" "${tmp_dir}"
-	"${tmp_dir}/awscli-bundle/install" -b "${HOME}/install/bin/aws"
-	rm -rf "${tmp_dir}"
+	# installation of a pip wrapper - this is not the official aws client
+	bashy_install_pip "awscliv2" "awscliv2"
 }
 
 function _install_awscli() {
-	aws_executable="${HOME}/install/aws/bin/aws"
-	latest_aws_version=$(curl --fail --silent --location "https://api.github.com/repos/aws/aws-cli/tags?per_page=20" | jq --raw-output '[.[] | select(.name | startswith("2."))][0].name')
-	installed_aws_version=""
-	if [ -x "${aws_executable}" ]
+	local folder="${HOME}/install/aws"
+	local executable="${folder}/bin/aws"
+	local latest_version
+	latest_version=$(curl --fail --silent --location "https://api.github.com/repos/aws/aws-cli/tags?per_page=20" | jq --raw-output '[.[] | select(.name | startswith("2."))][0].name')
+	local installed_version=""
+	if [ -x "${executable}" ]
 	then
-		installed_aws_version=$("${aws_executable}" --version 2>/dev/null | grep -oP 'aws-cli/\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$("${executable}" --version 2>/dev/null | grep -oP 'aws-cli/\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 	fi
-	needs_aws_install=true
-	if bashy_install_check "awscli" "${installed_aws_version}" "${latest_aws_version}"
-	then
-		needs_aws_install=false
-	fi
-	if [ "${needs_aws_install}" = true ]; then
-		rm -rf "${HOME}/install/aws"
-		local aws_zip
-		bashy_download "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" aws_zip || return 1
-		# unpack into a private directory, /tmp/aws is a predictable path in a
-		# world writable place and anyone could have created it first
-		local aws_tmp
-		aws_tmp=$(mktemp --directory)
-		bashy_install_extract "${aws_zip}" "${aws_tmp}"
-		"${aws_tmp}/aws/install" -i "${HOME}/install/aws" -b "${HOME}/install/aws/bin" > /dev/null
-		rm -rf "${aws_tmp}"
-		# checking that you do not have 'awscli' installed from pypi
-		if pip show awscli 2> /dev/null
-		then
-			echo "you have the old 'awscli' python module installed. removing it!!!"
-			pip uninstall awscli 2> /dev/null || true
-		else
-			echo "you dont have the old 'awscli' python module. no need to uninstall it. good!"
-		fi
-		echo "following is the version of awscli (aws --version)..."
-		aws --version
-	fi
-	# aws-iam-authenticator
-	iam_executable="${HOME}/install/aws/bin/aws-iam-authenticator"
-	iam_release_json=$(curl --fail --silent --location https://api.github.com/repos/kubernetes-sigs/aws-iam-authenticator/releases/latest)
-	iam_latest_version=$(echo "${iam_release_json}" | jq --raw-output '.tag_name' | sed 's/^v//')
-	iam_installed_version=""
-	if [ -x "${iam_executable}" ]
-	then
-		iam_installed_version=$("${iam_executable}" version 2>/dev/null | grep -oP '"Version":"\K[^"]+' | head -1)
-	fi
-	if bashy_install_check "aws-iam-authenticator" "${iam_installed_version}" "${iam_latest_version}"
+	if bashy_install_check "awscli" "${installed_version}" "${latest_version}"
 	then
 		return
 	fi
-	download_file=$(echo "${iam_release_json}" | jq -r '.assets[].browser_download_url | select(endswith("_linux_amd64"))')
-	curl --fail --location --output "${iam_executable}" "${download_file}"
-	chmod +x "${iam_executable}"
+	local download_file="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+	bashy_install_download "${download_file}"
+	local archive
+	bashy_download "${download_file}" archive || return
+	# aws signs its installer with gpg rather than publishing a sha256, so there
+	# is nothing to hand bashy_verify_sha256 here
+	rm -rf "${folder}"
+	# unpack into a private directory, /tmp/aws is a predictable path in a
+	# world writable place and anyone could have created it first
+	local tmp_dir
+	tmp_dir=$(mktemp --directory)
+	bashy_install_extract "${archive}" "${tmp_dir}" || { rm -rf "${tmp_dir}"; return 1; }
+	"${tmp_dir}/aws/install" --install-dir "${folder}" --bin-dir "${folder}/bin" > /dev/null
+	rm -rf "${tmp_dir}"
+	# the old pypi "awscli" shadows this one in PATH, so it has to go
+	if pip show awscli > /dev/null 2>&1
+	then
+		bashy_uninstall_pip "the old pypi awscli" "awscli"
+	fi
+	# eks needs the authenticator alongside the client, install it in the same pass
+	_install_aws_iam_authenticator
+}
+
+function _install_aws_iam_authenticator() {
+	local release_json
+	bashy_github_release "kubernetes-sigs/aws-iam-authenticator" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}")
+	local executable="${HOME}/install/aws/bin/aws-iam-authenticator"
+	local installed_version=""
+	if [ -x "${executable}" ]
+	then
+		installed_version=$("${executable}" version 2>/dev/null | grep -oP '"Version":"v?\K[^"]+' | head -1)
+	fi
+	if bashy_install_check "aws-iam-authenticator" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
+	local download_file
+	bashy_github_asset "${release_json}" "_linux_amd64$" download_file || return
+	local binary
+	bashy_download "${download_file}" binary || return
+	local checksums
+	if bashy_github_asset "${release_json}" "_checksums\\.txt$" checksums 2>/dev/null
+	then
+		bashy_verify_sha256 "${binary}" "${checksums}" || return
+	fi
+	bashy_install_binary "aws-iam-authenticator" "${download_file}" "${executable}"
 }
 
 function _uninstall_awscli() {
-	rm -rf "${HOME}/install/aws" || true
-	# pip uninstall awscli 2> /dev/null || true
+	bashy_uninstall_directory "awscli" "${HOME}/install/aws"
 }
 
 function awscli_select_profile() {

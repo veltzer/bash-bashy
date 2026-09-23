@@ -3,11 +3,14 @@
 # need to think about plugins like that.
 
 function _install_lazygit() {
-	release_json=$(curl --fail --silent --location "https://api.github.com/repos/jesseduffield/lazygit/releases/latest")
-	latest_version=$(echo "${release_json}" | jq --raw-output '.tag_name' | sed 's/^v//')
+	local release_json
+	bashy_github_release "jesseduffield/lazygit" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}")
+	local folder
 	folder=$(bashy_install_dir)
-	executable="${folder}/lazygit"
-	installed_version=""
+	local executable="${folder}/lazygit"
+	local installed_version=""
 	if [ -x "${executable}" ]
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | grep -oP 'version=\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
@@ -17,12 +20,15 @@ function _install_lazygit() {
 		return
 	fi
 	# upstream renamed these from _Linux_x86_64 to _linux_x86_64, match either
-	download_file=$(echo "${release_json}" | jq --raw-output '.assets[].browser_download_url | select(test("_[Ll]inux_x86_64\\.tar\\.gz$"))')
+	local download_file
+	bashy_github_asset "${release_json}" "_[Ll]inux_x86_64\\.tar\\.gz$" download_file || return
 	bashy_install_download "${download_file}"
 	local tar
 	bashy_download "${download_file}" tar || return
-	checksums=$(echo "${release_json}" | jq --raw-output '.assets[].browser_download_url | select(endswith("checksums.txt"))')
+	local checksums
+	bashy_github_asset "${release_json}" "checksums\\.txt$" checksums || return
 	bashy_verify_sha256 "${tar}" "${checksums}" || return
+	rm -f "${executable}"
 	bashy_install_extract "${tar}" "${folder}" lazygit
 }
 
