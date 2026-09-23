@@ -14,4 +14,10 @@ function _activate_pager() {
 	__var=0
 }
 
-register_interactive _activate_pager
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_pager() {
+	unalias more 2> /dev/null
+	unset PAGER LESS
+}
+
+register_interactive _activate_pager _deactivate_pager

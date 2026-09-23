@@ -40,5 +40,11 @@ function _uninstall_node() {
 	bashy_uninstall_directory "node" "${HOME}/install/node"
 }
 
-register_interactive _activate_node
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_node() {
+	_bashy_pathutils_remove PATH "${HOME}/install/node/bin"
+	unset NODE_HOME NODE_BIN
+}
+
+register_interactive _activate_node _deactivate_node
 register_install _install_node

@@ -32,4 +32,12 @@ function _activate_complete() {
 	__var=0
 }
 
-register_interactive _activate_complete
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_complete() {
+	complete -r pypitools pyawskit pycmdtools pypowerline pygitpub pytsv pyscrapers \
+		pyflexebs pydatacheck pymultigit pygooglecloud pymakehelper pygcal pytubekit \
+		pycontacts rsconstruct rsmultigit rscontacts rscalendar rsdedup rsspell rstype \
+		rspass mg 2> /dev/null
+}
+
+register_interactive _activate_complete _deactivate_complete

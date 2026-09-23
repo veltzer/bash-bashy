@@ -36,4 +36,9 @@ function _uninstall_terraform() {
 	bashy_uninstall_binary "terraform"
 }
 
-register_interactive _activate_terraform
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_terraform() {
+	complete -r terraform 2> /dev/null
+}
+
+register_interactive _activate_terraform _deactivate_terraform

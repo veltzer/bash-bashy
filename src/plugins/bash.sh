@@ -13,4 +13,9 @@ function _activate_bash() {
 	__var=0
 }
 
-register_interactive _activate_bash
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_bash() {
+	shopt -u globstar
+}
+
+register_interactive _activate_bash _deactivate_bash

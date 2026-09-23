@@ -93,22 +93,30 @@ function _prompt_uv_sync() {
 	return 1
 }
 
+# leave the active project venv, if any, and give back the env that was held
+# while it was active. Shared by the prompt (on leaving the project) and the
+# deactivate function.
+function _prompt_uv_leave() {
+	if [ -z "${_BASHY_UV_ACTIVE}" ]
+	then
+		return
+	fi
+	bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "left project, deactivating [${_BASHY_UV_ACTIVE}]"
+	python_deactivate
+	_BASHY_UV_ACTIVE=""
+	if [ -n "${_BASHY_UV_HELD}" ]
+	then
+		bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "restoring held env [${_BASHY_UV_HELD}]"
+		python_activate "${_BASHY_UV_HELD}"
+		_BASHY_UV_HELD=""
+	fi
+}
+
 function prompt_uv() {
 	local project_root=""
 	if ! _prompt_uv_find_root project_root
 	then
-		if [ -n "${_BASHY_UV_ACTIVE}" ]
-		then
-			bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "left project, deactivating [${_BASHY_UV_ACTIVE}]"
-			python_deactivate
-			_BASHY_UV_ACTIVE=""
-			if [ -n "${_BASHY_UV_HELD}" ]
-			then
-				bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "restoring held env [${_BASHY_UV_HELD}]"
-				python_activate "${_BASHY_UV_HELD}"
-				_BASHY_UV_HELD=""
-			fi
-		fi
+		_prompt_uv_leave
 		return
 	fi
 	local venv="${project_root}/.venv"
@@ -160,4 +168,10 @@ function _activate_prompt_uv() {
 	__var=0
 }
 
-register_interactive _activate_prompt_uv
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_prompt_uv() {
+	_bashy_prompt_deregister prompt_uv
+	_prompt_uv_leave
+}
+
+register_interactive _activate_prompt_uv _deactivate_prompt_uv

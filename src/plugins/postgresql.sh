@@ -6,4 +6,9 @@ function _activate_postgresql() {
 	__var=0
 }
 
-register _activate_postgresql
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_postgresql() {
+	unset PGDATABASE
+}
+
+register _activate_postgresql _deactivate_postgresql

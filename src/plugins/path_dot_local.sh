@@ -13,4 +13,10 @@ function _activate_path_dot_local() {
 	__var=0
 }
 
-register _activate_path_dot_local
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_path_dot_local() {
+	_bashy_pathutils_remove PATH "${HOME}/.local/bin"
+	_bashy_pathutils_remove LD_LIBRARY_PATH "${HOME}/.local/lib"
+}
+
+register _activate_path_dot_local _deactivate_path_dot_local

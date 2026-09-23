@@ -75,4 +75,11 @@ function _uninstall_rust() {
 	bashy_uninstall_directory "rust" "${HOME}/install/cargo" "${HOME}/.cargo" "${HOME}/.rustup"
 }
 
-register _activate_rust
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_rust() {
+	unset -f cargo
+	_bashy_pathutils_remove PATH "${HOME}/install/cargo/bin"
+	unset CARGO_HOME
+}
+
+register _activate_rust _deactivate_rust

@@ -50,4 +50,14 @@ function _activate_prompt_aws() {
 	__var=0
 }
 
-register_interactive _activate_prompt_aws
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_prompt_aws() {
+	_bashy_prompt_deregister prompt_aws
+	if [ -n "${PROMPT_AWS_CONF-}" ]
+	then
+		_prompt_aws_exit "${PROMPT_AWS_CONF}"
+		unset PROMPT_AWS_CONF
+	fi
+}
+
+register_interactive _activate_prompt_aws _deactivate_prompt_aws

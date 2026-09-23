@@ -60,4 +60,11 @@ function _uninstall_go() {
 	bashy_uninstall_directory "go" "${HOME}/install/go" "${HOME}/install/gopath"
 }
 
-register _activate_go
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_go() {
+	_bashy_pathutils_remove PATH "${HOME}/install/gopath/bin"
+	unset GOPATH
+	complete -r go 2> /dev/null
+}
+
+register _activate_go _deactivate_go

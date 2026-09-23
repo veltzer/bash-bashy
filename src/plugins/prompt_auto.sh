@@ -26,52 +26,40 @@ function _prompt_auto_source() {
 	source "${auto_file}"
 }
 
-# Exit the currently active auto environment (if any): source its
-# .auto.exit.sh and unset AUTO_ACTIVE.
-function _prompt_auto_exit() {
-	local auto_file_exit_full
-	if var_is_defined AUTO_ACTIVE
+# The watching for .auto.enter.sh at the repository root is done by
+# git_prompt_repo_conf in core/git.sh, shared with the other conf driven prompt
+# plugins. That helper calls the enter side on every prompt, so the enter side
+# has to remember for itself which environment is active: AUTO_ACTIVE holds the
+# root of the repository whose .auto.enter.sh was sourced, and nothing happens
+# again until it changes.
+
+function _prompt_auto_enter() {
+	local enter_file=$1
+	local root="${enter_file%/*}"
+	if [ "${AUTO_ACTIVE-}" = "${root}" ]
 	then
-		auto_file_exit_full="${AUTO_ACTIVE}/${auto_file_exit}"
-		if [ -f "${auto_file_exit_full}" ]
-		then
-			bashy_log "prompt_auto" "${BASHY_LOG_INFO}" "sourcing [${auto_file_exit_full}]"
-			_prompt_auto_source "${auto_file_exit_full}"
-		fi
-		unset AUTO_ACTIVE
+		return
 	fi
+	bashy_log "prompt_auto" "${BASHY_LOG_INFO}" "sourcing [${enter_file}]"
+	_prompt_auto_source "${enter_file}"
+	export AUTO_ACTIVE="${root}"
+}
+
+# Source .auto.exit.sh of the environment being left, when there is one, and
+# forget AUTO_ACTIVE.
+function _prompt_auto_exit() {
+	local enter_file=$1
+	local exit_file="${enter_file%/*}/${auto_file_exit}"
+	if [ -f "${exit_file}" ]
+	then
+		bashy_log "prompt_auto" "${BASHY_LOG_INFO}" "sourcing [${exit_file}]"
+		_prompt_auto_source "${exit_file}"
+	fi
+	unset AUTO_ACTIVE
 }
 
 function prompt_auto() {
-	local git_root auto_file_enter_full
-	if ! git_is_inside
-	then
-		_prompt_auto_exit
-		return
-	fi
-
-	git_root=""
-	git_top_level git_root
-	auto_file_enter_full="${git_root}/${auto_file_enter}"
-	if [ -r "${auto_file_enter_full}" ]
-	then
-		if var_is_defined AUTO_ACTIVE
-		then
-			if [ "${git_root}" == "${AUTO_ACTIVE}" ]
-			then
-				return
-			fi
-			# we need to get out of a previous auto
-			_prompt_auto_exit
-		fi
-		# we need to enter the new environment
-		bashy_log "prompt_auto" "${BASHY_LOG_INFO}" "sourcing [${auto_file_enter_full}]"
-		_prompt_auto_source "${auto_file_enter_full}"
-		export AUTO_ACTIVE="${git_root}"
-	else
-		# no enter file here; get out of a previous auto if needed
-		_prompt_auto_exit
-	fi
+	git_prompt_repo_conf "prompt_auto" PROMPT_AUTO_CONF "${auto_file_enter}" _prompt_auto_enter _prompt_auto_exit
 }
 
 function _activate_prompt_auto() {
@@ -81,4 +69,14 @@ function _activate_prompt_auto() {
 	__var=0
 }
 
-register_interactive _activate_prompt_auto
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_prompt_auto() {
+	_bashy_prompt_deregister prompt_auto
+	if [ -n "${PROMPT_AUTO_CONF-}" ]
+	then
+		_prompt_auto_exit "${PROMPT_AUTO_CONF}"
+		unset PROMPT_AUTO_CONF
+	fi
+}
+
+register_interactive _activate_prompt_auto _deactivate_prompt_auto

@@ -8,4 +8,9 @@ function _activate_docker() {
 	__var=0
 }
 
-register_interactive _activate_docker
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_docker() {
+	unset DOCKER_HOST
+}
+
+register_interactive _activate_docker _deactivate_docker

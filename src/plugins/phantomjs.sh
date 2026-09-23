@@ -43,4 +43,10 @@ function _uninstall_phantomjs() {
 	bashy_uninstall_directory "phantomjs" "${HOME}/install/phantomjs" ${target:+"${target}"}
 }
 
-register _activate_phantomjs
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_phantomjs() {
+	_bashy_pathutils_remove PATH "${HOME}/install/phantomjs/bin"
+	unset PHANTOMJSPATH
+}
+
+register _activate_phantomjs _deactivate_phantomjs

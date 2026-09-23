@@ -7,4 +7,9 @@ function _activate_vim() {
 	__var=0
 }
 
-register_interactive _activate_vim
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_vim() {
+	unset EDITOR VISUAL
+}
+
+register_interactive _activate_vim _deactivate_vim

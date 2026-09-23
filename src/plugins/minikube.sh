@@ -44,4 +44,9 @@ function _uninstall_minikube() {
 	bashy_uninstall_binary "minikube"
 }
 
-register_interactive _activate_minikube
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_minikube() {
+	complete -r minikube 2> /dev/null
+}
+
+register_interactive _activate_minikube _deactivate_minikube

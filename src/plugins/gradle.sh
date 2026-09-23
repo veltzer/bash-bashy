@@ -47,4 +47,10 @@ function _uninstall_gradle() {
 	bashy_uninstall_directory "gradle" "${HOME}/install/gradle" ${target:+"${target}"}
 }
 
-register _activate_gradle
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_gradle() {
+	_bashy_pathutils_remove PATH "${HOME}/install/gradle/bin"
+	unset GRADLE_HOME
+}
+
+register _activate_gradle _deactivate_gradle

@@ -42,4 +42,9 @@ function _uninstall_k8s() {
 	bashy_uninstall_binary "kubectl"
 }
 
-register _activate_k8s
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_k8s() {
+	complete -r kubectl 2> /dev/null
+}
+
+register _activate_k8s _deactivate_k8s

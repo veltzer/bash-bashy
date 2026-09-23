@@ -45,4 +45,9 @@ function _uninstall_gh() {
 	bashy_uninstall_binary "gh"
 }
 
-register_interactive _activate_gh
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_gh() {
+	complete -r gh 2> /dev/null
+}
+
+register_interactive _activate_gh _deactivate_gh

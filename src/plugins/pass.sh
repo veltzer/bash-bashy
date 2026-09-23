@@ -10,4 +10,9 @@ function _activate_pass() {
 	__var=0
 }
 
-register_interactive _activate_pass
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_pass() {
+	unset PASSWORD_STORE_DIR
+}
+
+register_interactive _activate_pass _deactivate_pass

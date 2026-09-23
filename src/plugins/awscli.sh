@@ -114,5 +114,11 @@ function awscli_select_profile() {
 	export AWS_PROFILE="${profile}"
 }
 
-register _activate_awscli
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_awscli() {
+	_bashy_pathutils_remove PATH "${HOME}/install/aws/bin"
+	unset AWSCLI_HOME
+}
+
+register _activate_awscli _deactivate_awscli
 register_install _install_awscli

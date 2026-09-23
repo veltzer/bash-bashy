@@ -20,4 +20,9 @@ function proxy_enable() {
 	export no_proxy="${PROXY_NO}"
 }
 
-register _activate_proxy
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_proxy() {
+	proxy_disable
+}
+
+register _activate_proxy _deactivate_proxy

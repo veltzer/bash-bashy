@@ -12,4 +12,9 @@ function _activate_git() {
 	__var=0
 }
 
-register_interactive _activate_git
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_git() {
+	complete -r git gitk 2> /dev/null
+}
+
+register_interactive _activate_git _deactivate_git

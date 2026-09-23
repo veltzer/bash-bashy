@@ -19,4 +19,12 @@ function _activate_python_venv() {
 	__var=0
 }
 
-register _activate_python_venv
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_python_venv() {
+	if declare -F deactivate > /dev/null
+	then
+		deactivate
+	fi
+}
+
+register _activate_python_venv _deactivate_python_venv

@@ -49,5 +49,10 @@ function _uninstall_zola() {
 	bashy_uninstall_binary "zola"
 }
 
-register_interactive _activate_zola
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_zola() {
+	complete -r zola 2> /dev/null
+}
+
+register_interactive _activate_zola _deactivate_zola
 register_install _install_zola

@@ -1,9 +1,5 @@
 - add saving a stack of all previous commands
 
-- I have way too many plugins/prompt_*.sh plugins and a lot of them do the same thing.
-	prompt_gems and prompt_node share git_prompt_repo_path, and prompt_aws,
-	prompt_k8s and prompt_gcp share git_prompt_repo_conf, both in core/git.sh.
-	prompt_auto could probably sit on git_prompt_repo_conf as well.
 
 - allow to activate only specific plugins when logging.
 
@@ -22,9 +18,9 @@
 	we want to activate in the bashy.list file.
 	This way we could also activate plugins that we did not want activate
 	right when we login.
-- write deactivate functions for all my default plugins. The registration side
-	is there (register <activate> <deactivate>, bashy_deactivate <plugin>) but
-	only prompt_error uses it.
+- deactivate functions exist for every plugin whose activation has a clean
+	inverse. The rest (tmux, starship, umask, config_core, the sourced system
+	completion files) are left without one on purpose.
 - do everything with one command: "bashy":
 	$ bashy errors
 	$ bashy debug

@@ -77,4 +77,9 @@ function _uninstall_agy() {
 	bashy_uninstall_binary "agy" "${HOME}/.local/bin/agy"
 }
 
-register _activate_ai_agy
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_ai_agy() {
+	unset -f agy
+}
+
+register _activate_ai_agy _deactivate_ai_agy

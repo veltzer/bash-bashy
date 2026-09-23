@@ -154,7 +154,10 @@ register _activate_hello_plugin
 ```
 
 `register` takes an optional second function that undoes the activation, which
-`bashy_deactivate <plugin>` runs on demand. `register_interactive` is the same but
+`bashy_deactivate <plugin>` runs on demand. Most shipped plugins have one; write
+it whenever the activation has a clean inverse (an alias, a `PATH` entry, an
+exported variable, a completion, a prompt hook) and leave it out when it does
+not (`tmux`, `umask`). `register_interactive` is the same but
 only registers in an interactive shell. `register_install` names the plugin's
 installer, for `bashy_install <plugin>`:
 

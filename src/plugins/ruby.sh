@@ -20,4 +20,10 @@ function _uninstall_bundler() {
 	bashy_uninstall_apt "bundler" "ruby" "ruby-dev" "ruby-bundler"
 }
 
-register _activate_ruby
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_ruby() {
+	_bashy_pathutils_remove PATH "${HOME}/install/gems/bin"
+	unset GEM_HOME
+}
+
+register _activate_ruby _deactivate_ruby

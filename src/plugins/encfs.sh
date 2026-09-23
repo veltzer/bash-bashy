@@ -44,5 +44,13 @@ function _uninstall_encfs() {
 	bashy_uninstall_apt "encfs" "encfs"
 }
 
-register _activate_encfs
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_encfs() {
+	if mountpoint -q "${ENCFS_FOLDER_CLEAR:-/nonexistent}"
+	then
+		fusermount -u "${ENCFS_FOLDER_CLEAR}"
+	fi
+}
+
+register _activate_encfs _deactivate_encfs
 register_install _install_encfs

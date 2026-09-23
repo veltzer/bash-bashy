@@ -7,9 +7,10 @@ function _activate_ls() {
 	__var=0
 }
 
+# Undo the activation in the running shell, for bashy_deactivate.
 function _deactivate_ls() {
 	export -n LS_COLORS
-	unalias ls
+	unalias ls 2> /dev/null
 }
 
-register_interactive _activate_ls
+register_interactive _activate_ls _deactivate_ls

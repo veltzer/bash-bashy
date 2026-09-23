@@ -14,5 +14,10 @@ function _uninstall_ansible() {
 	bashy_uninstall_apt "ansible" "ansible"
 }
 
-register _activate_ansible
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_ansible() {
+	unset ANSIBLE_NOCOWS
+}
+
+register _activate_ansible _deactivate_ansible
 register_install _install_ansible

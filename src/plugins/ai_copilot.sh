@@ -96,4 +96,9 @@ function _uninstall_copilot_gh() {
 	bashy_uninstall_gh_extension "copilot" "copilot"
 }
 
-register _activate_ai_copilot
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_ai_copilot() {
+	unalias copilot 2> /dev/null
+}
+
+register _activate_ai_copilot _deactivate_ai_copilot

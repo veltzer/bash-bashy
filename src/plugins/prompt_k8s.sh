@@ -32,4 +32,14 @@ function _activate_prompt_k8s() {
 	__var=0
 }
 
-register_interactive _activate_prompt_k8s
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_prompt_k8s() {
+	_bashy_prompt_deregister prompt_k8s
+	if [ -n "${PROMPT_K8S_CONF-}" ]
+	then
+		_prompt_k8s_exit "${PROMPT_K8S_CONF}"
+		unset PROMPT_K8S_CONF
+	fi
+}
+
+register_interactive _activate_prompt_k8s _deactivate_prompt_k8s

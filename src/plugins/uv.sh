@@ -79,5 +79,11 @@ function _uninstall_uv() {
 	bashy_uninstall_binary "uvx"
 }
 
-register_interactive _activate_uv
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_uv() {
+	unset -f uv
+	complete -r uv 2> /dev/null
+}
+
+register_interactive _activate_uv _deactivate_uv
 register_install _install_uv

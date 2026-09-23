@@ -27,4 +27,10 @@ function _uninstall_brew() {
 	bashy_uninstall_directory "brew" "${HOME}/install/homebrew"
 }
 
-register _activate_brew
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_brew() {
+	_bashy_pathutils_remove PATH "${HOME}/install/homebrew/bin"
+	unset BREW_HOME HOMEBREW_PREFIX HOMEBREW_CELLAR HOMEBREW_REPOSITORY
+}
+
+register _activate_brew _deactivate_brew

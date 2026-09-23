@@ -38,4 +38,9 @@ function _uninstall_gemini() {
 	bashy_uninstall_npm "gemini" "@google/gemini-cli"
 }
 
-register_interactive _activate_ai_gemini
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_ai_gemini() {
+	unset -f gemini
+}
+
+register_interactive _activate_ai_gemini _deactivate_ai_gemini

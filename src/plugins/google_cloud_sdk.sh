@@ -44,4 +44,11 @@ function _bashy_gcloud_update() {
 	gcloud components update
 }
 
-register_interactive _activate_google_cloud_sdk
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_google_cloud_sdk() {
+	_bashy_pathutils_remove PATH "${HOME}/install/google-cloud-sdk/bin"
+	complete -r gcloud gsutil bq 2> /dev/null
+	unset GOOGLE_CLOUD_HOME
+}
+
+register_interactive _activate_google_cloud_sdk _deactivate_google_cloud_sdk

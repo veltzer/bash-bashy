@@ -125,4 +125,9 @@ function _uninstall_nvim() {
 	bashy_uninstall_binary "nvim"
 }
 
-register_interactive _activate_nvim
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_nvim() {
+	unalias vi vim 2> /dev/null
+}
+
+register_interactive _activate_nvim _deactivate_nvim

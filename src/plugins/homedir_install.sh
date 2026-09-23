@@ -13,4 +13,11 @@ function _activate_homedir_install() {
 	__var=0
 }
 
-register _activate_homedir_install
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_homedir_install() {
+	_bashy_pathutils_remove PATH "${HOME}/install/bin"
+	_bashy_pathutils_remove PATH "${BASHY_INSTALL_DIR}"
+	_bashy_pathutils_remove LD_LIBRARY_PATH "${HOME}/install/lib"
+}
+
+register _activate_homedir_install _deactivate_homedir_install

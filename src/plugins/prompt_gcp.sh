@@ -174,4 +174,14 @@ function _activate_prompt_gcp() {
 	__var=0
 }
 
-register_interactive _activate_prompt_gcp
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_prompt_gcp() {
+	_bashy_prompt_deregister prompt_gcp
+	if [ -n "${PROMPT_GCP_CONF-}" ]
+	then
+		_prompt_gcp_exit "${PROMPT_GCP_CONF}"
+		unset PROMPT_GCP_CONF
+	fi
+}
+
+register_interactive _activate_prompt_gcp _deactivate_prompt_gcp

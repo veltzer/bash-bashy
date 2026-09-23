@@ -11,4 +11,9 @@ function _activate_manpath() {
 	__var=0
 }
 
-register_interactive _activate_manpath
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_manpath() {
+	unset MANPATH
+}
+
+register_interactive _activate_manpath _deactivate_manpath

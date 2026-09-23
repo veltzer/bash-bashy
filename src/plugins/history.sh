@@ -8,4 +8,9 @@ function _activate_history() {
 	__var=0
 }
 
-register_interactive _activate_history
+# Undo the activation in the running shell, for bashy_deactivate. The history sizes stay, they are harmless.
+function _deactivate_history() {
+	shopt -u histappend
+}
+
+register_interactive _activate_history _deactivate_history

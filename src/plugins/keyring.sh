@@ -14,4 +14,9 @@ function _activate_keyring() {
 	__var=0
 }
 
-register_interactive _activate_keyring
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_keyring() {
+	complete -r keyring 2> /dev/null
+}
+
+register_interactive _activate_keyring _deactivate_keyring

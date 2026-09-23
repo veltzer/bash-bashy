@@ -10,4 +10,9 @@ function _activate_careful_aliases() {
 	__var=0
 }
 
-register_interactive _activate_careful_aliases
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_careful_aliases() {
+	unalias mv cp rm ln cd 2> /dev/null
+}
+
+register_interactive _activate_careful_aliases _deactivate_careful_aliases

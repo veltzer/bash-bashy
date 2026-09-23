@@ -15,4 +15,9 @@ function _activate_bash_completions_prog() {
 	__var=0
 }
 
-register_interactive _activate_bash_completions_prog
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_bash_completions_prog() {
+	complete -r pandoc 2> /dev/null
+}
+
+register_interactive _activate_bash_completions_prog _deactivate_bash_completions_prog

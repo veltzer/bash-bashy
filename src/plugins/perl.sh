@@ -16,4 +16,10 @@ function _activate_perl() {
 	__var=0
 }
 
-register _activate_perl
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_perl() {
+	_bashy_pathutils_remove PATH "${HOME}/install/perl5/bin"
+	unset PERL5LIB PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
+}
+
+register _activate_perl _deactivate_perl

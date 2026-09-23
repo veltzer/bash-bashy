@@ -69,4 +69,9 @@ function _uninstall_codex_brew() {
 	bashy_uninstall_brew "codex" "codex"
 }
 
-register_interactive _activate_ai_codex
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_ai_codex() {
+	unset -f codex
+}
+
+register_interactive _activate_ai_codex _deactivate_ai_codex

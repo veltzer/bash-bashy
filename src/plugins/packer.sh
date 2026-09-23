@@ -36,4 +36,9 @@ function _uninstall_packer() {
 	bashy_uninstall_binary "packer"
 }
 
-register_interactive _activate_packer
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_packer() {
+	complete -r packer 2> /dev/null
+}
+
+register_interactive _activate_packer _deactivate_packer

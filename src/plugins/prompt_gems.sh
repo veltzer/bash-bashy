@@ -14,4 +14,14 @@ function _activate_prompt_gems() {
 	__var=0
 }
 
-register_interactive _activate_prompt_gems
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_prompt_gems() {
+	_bashy_prompt_deregister prompt_gems
+	if [ -n "${PROMPT_GEMS_ADDED-}" ]
+	then
+		_bashy_pathutils_remove PATH "${PROMPT_GEMS_ADDED}"
+		unset PROMPT_GEMS_ADDED
+	fi
+}
+
+register_interactive _activate_prompt_gems _deactivate_prompt_gems

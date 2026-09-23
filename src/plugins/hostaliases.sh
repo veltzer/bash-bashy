@@ -7,4 +7,9 @@ function _activate_hostaliases() {
 	__var=0
 }
 
-register _activate_hostaliases
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_hostaliases() {
+	unset HOSTALIASES
+}
+
+register _activate_hostaliases _deactivate_hostaliases

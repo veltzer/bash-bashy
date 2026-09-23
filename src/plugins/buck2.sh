@@ -51,4 +51,9 @@ function _activate_buck2() {
 	__var=0
 }
 
-register_interactive _activate_buck2
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_buck2() {
+	complete -r buck2 2> /dev/null
+}
+
+register_interactive _activate_buck2 _deactivate_buck2

@@ -14,4 +14,9 @@ function _activate_aws_bash_completions() {
 
 # the completions ship with the awscli package, so installing them is
 # _install_awscli in the awscli plugin - there is nothing separate to register
-register_interactive _activate_aws_bash_completions
+# Undo the activation in the running shell, for bashy_deactivate. The completion is dropped; the functions it defined stay, unused.
+function _deactivate_aws_bash_completions() {
+	complete -r aws 2> /dev/null
+}
+
+register_interactive _activate_aws_bash_completions _deactivate_aws_bash_completions

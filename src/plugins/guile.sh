@@ -14,4 +14,9 @@ function _uninstall_guile() {
 	bashy_uninstall_apt "guile" "guile-2.2" "guile-2.2-dev"
 }
 
-register _activate_guile
+# Undo the activation in the running shell, for bashy_deactivate.
+function _deactivate_guile() {
+	unset GUILE_AUTO_COMPILE
+}
+
+register _activate_guile _deactivate_guile

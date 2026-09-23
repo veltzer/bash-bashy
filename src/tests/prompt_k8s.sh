@@ -5,6 +5,8 @@ source src/core/log.sh
 source src/core/var.sh
 source src/core/pathutils.sh
 source src/core/git.sh
+source src/core/array.sh
+source src/plugins/prompt.sh
 source src/plugins/prompt_k8s.sh
 
 # the plugin end to end: a repo with a .k8s.conf sets KUBECONFIG while inside
@@ -44,4 +46,26 @@ function testPromptK8sLeavesForeignKubeconfigAlone() {
 	unset KUBECONFIG
 	cd / || _bashy_assert_fail
 	rm -rf "${dir}"
+}
+
+function testPromptK8sDeactivateClearsAndDeregisters() {
+	local repo
+	repo=$(mktemp --directory)
+	git -c init.defaultBranch=main init --quiet "${repo}"
+	touch "${repo}/.k8s.conf"
+	git_is_inside_flush
+	unset KUBECONFIG PROMPT_K8S_CONF
+	_bashy_array_new _BASHY_PROMPT_FUNCTIONS
+	_bashy_prompt_register prompt_k8s
+	cd "${repo}" || _bashy_assert_fail
+	prompt_k8s
+	_bashy_assert_equal "${KUBECONFIG}" "$(realpath "${repo}")/.k8s.conf"
+	_deactivate_prompt_k8s
+	if var_is_defined KUBECONFIG || var_is_defined PROMPT_K8S_CONF
+	then
+		_bashy_assert_fail
+	fi
+	_bashy_assert_equal "${#_BASHY_PROMPT_FUNCTIONS[@]}" 0
+	cd / || _bashy_assert_fail
+	rm -rf "${repo}"
 }
