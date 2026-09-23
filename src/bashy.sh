@@ -59,6 +59,7 @@ bashy_core_order=(
 	version
 	install
 	completion
+	secret
 	# these use the modules above
 	assoc
 	check
@@ -112,7 +113,9 @@ function _bashy_load_core() {
 function _bashy_read_plugins_filename() {
 	local filename=$1
 	local line plugin enabled
-	while read -r line; do
+	# "|| [ -n ... ]" keeps a final line that has no trailing newline: read returns
+	# false on it but still fills the variable, and that line used to be lost.
+	while read -r line || [ -n "${line}" ]; do
 		if [[ "${line}" =~ ^#.* ]]; then
 			continue
 		fi
@@ -128,13 +131,7 @@ function _bashy_read_plugins_filename() {
 		fi
 		_bashy_array_push bashy_array_plugin "${plugin}"
 		assoc_set bashy_assoc_enabled "${plugin}" "${enabled}"
-		# read returns false on a final line that has no trailing newline, which silently
-		# dropped the last plugin of a hand edited list. Appending a newline to the
-		# stream costs nothing and makes the last line arrive like any other.
-	done < <(
-		cat "${filename}"
-		echo
-	)
+	done < "${filename}"
 }
 
 function _bashy_read_plugins() {

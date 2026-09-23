@@ -1,19 +1,14 @@
 # This is integration of codex, the OpenAI command line coding tool
 # https://github.com/openai/codex
+# The api key is read from pass(1) when codex runs, not at shell start, and is
+# set for that process only. This also grants codex all permissions.
+function codex() {
+	bashy_with_secret OPENAI_API_KEY "keys/openai" codex --dangerously-bypass-approvals-and-sandbox "$@"
+}
+
 function _activate_ai_codex() {
 	local -n __var=$1
 	local -n __error=$2
-	# one pass(1) lookup, not two - each one is a gpg decryption costing ~35ms
-	local _key
-	if ! _key=$(pass show "keys/openai" 2>/dev/null); then
-		__var=$?
-		__error="no pass(1) for [keys/openai] to activate codex"
-		return
-	fi
-	OPENAI_API_KEY="${_key}"
-	export OPENAI_API_KEY
-	# This is to grant codex all permissions
-	alias codex="codex --dangerously-bypass-approvals-and-sandbox"
 	__var=0
 }
 

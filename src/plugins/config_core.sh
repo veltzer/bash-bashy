@@ -12,7 +12,15 @@ function _activate_core() {
 	# these gives warnings
 	# echo core | sudo tee /proc/sys/kernel/core_pattern > /dev/null
 	# echo "core.%e.%p.%t" | sudo tee /proc/sys/kernel/core_pattern > /dev/null
-	echo "${HOME}/tmp/core.%e.%p.%t" | sudo tee /proc/sys/kernel/core_pattern > /dev/null
+	local wanted="${HOME}/tmp/core.%e.%p.%t"
+	# The pattern survives until reboot, so look before running sudo on every
+	# shell: "read" is a builtin, and the common case is that it is already set.
+	local current=""
+	read -r current < /proc/sys/kernel/core_pattern 2> /dev/null
+	if [ "${current}" != "${wanted}" ]
+	then
+		echo "${wanted}" | sudo tee /proc/sys/kernel/core_pattern > /dev/null
+	fi
 	__var=0
 }
 

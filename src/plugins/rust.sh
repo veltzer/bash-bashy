@@ -17,16 +17,22 @@ function _activate_rust() {
 	source "${CARGO_ENV}"
 	# _bashy_pathutils_add_head PATH "${CARGO_HOME_BIN}"
 	export CARGO_HOME
-	# The crates.io token lives in pass(1) only; cargo publish reads it from
-	# CARGO_REGISTRY_TOKEN, so there is no ~/.cargo/credentials file. One
-	# lookup, not two - each one is a gpg decryption costing ~35ms. A missing
-	# entry does not fail activation: the toolchain works without publishing.
-	local _token
-	if _token=$(pass show "keys/crates.io" 2>/dev/null); then
-		CARGO_REGISTRY_TOKEN="${_token}"
-		export CARGO_REGISTRY_TOKEN
-	fi
 	__var=0
+}
+
+# The crates.io token lives in pass(1) only; cargo reads it from
+# CARGO_REGISTRY_TOKEN, so there is no ~/.cargo/credentials file. It is fetched
+# only for the subcommands that talk to the registry as the owner, and only for
+# that process. Every other cargo invocation runs untouched.
+function cargo() {
+	case "${1:-}" in
+		publish|login|logout|owner|yank)
+			bashy_with_secret CARGO_REGISTRY_TOKEN "keys/crates.io" cargo "$@"
+			;;
+		*)
+			command cargo "$@"
+			;;
+	esac
 }
 
 function _remove_rust() {

@@ -4,11 +4,21 @@ function _activate_ssh_agent() {
 	if ! checkInPath ssh-add __var __error; then return; fi
 	# this will check if an ssh agent is actually running
 	if ! checkVariableDefined SSH_AUTH_SOCK __var __error; then return; fi
+	# gather the keys first: one ssh-add for all of them rather than one per
+	# key, and none at all when there are no keys (the glob then stays literal)
+	local -a keys=()
 	local key
 	for key in ~/.keys/*.pem
 	do
-		ssh-add "${key}" 2> /dev/null
+		if [ -e "${key}" ]
+		then
+			keys+=("${key}")
+		fi
 	done
+	if [ "${#keys[@]}" -gt 0 ]
+	then
+		ssh-add "${keys[@]}" 2> /dev/null
+	fi
 	__var=0
 }
 

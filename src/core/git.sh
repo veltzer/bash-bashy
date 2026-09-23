@@ -31,22 +31,34 @@ function git_is_inside() {
 	return "${err2}"
 }
 
-# forget what git_is_inside remembered, for when a repository appears or
-# disappears under a directory that has already been visited
+# the top level of the repository PWD is in, remembered per directory like the
+# answer above: six prompt plugins ask for it on every prompt
+declare -gA _bashy_git_top_cache=()
+
+# forget what git_is_inside and git_top_level remembered, for when a repository
+# appears or disappears under a directory that has already been visited
 function git_is_inside_flush() {
 	_bashy_git_inside_cache=()
+	_bashy_git_top_cache=()
 }
 
 # returns the top level of a git tree
 #
-# The nameref carries the function's name so that a caller which is itself
-# holding a nameref (git_repo_name below) does not clash with it: two nested
-# "local -n __var" resolve to the same variable, and the inner assignment lands
-# in the wrong place. No other local either, so a caller passing a variable
-# named "toplevel" gets its own and not ours.
+# The names here carry the function's name so that a caller which is itself
+# holding a nameref (git_repo_name below) or a variable called "toplevel" does
+# not clash with them: two nested "local -n __var" resolve to the same variable,
+# and the inner assignment lands in the wrong place.
 function git_top_level() {
 	local -n __git_top_level_var=$1
-	__git_top_level_var=$(git rev-parse --show-toplevel)
+	if [ -n "${_bashy_git_top_cache[${PWD}]+x}" ]
+	then
+		__git_top_level_var="${_bashy_git_top_cache[${PWD}]}"
+		return 0
+	fi
+	local __git_top_level_result
+	__git_top_level_result=$(git rev-parse --show-toplevel) || return 1
+	_bashy_git_top_cache[${PWD}]="${__git_top_level_result}"
+	__git_top_level_var="${__git_top_level_result}"
 }
 
 # returns the name of the current git repo

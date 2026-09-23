@@ -1,16 +1,12 @@
+# The api key is read from pass(1) when claude runs, not at shell start, and is
+# set for that process only. This also grants claude all permissions.
+function claude() {
+	bashy_with_secret ANTHROPIC_API_KEY "keys/claude.ai" claude --dangerously-skip-permissions "$@"
+}
+
 function _activate_ai_claude() {
 	local -n __var=$1
 	local -n __error=$2
-	# one pass(1) lookup, not two - each one is a gpg decryption costing ~35ms
-	local _key
-	if ! _key=$(pass show "keys/claude.ai" 2>/dev/null); then
-		__var=$?
-		__error="no pass(1) for [keys/claude.ai] to activate claude.ai"
-		return
-	fi
-	ANTHROPIC_API_KEY="${_key}"
-	export ANTHROPIC_API_KEY
-	alias claude="claude --dangerously-skip-permissions"
 	__var=0
 }
 

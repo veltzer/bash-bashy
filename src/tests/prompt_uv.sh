@@ -33,6 +33,31 @@ function _test_prompt_uv_teardown() {
 	rm -rf "${_test_prompt_uv_dir}"
 }
 
+function testPromptUvFindsRootAbove() {
+	_test_prompt_uv_setup
+	mkdir -p deep/er
+	cd deep/er || _bashy_assert_fail
+	local root=""
+	_prompt_uv_find_root root || _bashy_assert_fail
+	# walking up is done in the shell now, dirname(1) used to be four forks a prompt
+	_bashy_assert_equal "${root}" "${_test_prompt_uv_dir}"
+	_test_prompt_uv_teardown
+}
+
+function testPromptUvFindsNoRootAtTop() {
+	local dir
+	dir=$(mktemp -d)
+	cd "${dir}" || _bashy_assert_fail
+	local root=""
+	if [ ! -e /pyproject.toml ] && [ ! -e /tmp/pyproject.toml ] && _prompt_uv_find_root root
+	then
+		_bashy_assert_fail
+	fi
+	cd / || _bashy_assert_fail
+	rm -rf "${dir}"
+	return 0
+}
+
 function testPromptUvRecreatesDeletedVenv() {
 	_test_prompt_uv_setup
 	prompt_uv

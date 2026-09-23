@@ -34,12 +34,27 @@ function testCompletionServesFromCache() {
 	_test_completion_tool "${dir}" "complete -W v1 faketool"
 	export BASHY_COMPLETION_CACHE="${dir}/cache"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null
-	# break the tool without changing it on disk, so a second call that still
-	# succeeds proves the answer came from the cache rather than from the tool
-	local stamp_before
-	stamp_before=$(cat "${dir}/cache/faketool.bash.stamp")
+	# break the tool but give it back the mtime the stamp remembers, so a second
+	# call that still succeeds proves the answer came from the cache
+	printf '#!/bin/bash\nexit 1\n' > "${dir}/bin/faketool"
+	touch -r "${dir}/cache/faketool.bash.stamp" "${dir}/bin/faketool"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null || _bashy_assert_fail
-	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash.stamp")" "${stamp_before}"
+	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v1 faketool"
+	rm -rf "${dir}"
+}
+
+function testCompletionInvalidatesWhenToolIsOlder() {
+	local dir
+	dir=$(mktemp --directory)
+	_test_completion_tool "${dir}" "complete -W v1 faketool"
+	export BASHY_COMPLETION_CACHE="${dir}/cache"
+	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null
+	# a package manager can install a binary carrying its build date, older than
+	# the stamp. A "newer than" test alone would keep serving v1 for it.
+	_test_completion_tool "${dir}" "complete -W v2 faketool"
+	touch -d '2000-01-01' "${dir}/bin/faketool"
+	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null
+	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v2 faketool"
 	rm -rf "${dir}"
 }
 
@@ -54,6 +69,28 @@ function testCompletionInvalidatesWhenToolChanges() {
 	_test_completion_tool "${dir}" "complete -W v2 faketool"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null
 	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v2 faketool"
+	rm -rf "${dir}"
+}
+
+function testCompletionFindsBinaryBehindFunction() {
+	local dir
+	dir=$(mktemp --directory)
+	_test_completion_tool "${dir}" "complete -W v1 faketool"
+	export BASHY_COMPLETION_CACHE="${dir}/cache"
+	# a plugin may wrap the tool in a function of the same name. The cache has to
+	# key on the binary behind it, or the stamp never matches and every shell
+	# regenerates.
+	function faketool() { echo "the function, not the binary"; }
+	# a direct call first, so the function has a visible call site
+	_bashy_assert_equal "$(faketool)" "the function, not the binary"
+	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null || _bashy_assert_fail
+	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v1 faketool"
+	if [ "${dir}/bin/faketool" -nt "${dir}/cache/faketool.bash.stamp" ] \
+		|| [ "${dir}/bin/faketool" -ot "${dir}/cache/faketool.bash.stamp" ]
+	then
+		_bashy_assert_fail
+	fi
+	unset -f faketool
 	rm -rf "${dir}"
 }
 

@@ -10,9 +10,20 @@ function _activate_uv() {
 		__error="problem in sourcing uv completion"
 		return
 	fi
-	UV_PUBLISH_TOKEN=$(pass show keys/pypi)
-	export UV_PUBLISH_TOKEN
 	__var=0
+}
+
+# The pypi token lives in pass(1) only. It is fetched when "uv publish" runs and
+# set for that process; every other uv invocation runs untouched.
+function uv() {
+	case "${1:-}" in
+		publish)
+			bashy_with_secret UV_PUBLISH_TOKEN "keys/pypi" uv "$@"
+			;;
+		*)
+			command uv "$@"
+			;;
+	esac
 }
 
 function _install_uv() {

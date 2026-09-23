@@ -7,13 +7,14 @@
 #
 # The output only changes when the tool itself changes, so generate it once, keep it
 # in a cache file, and source the file afterwards. The cache is keyed on the mtime
-# and size of the tool's binary, so upgrading the tool regenerates it by itself.
+# of the tool's binary, so upgrading the tool regenerates it by itself.
 #
-# Only worth it for slow tools. A cached call still costs about 10 ms of its own,
-# for "command -v", a "stat" and sourcing the file, so a tool that emits its
-# completion in under that is faster left alone. The tools cached here take 20 to
-# 80 ms natively; the seven rs* tools in plugins/complete.sh take 5 to 15 ms and
-# were measurably slower when routed through here.
+# A cache hit costs no process at all. The tool's mtime is not read with stat(1)
+# but copied onto a stamp file with "touch -r" when the cache is written, and the
+# check afterwards is the builtin "-nt"/"-ot" test between the tool and that
+# stamp, which compares to the nanosecond. It used to be a "stat" and a "cat" per
+# tool, about 10 ms, which made the cache slower than the fast rs* tools it now
+# serves as well.
 #
 # Usage from a plugin, in place of "source <(minikube completion bash)":
 #
@@ -36,17 +37,6 @@ then
 	export BASHY_COMPLETION_CACHE="${XDG_CACHE_HOME:-${HOME}/.cache}/bashy/completions"
 fi
 
-# _bashy_completion_stamp <path>
-# Echo a short string that changes whenever the file at <path> changes.
-# Uses size and mtime rather than a hash, since hashing a 100MB binary at every
-# shell start would cost more than the completion command it is meant to avoid.
-# The mtime is taken with nanoseconds (%.Y, not %Y): whole seconds are too coarse,
-# a tool replaced within the same second as the last stamp would keep serving the
-# previous completion.
-function _bashy_completion_stamp() {
-	stat --format='%s-%.Y' "$1" 2>/dev/null
-}
-
 # bashy_completion <tool> <command...>
 # Source the bash completion produced by <command...>, through a cache keyed on the
 # binary of <tool>. Returns 0 on success, non zero when the tool is absent or the
@@ -54,27 +44,34 @@ function _bashy_completion_stamp() {
 function bashy_completion() {
 	local tool=$1
 	shift
+	# "type -P" gives the binary on PATH even when a plugin wrapped the tool in a
+	# function of the same name (uv, cargo, ...). "command -v" would return the
+	# function's name, and a name that is not a file is "older" than any stamp,
+	# so the cache would regenerate on every shell.
 	local path
-	if ! path=$(command -v "${tool}" 2>/dev/null)
+	if ! path=$(type -P "${tool}" 2>/dev/null) || [ -z "${path}" ]
 	then
 		return 1
 	fi
-	local stamp
-	stamp=$(_bashy_completion_stamp "${path}")
 	local cache="${BASHY_COMPLETION_CACHE}/${tool}.bash"
 	local stamp_file="${cache}.stamp"
-	# regenerate when the tool changed, or when we have never run it
-	if [ ! -s "${cache}" ] || [ "$(cat "${stamp_file}" 2>/dev/null)" != "${stamp}" ]
+	# Regenerate when we have never run it, or when the tool's mtime differs from
+	# the one the stamp carries, in either direction: a package manager can put a
+	# binary in place with a build date older than the stamp, and a plain "newer
+	# than" test would keep serving the old completion for it.
+	if [ ! -s "${cache}" ] || [ ! -e "${stamp_file}" ] \
+		|| [ "${path}" -nt "${stamp_file}" ] || [ "${path}" -ot "${stamp_file}" ]
 	then
 		mkdir -p "${BASHY_COMPLETION_CACHE}"
 		local tmp="${cache}.$$"
-		if ! "$@" > "${tmp}" 2>/dev/null || [ ! -s "${tmp}" ]
+		# "command" runs the binary, not a function or alias wrapped around it
+		if ! command "$@" > "${tmp}" 2>/dev/null || [ ! -s "${tmp}" ]
 		then
 			rm -f "${tmp}"
 			return 1
 		fi
 		mv -f "${tmp}" "${cache}"
-		echo "${stamp}" > "${stamp_file}"
+		touch -r "${path}" "${stamp_file}"
 	fi
 	# shellcheck source=/dev/null
 	source "${cache}"

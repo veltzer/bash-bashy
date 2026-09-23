@@ -38,7 +38,9 @@ function _prompt_uv_find_root() {
 		then
 			return 1
 		fi
-		dir=$(dirname "${dir}")
+		# one step up, in the shell: dirname(1) was four forks on every prompt
+		dir="${dir%/*}"
+		dir="${dir:-/}"
 	done
 }
 

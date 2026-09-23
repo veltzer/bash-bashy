@@ -20,22 +20,13 @@ function _activate_complete() {
 	complete -C "pytubekit complete" pytubekit
 	complete -C "pycontacts complete" pycontacts
 
-	# shellcheck source=/dev/null
-	source <(rsconstruct complete bash)
-	# shellcheck source=/dev/null
-	source <(rsmultigit complete bash)
-	# shellcheck source=/dev/null
-	source <(rscontacts complete bash)
-	# shellcheck source=/dev/null
-	source <(rscalendar complete bash)
-	# shellcheck source=/dev/null
-	source <(rsdedup complete bash)
-	# shellcheck source=/dev/null
-	source <(rsspell complete bash)
-	# shellcheck source=/dev/null
-	source <(rstype complete bash)
-	# shellcheck source=/dev/null
-	source <(rspass complete bash)
+	# Through the completion cache, so that a shell start does not run all eight
+	# tools. A tool that is not installed is skipped, as "source <(...)" used to.
+	local tool
+	for tool in rsconstruct rsmultigit rscontacts rscalendar rsdedup rsspell rstype rspass
+	do
+		bashy_completion "${tool}" "${tool}" complete bash || true
+	done
 
 	complete -F _rsmultigit mg
 	__var=0

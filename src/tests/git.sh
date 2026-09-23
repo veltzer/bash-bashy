@@ -57,6 +57,25 @@ function testGitTopLevel() {
 	rm -rf "${repo}"
 }
 
+function testGitTopLevelRemembers() {
+	local repo top
+	_test_git_repo repo
+	git_is_inside_flush
+	cd "${repo}/sub" || _bashy_assert_fail
+	git_top_level top
+	# the answer is remembered per directory, and the flush forgets it
+	_bashy_assert_equal "${_bashy_git_top_cache[${PWD}]}" "${top}"
+	_bashy_git_top_cache[${PWD}]="/remembered"
+	git_top_level top
+	_bashy_assert_equal "${top}" "/remembered"
+	git_is_inside_flush
+	_bashy_assert_equal "${#_bashy_git_top_cache[@]}" 0
+	git_top_level top
+	_bashy_assert_equal "${top}" "$(realpath "${repo}")"
+	cd / || _bashy_assert_fail
+	rm -rf "${repo}"
+}
+
 function testGitRepoName() {
 	local repo name
 	_test_git_repo repo

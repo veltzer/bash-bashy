@@ -189,10 +189,11 @@ prompt plugins here, so it adds up quickly. Do not run a program if a shell buil
 or an already exported variable will do.
 
 If you need to know whether the current directory is inside a git repository, call
-`git_is_inside` rather than running `git` yourself. It remembers the answer per
-directory, which took about 28 ms off every prompt when the seven plugins that ask
-were each forking their own `git rev-parse`. Call `git_is_inside_flush` if a
-repository appears or disappears under a directory you are already in.
+`git_is_inside` rather than running `git` yourself, and `git_top_level` for the
+root of the repository. Both remember the answer per directory, which took about
+28 ms off every prompt when the plugins that ask were each forking their own
+`git rev-parse`. Call `git_is_inside_flush` if a repository appears or disappears
+under a directory you are already in.
 
 Registration prepends, so prompt functions run in reverse registration order: a
 plugin listed later in `bashy.list` gets to set `PS1` before an earlier one.
@@ -214,11 +215,31 @@ bashy_completion minikube minikube completion bash
 
 The first argument is the tool whose binary keys the cache, the rest is the command
 to run. The cache lives under `${XDG_CACHE_HOME:-~/.cache}/bashy/completions` and is
-keyed on the size and mtime of the tool, so upgrading the tool regenerates it by
-itself. `bashy_completion_clean` drops the cache.
+keyed on the mtime of the tool, so upgrading the tool regenerates it by itself. A
+cache hit costs no process at all: the check is the shell's own `-nt` test against
+a stamp file. `bashy_completion_clean` drops the cache.
 
 This is for completion output only. `zoxide init`, `starship init` and friends emit
 shell setup that may embed per session state, so those keep running live.
+
+### Secrets
+
+Never read a secret at activation time. Every `pass show` is a gpg decryption of
+about eight processes on every shell you open, and an exported key sits in the
+environment of every process that shell ever starts. Wrap the tool in a function
+of the same name instead, and fetch the key when it runs:
+
+```bash
+function hello() {
+	bashy_with_secret HELLO_API_KEY "keys/hello" hello "$@"
+}
+```
+
+`bashy_with_secret <variable> <pass path> <command...>` sets the variable for that
+one command and nothing else. The command is started through `env`, which finds it
+on `PATH`, so the wrapper does not call itself. For a tool that only needs the
+secret for some subcommands, such as `cargo publish` or `uv publish`, switch on the
+first argument and hand every other invocation to `command`.
 
 ### Writing an installer
 

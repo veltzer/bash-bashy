@@ -6,7 +6,12 @@ function _activate_bash_completions_prog() {
 	local -n __var=$1
 	local -n __error=$2
 	if ! checkInPath "pandoc" __var __error; then return; fi
-	eval "$(pandoc --bash-completion)"
+	if ! bashy_completion pandoc pandoc --bash-completion
+	then
+		__var=1
+		__error="problem in sourcing pandoc completion"
+		return
+	fi
 	__var=0
 }
 
