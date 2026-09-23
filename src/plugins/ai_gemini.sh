@@ -23,7 +23,23 @@ function _activate_ai_gemini() {
 # Install the latest stable Gemini CLI.
 # https://geminicli.com/docs/get-started/installation/
 function _install_gemini() {
-	bashy_install_npm "gemini" "@google/gemini-cli@latest"
+	local package="@google/gemini-cli"
+	if ! _bashy_pathutils_is_in_path "npm"
+	then
+		echo "gemini: npm not found - install node first" >&2
+		return 1
+	fi
+	local latest_version
+	latest_version=$(npm view "${package}" version 2>/dev/null)
+	# --parseable --long prints "<path>:<package>@<version>", or nothing when
+	# the package is not installed globally
+	local installed_version
+	installed_version=$(npm ls --global --depth=0 --parseable --long "${package}" 2>/dev/null | sed -n "s|^.*:${package}@||p")
+	if bashy_install_check "gemini" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
+	bashy_install_npm "gemini" "${package}@${latest_version:-latest}"
 }
 
 function _uninstall_gemini() {
