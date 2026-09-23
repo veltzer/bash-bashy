@@ -1,3 +1,25 @@
+# This is integration of gemini, the Google command line coding tool
+# https://github.com/google-gemini/gemini-cli
+function _activate_ai_gemini() {
+	local -n __var=$1
+	local -n __error=$2
+	# ai_agy exports the same key; reuse it rather than paying for a second
+	# pass(1) lookup - each one is a gpg decryption costing ~35ms
+	if [ -z "${GEMINI_API_KEY:-}" ]; then
+		local _key
+		if ! _key=$(pass show "keys/ai.google.dev" 2>/dev/null); then
+			__var=$?
+			__error="no pass(1) for [keys/ai.google.dev] to activate gemini"
+			return
+		fi
+		GEMINI_API_KEY="${_key}"
+		export GEMINI_API_KEY
+	fi
+	# This is to grant gemini all permissions
+	alias gemini="gemini --yolo"
+	__var=0
+}
+
 # Install the latest stable Gemini CLI.
 # https://geminicli.com/docs/get-started/installation/
 function _install_gemini() {
@@ -7,3 +29,5 @@ function _install_gemini() {
 function _uninstall_gemini() {
 	bashy_uninstall_npm "gemini" "@google/gemini-cli"
 }
+
+register_interactive _activate_ai_gemini
