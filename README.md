@@ -9,7 +9,7 @@ project website: https://veltzer.github.io/bash-bashy
 
 author: Mark Veltzer
 
-version: 0.1.2
+version: 0.1.3
 
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 
