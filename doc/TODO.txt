@@ -3,9 +3,12 @@
 
 - allow to activate only specific plugins when logging.
 
-- all bashy functions should start with _bashy_
+- all bashy internal functions should start with _bashy_
 	the first underscore is so that their names will not clutter the command line
-	the "bashy" is to distiniguish them from other bash tools/frameworks.
+	the "bashy" is to distinguish them from other bash tools/frameworks.
+	bashy_+[TAB] should only show functions that users may want to run.
+	configure_* and install_* style names pollute the users namespace as well.
+	this is a work in progress, look at core/misc.sh.
 - add feature to allow to set the name of the current window in tmux to the name of the git
 	repo that you are in.
 	This will save me the trouble of having to do that myself all the time.
@@ -18,9 +21,6 @@
 	we want to activate in the bashy.list file.
 	This way we could also activate plugins that we did not want activate
 	right when we login.
-- deactivate functions exist for every plugin whose activation has a clean
-	inverse. The rest (tmux, starship, umask, config_core, the sourced system
-	completion files) are left without one on purpose.
 - do everything with one command: "bashy":
 	$ bashy errors
 	$ bashy debug
@@ -40,14 +40,11 @@
 - consider using libraries from https://github.com/juan131/bash-libraries
 - consider using https://gitlab.com/bertrand-benoit/scripts-common
 - clean our path (remove duplicate entries) in bashy.
+	_bashy_pathutils_add_head/add_tail already drop duplicates of what they add,
+	and _bashy_pathutils_reduce exists for the whole PATH, but nothing calls it yet.
 - put all the extra paths we have at the end of the path and not in the beginging.
 	(actauly have a config for that).
-- bashy should not pollute the users bash namespace with too many functions.
-	this is a work in progress, look at core/misc.sh.
 - make bashy be reloadable (currently it is not as the array just keep growing).
 - if a plugin needs a configuration option let him declare that and documentation for it.
 	Let it read it from the ~/.bashy.config file (the file already exists)
 - separate myenv from bashy.
-- stop calling all the functions bashy_* and configure_* install_* these pollute the users
-	namespace. Put _bashy in front of any function that is internal to bashy.
-	bashy_+[TAB] should only show functions that users may want to run.

@@ -1,12 +1,12 @@
-# generate README.md, LICENSE, the github workflow and
-# src/core/version.sh from tera.templates/. The analyzer tracks load_python /
-# version_str / include dependencies, so a change in config/*.py or
-# tera.snippets/ rebuilds the outputs.
+# generate README.md, .github/dependabot.yml and src/core/version.sh from
+# tera.templates/. The analyzer tracks load_lua / version_str / include
+# dependencies, so a change in config/*.lua or tera.snippets/ rebuilds the
+# outputs. LICENSE and .github/workflows/build.yml are not generated.
 [analyzer.tera]
 
-# no dep_inputs needed: the configs are lua and read via load_lua(path="..."),
-# which the tera analyzer discovers and content-tracks by itself. The templates
-# deliberately avoid version_str(), which the analyzer does not scan for.
+# no dep_inputs needed: the configs are lua and read via load_lua(path="...")
+# and version_str(path="..."), which the tera analyzer discovers and
+# content-tracks by itself.
 [processor.tera]
 src_dirs = ["tera.templates"]
 

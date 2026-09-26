@@ -26,3 +26,6 @@
 	$ eval "$(pandoc --bash-completion)"
 - added unified debug system for all plugins.
 - add level of debug to debug.bash and called it log.
+- deactivate functions exist for every plugin whose activation has a clean
+	inverse. The rest (tmux, starship, umask, config_core, the sourced system
+	completion files) are left without one on purpose.

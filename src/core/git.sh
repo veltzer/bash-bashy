@@ -3,9 +3,10 @@
 # a function that returns whether or not the current working directory
 # is inside a git tree
 #
-# Seven prompt plugins ask this on every single prompt, and each answer used to
-# fork "git rev-parse", so the same question cost about 28 ms per prompt. The
-# answer only depends on the directory, so remember it per directory.
+# The prompt plugins ask this on every single prompt, through git_prompt_repo_path
+# and git_prompt_repo_conf below, and each answer used to fork "git rev-parse", so
+# the same question cost about 28 ms per prompt. The answer only depends on the
+# directory, so remember it per directory.
 #
 # The memo is keyed on PWD alone. Creating or removing a repository under a
 # directory you are already sitting in is rare enough, and "git_is_inside_flush"
@@ -32,7 +33,7 @@ function git_is_inside() {
 }
 
 # the top level of the repository PWD is in, remembered per directory like the
-# answer above: six prompt plugins ask for it on every prompt
+# answer above: the same prompt helpers ask for it on every prompt
 declare -gA _bashy_git_top_cache=()
 
 # forget what git_is_inside and git_top_level remembered, for when a repository

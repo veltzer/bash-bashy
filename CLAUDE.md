@@ -63,8 +63,9 @@ can be downloaded and verified instead.
 
 ## Before saying it is done
 
-Run `rsconstruct build`. It runs shellcheck over every shell file and then
-`scripts/test_all.sh`.
+Run `rsconstruct build`. It renders the templates, runs shellcheck over every shell
+file and then `scripts/test_all.sh`, and lints the workflow (actionlint), the
+markdown (rumdl) and the lua configs (luacheck).
 
 Do not claim an item is complete without checking the code. Grep for what the claim
 asserts rather than trusting a summary written earlier in the session.
@@ -82,13 +83,17 @@ escaping. After editing the snippet run `rsconstruct build` and check `README.md
 
 ## Generated files
 
-`rsconstruct build` regenerates `README.md`, `LICENSE` and `src/core/version.sh`
-from `tera.templates/`. These outputs are tracked in git, so fix the template,
-never the output. The version in `config/version.lua` is bumped by hand; nothing
-bumps it as a build side effect anymore.
+`rsconstruct build` regenerates `README.md`, `.github/dependabot.yml` and
+`src/core/version.sh` from `tera.templates/`. These outputs are tracked in git, so
+fix the template, never the output. The version in `config/version.lua` is bumped
+by hand; nothing bumps it as a build side effect anymore.
 
 The configs in `config/` are lua and templates read them with
-`load_lua(path="...")`, which the tera analyzer content-tracks. Do not switch a
-template to `version_str()` - the analyzer does not scan for it, so the output
-would go stale when the version changes. `.github/workflows/build.yml` is written
-by hand, not generated.
+`load_lua(path="...")` or `version_str(path="...")`; both add the file as a
+content-tracked input, so the output is rebuilt when the config changes
+(`rsconstruct functions list` shows what each function tracks).
+
+`LICENSE` and `.github/workflows/build.yml` are not generated. Both are
+fleet-wide files kept byte-identical by `rsmultigit check-same`, as are
+`tera.templates/README.md.tera` and `tera.templates/.github/dependabot.yml.tera`,
+so a change to any of them is a fleet change, not a change to this repo.

@@ -4,10 +4,11 @@
 #
 # _bashy_load_core - loads core functions under ~/.bashy/core/*.sh
 # _bashy_read_plugins - reads which plugins you want loaded
-# 	from either ~/.bashy.list or ~/.bashy/bashy.list
+# 	from the bashy.list next to this file (~/.bashy/bashy.list when
+# 	installed) and then from ~/.bashy.list, which overrides it
 # _bashy_load_plugins - loads the plugins you wanted from
-# 	~/.bashy/plugins
-# 	and
+# 	the plugins folder next to this file (~/.bashy/plugins)
+# 	and then
 # 	~/.bashy_extra
 # _bashy_run_plugins - runs the plugins
 #

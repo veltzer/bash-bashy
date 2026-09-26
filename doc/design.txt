@@ -2,34 +2,29 @@ terminology
 
 We use "activate" and "deactivate" for the names of the two main hooks of any plugin in bashy
 
-each plugin will define two functions of whatever name and register them.
-
-* ofcourse there will be a naming convention for these functions:
-	_activate_[plugin_name]
-	_deactivate_[plugin_name]
+each plugin defines an activate function, and usually a deactivate function, and registers them:
+	register _activate_[plugin_name] _deactivate_[plugin_name]
 
 Why are these functions prefixed by underscores?
 Because they need to be called by bashy and not directly from the command line since
 they expect variables by reference to be passed to them so calling them directly
-will not work. This means that they need to be activate by bashy and only bashy.
+will not work. This means that they need to be activated by bashy and only bashy.
 
-This way you can activate/deactivate them:
-	$ bashy activate [name]
-	$ bashy deactivate [name]
-if a module does not have a 'deactivate' function bashy will say so.
+Activation happens once, at shell startup, for every plugin enabled in bashy.list.
+There is no on demand activation; open a new shell (or "exec bash") after changing
+the list. Deactivation is on demand:
+	$ bashy_deactivate [name]
+if a plugin has no 'deactivate' function bashy says so.
 
-the register function can receive these two functions.
+Bashy keeps the state of each plugin (found, loaded, result, error, timing) in
+associative arrays keyed by plugin name, so any plugin can be looked up without
+scanning. The only plain array is the run order, which is what bashy.list gives.
 
-Bashy needs to save all plugins in associative arrays and not straight arrays.
-This is because bashy needs to be able to access each plugin without scanning the entire array.
-Currently bashy is using a regular array which makes it hard to hack on it.
-
-A plugin can also only supply other functions, like download functions.
-
-Should we have a seperate folder for "download plugins" and "regular plugins"?
-And a different contract with each of those?
-Good question.
-The real question is there an advantage with one plugin both defining "activate/deactivate"
-behaviour and "download" behavior? I really don't see one.
-"Download plugins" are really just plain bash functions that can be called from the command
-line with no parameters, aren't they?
+A plugin can also supply an installer for the tool it wraps. That was once discussed as a
+separate kind of "download plugin" with its own folder and contract; it ended up as a
+third hook on the same plugin instead:
+	register_install _install_[plugin_name]
+	$ bashy_install [name]
+An installer is a plain bash function with no parameters, and the core/install.sh and
+core/download.sh helpers give every installer the same reporting, caching and checksum
+handling.

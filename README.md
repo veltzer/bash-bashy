@@ -121,6 +121,14 @@ git
 history
 ```
 
+A plugin named in either list is looked up first in the installed `plugins`
+folder and then in `~/.bashy_extra`, so a plugin of your own goes in
+`~/.bashy_extra/<name>.sh` and is listed in `~/.bashy.list` like any other.
+
+To start a shell without bashy at all, without touching `~/.bashrc`, run
+`bashy_off`: it leaves a `~/.bashy.disable` marker that makes `bashy.sh` return
+before loading anything. `bashy_on` removes it again.
+
 Bashy is set up once, when the shell starts, so after installing a new version or
 editing the plugin list open a new shell, or replace the current one:
 
@@ -140,22 +148,30 @@ bashy_deactivate prompt_error
 
 Bashy plugins may never fail a command (all commands need to return 0)
 
-Bashy plugins need to set a variable passed by reference to either 0 or 1.
+An activation function gets two variables by reference: the first it sets to 0
+when everything went well or to 1 when it did not, and the second it fills with
+the reason when it did not, which is what `bashy_errors` prints.
 
 Here is the most basic plugin:
 
 ```bash
 function _activate_hello_plugin() {
 	local -n __var=$1
+	local -n __error=$2
+	if ! checkInPath "hello" __var __error; then return; fi
 	# this means everything was ok
 	__var=0
 }
 register _activate_hello_plugin
 ```
 
+The `check*` helpers in `core/check.sh` (`checkInPath`, `checkExecutableFile`,
+`checkDirectoryExists`, ...) set both variables for you, so a plugin whose tool
+is not on this machine becomes a silent no-op.
+
 `register` takes an optional second function that undoes the activation, which
-`bashy_deactivate <plugin>` runs on demand. Most shipped plugins have one; write
-it whenever the activation has a clean inverse (an alias, a `PATH` entry, an
+`bashy_deactivate <plugin>` runs on demand. About half of the shipped plugins have
+one; write it whenever the activation has a clean inverse (an alias, a `PATH` entry, an
 exported variable, a completion, a prompt hook) and leave it out when it does
 not (`tmux`, `umask`). `register_interactive` is the same but
 only registers in an interactive shell. `register_install` names the plugin's
@@ -203,8 +219,8 @@ to do rather than how to notice when to do it. `git_prompt_repo_path` keeps a
 folder of the repository on `PATH` while inside it, which is all `prompt_gems` and
 `prompt_node` are. `git_prompt_repo_conf` watches for a file at the repository
 root and calls an enter function on every prompt that finds it and an exit
-function once on the way out, which is what `prompt_k8s`, `prompt_aws` and
-`prompt_gcp` are built on:
+function once on the way out, which is what `prompt_k8s`, `prompt_aws`,
+`prompt_gcp` and `prompt_auto` are built on:
 
 ```bash
 function _prompt_hello_enter() { export HELLO_CONF="$1"; }
@@ -233,8 +249,8 @@ bashy_completion minikube minikube completion bash
 ```
 
 The first argument is the tool whose binary keys the cache, the rest is the command
-to run. The cache lives under `${XDG_CACHE_HOME:-~/.cache}/bashy/completions` and is
-keyed on the mtime of the tool, so upgrading the tool regenerates it by itself. A
+to run. The cache lives under `${XDG_CACHE_HOME:-~/.cache}/bashy/completions`, overridable
+with `BASHY_COMPLETION_CACHE`, and is keyed on the mtime of the tool, so upgrading the tool regenerates it by itself. A
 cache hit costs no process at all: the check is the shell's own `-nt` test against
 a stamp file. `bashy_completion_clean` drops the cache.
 
@@ -316,12 +332,12 @@ The helpers involved:
 | `bashy_download <url> [out]` | download through the cache, revalidating against the origin |
 | `bashy_verify_sha256 <file> <url or digest>` | check a download against a published sha256 |
 | `bashy_install_extract <archive> <folder> [members...]` | unpack and stamp with the install time rather than the archive mtime |
-| `bashy_install_dir` | the install directory, created if it is not there yet |
+| `bashy_install_dir` | the install directory (`BASHY_INSTALL_DIR`, default `~/install/binaries`), created if it is not there yet |
 | `bashy_install_binary <name> <url> [path]` | fetch a single executable and install it, the cached copy is never chmod'ed in place |
 | `bashy_install_deb <name> <url>` | fetch a `.deb` and install it, falling back to apt for its dependencies |
 | `bashy_install_marker <folder> <name> [version]` | the file recording what is installed, for artifacts that cannot report their own version |
 | `bashy_install_marker_version <folder> <name> <executable>` | read that file back, empty unless the executable is really there |
-| `bashy_uninstall_binary <name> [path]` | remove a single binary from `~/install/binaries` |
+| `bashy_uninstall_binary <name> [path]` | remove a single binary from the install directory |
 | `bashy_uninstall_directory <name> <dir...>` | remove the directory tree(s) a plugin installed |
 
 When the project ships through a package manager rather than as a release asset,
@@ -344,7 +360,8 @@ only be a slower, worse version of the one it has.
 | `bashy_install_git <name> <url> <folder> [git args...]` | install by cloning, replacing any previous clone |
 
 Downloads are cached under `${XDG_CACHE_HOME:-~/.cache}/bashy/downloads`, overridable
-with `BASHY_DOWNLOAD_CACHE`. Cached files are revalidated with the origin, so a
+with `BASHY_DOWNLOAD_CACHE`. Single binaries are installed into `BASHY_INSTALL_DIR`,
+which defaults to `~/install/binaries`; set either in `~/.bashy.config` to move them. Cached files are revalidated with the origin, so a
 rolling `latest` asset that keeps one filename forever is still refetched when it
 changes upstream. Use `bashy_download_clean` to drop the cache.
 
@@ -381,7 +398,9 @@ then open a shell and run `bashy_status_plugins`.
 
 ## Config files
 
-You can activate various plgins via the `~/.bashy.config` file.
+You can configure plugins via the `~/.bashy.config` file, which is sourced before
+anything else, so it can also set the variables mentioned above (`BASHY_LOG_LEVEL`,
+`BASHY_PROFILE`, `BASHY_INSTALL_DIR`, the cache locations).
 
 Here is an example:
 
