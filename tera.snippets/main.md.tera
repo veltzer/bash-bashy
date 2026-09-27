@@ -32,6 +32,10 @@ and it is incremental: it prints the files that changed and copies nothing else.
 `--delete` prunes anything in `~/.bashy` that is no longer part of the install, so
 a renamed or removed plugin does not linger. Run it again after every `git pull`.
 
+Each install is stamped: `~/.bashy/.stamp` records the commit, the version and the
+time of the install, and `bashy_version` shows them. The stamp is what lets a
+running shell notice a newer install, see below.
+
 Bashy finds its own core, plugins and `bashy.list` next to `bashy.sh`, so you can
 also skip the install and source the checkout directly, which is handy while
 developing a plugin:
@@ -113,6 +117,18 @@ editing the plugin list open a new shell, or replace the current one:
 ```bash
 exec bash
 ```
+
+You do not have to remember that. The `prompt_stale` plugin compares the install
+stamp on disk with the one the shell read at startup, on every prompt and with
+builtins only, and when they differ it says so, once per install:
+
+```text
+bashy: /home/mark/.bashy has changed since this shell started, run "exec bash" to pick it up
+  running: version 0.1.3, commit abc1234, installed 2026-09-27 09:12
+  on disk: version 0.1.3, commit def5678, installed 2026-09-27 11:40
+```
+
+A checkout sourced directly has no stamp, so it never gets this message.
 
 A plugin that registered an installer can be installed from the shell, and one
 that registered a deactivate function can be turned off in the running shell:

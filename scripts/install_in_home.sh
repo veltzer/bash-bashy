@@ -12,6 +12,13 @@
 #
 # -c compares by checksum rather than size and mtime, so a file that was merely
 # touched does not count as changed.
+#
+# After copying, the install is stamped: ~/.bashy/.stamp records the commit, the
+# version and the time, and a running shell compares it with the one it read at
+# startup to notice that a newer bashy has been installed under it (see
+# src/core/stamp.sh). The stamp is only rewritten when something was copied, so
+# a stamp change means a content change. It is not in .includes, and rsync leaves
+# excluded files alone when it deletes, so the stamp survives --delete.
 
 target="${HOME}/.bashy"
 
@@ -42,8 +49,27 @@ changes=$(rsync "${flags[@]}" --dry-run "${src}" "${target}/" |
 	grep -vE '^\.[fdLDS]\.\.t' ||
 	true)
 
+stamp="${target}/.stamp"
+
+function write_stamp() {
+	# an install from a tarball has no commit to name
+	local commit
+	commit=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+	# only the installed part counts as dirty, an edited README is not
+	if [ -n "$(git status --porcelain -- "${src}" 2>/dev/null)" ]; then
+		commit="${commit}+dirty"
+	fi
+	local version
+	version=$(sed -n 's/^export BASHY_VERSION_STR="\(.*\)"/\1/p' "${src}core/version.sh")
+	echo "${commit} ${version:-unknown} $(date +%s)" > "${stamp}"
+}
+
 if [ -z "${changes}" ]; then
 	echo "${target} is up to date"
+	# an install from before stamping gets its stamp without waiting for a change
+	if [ ! -f "${stamp}" ]; then
+		write_stamp
+	fi
 	exit 0
 fi
 echo "updating [${target}]:"
@@ -52,3 +78,4 @@ printf '  %s\n' "${changes}"
 # the preview above is the report, so let the real run work quietly. It still has to
 # carry --itemize-changes so that it is the same operation that was previewed.
 rsync "${flags[@]}" "${src}" "${target}/" >/dev/null
+write_stamp

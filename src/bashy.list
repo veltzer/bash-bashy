@@ -97,6 +97,7 @@ prompt_gcp
 prompt_aws
 prompt_k8s
 prompt_error
+prompt_stale
 # non prompt command continue
 config_core
 # nvm - slow

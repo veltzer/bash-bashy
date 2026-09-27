@@ -26,7 +26,7 @@
 # building blocks to the modules that build on top of them:
 #
 #   source                bootstrap, everything else is loaded through it
-#   null .. version       standalone, they depend on nothing
+#   null .. stamp         standalone, they depend on nothing
 #   assoc .. hooks        each one uses modules listed above it
 #
 # Add a new module wherever its dependencies are already satisfied. Anything not
@@ -58,6 +58,7 @@ bashy_core_order=(
 	measure
 	profile
 	version
+	stamp
 	install
 	completion
 	secret
@@ -332,8 +333,14 @@ function bashy_on() {
 	fi
 }
 
+# bashy_version
+# The version, and when there is an install stamp what was installed and when.
 function bashy_version() {
 	echo "${BASHY_VERSION_STR}"
+	if [ -n "${_BASHY_STAMP}" ]
+	then
+		echo "installed: $(_bashy_stamp_describe "${_BASHY_STAMP}")"
+	fi
 }
 
 # bashy_check_deployment [source checkout]
@@ -423,6 +430,8 @@ function _bashy_init() {
 	declare -ga bashy_core_names
 	declare -ga bashy_core_res
 	_bashy_load_core
+	# what is on disk right now, so that a later install can be noticed
+	_bashy_stamp_read _BASHY_STAMP
 	declare -ga _bashy_array_function
 	assoc_new _bashy_assoc_function
 	assoc_new _bashy_assoc_deactivate
