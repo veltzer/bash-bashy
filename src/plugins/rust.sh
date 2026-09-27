@@ -24,10 +24,19 @@ function _activate_rust() {
 # CARGO_REGISTRY_TOKEN, so there is no ~/.cargo/credentials file. It is fetched
 # only for the subcommands that talk to the registry as the owner, and only for
 # that process. Every other cargo invocation runs untouched.
+#
+# "cargo login" and "cargo logout" are refused: they only manage the credentials
+# file. login ignores CARGO_REGISTRY_TOKEN, prompts for a token and writes it to
+# disk, which is exactly the copy this setup avoids, and logout has nothing to
+# remove.
 function cargo() {
 	case "${1:-}" in
-		publish|login|logout|owner|yank)
+		publish|owner|yank)
 			bashy_with_secret CARGO_REGISTRY_TOKEN "keys/crates.io" cargo "$@"
+			;;
+		login|logout)
+			echo "cargo: the crates.io token comes from pass(1) entry [keys/crates.io] for every registry command, there is nothing to ${1}" >&2
+			return 1
 			;;
 		*)
 			command cargo "$@"
