@@ -31,7 +31,7 @@ function _activate_rust() {
 # remove.
 function cargo() {
 	case "${1:-}" in
-		publish|owner|yank)
+		publish|owner|yank|release)
 			bashy_with_secret CARGO_REGISTRY_TOKEN "keys/crates.io" cargo "$@"
 			;;
 		login|logout)
