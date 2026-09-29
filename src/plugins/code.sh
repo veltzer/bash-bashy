@@ -22,6 +22,14 @@ EOF
 	bashy_install_apt "code" "code"
 }
 
+function _install_code() {
+	# the direct .deb from Microsoft's update api is the recommended install:
+	# it exposes the true latest version to query, does not need a third-party
+	# apt source or gpg keyring on the system, and downloads a versioned asset
+	# that the download cache can key on
+	_install_code_direct
+}
+
 function _install_code_direct() {
 	# Get the latest version available from the VS Code update API
 	local latest_version
@@ -69,5 +77,5 @@ function _activate_code() {
 	__var=0
 }
 
-register_install _install_code_apt
+register_install _install_code
 register_interactive _activate_code
