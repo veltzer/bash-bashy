@@ -19,8 +19,26 @@ function _activate_brew() {
 # https://superuser.com/questions/619498/can-i-install-homebrew-without-sudo-privileges
 function _install_brew() {
 	local folder="${HOME}/install/homebrew"
+	local executable="${folder}/bin/brew"
+	# homebrew tags releases as plain semver (e.g. "7.0.7"), so no "v" prefix to strip
+	local release_json
+	bashy_github_release "Homebrew/brew" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}" "")
+	local installed_version=""
+	if [ -x "${executable}" ]
+	then
+		installed_version=$("${executable}" --version 2>/dev/null | awk '/^Homebrew/{print $2; exit}')
+	fi
+	if bashy_install_check "brew" "${installed_version}" "${latest_version}"
+	then
+		# already at the latest release; still refresh the formula database so
+		# subsequent "brew install" calls see current versions
+		"${executable}" update --quiet
+		return
+	fi
 	bashy_install_git "brew" "https://github.com/Homebrew/brew" "${folder}" || return
-	"${folder}/bin/brew" update --force --quiet
+	"${executable}" update --force --quiet
 }
 
 function _uninstall_brew() {
