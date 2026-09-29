@@ -37,7 +37,7 @@ function _install_brew() {
 		"${executable}" update --quiet
 		return
 	fi
-	bashy_install_git "brew" "https://github.com/Homebrew/brew" "${folder}" || return
+	bashy_install_git "brew" "https://github.com/Homebrew/brew" "${folder}" --depth 1 --single-branch || return
 	"${executable}" update --force --quiet
 }
 

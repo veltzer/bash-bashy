@@ -109,7 +109,7 @@ function _install_nvim_lazy() {
 	then
 		return
 	fi
-	bashy_install_git "nvim-lazy" "https://github.com/LazyVim/starter" "${HOME}/.config/nvim" || return
+	bashy_install_git "nvim-lazy" "https://github.com/LazyVim/starter" "${HOME}/.config/nvim" --depth 1 --single-branch || return
 	nvim --headless "+Lazy! sync" +qa
 }
 

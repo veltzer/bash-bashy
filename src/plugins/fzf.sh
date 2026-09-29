@@ -34,7 +34,7 @@ function _install_fzf() {
 	# this installs fzf for fuzzy matching
 	# https://github.com/junegunn/fzf
 	local folder="${HOME}/install/fzf"
-	bashy_install_git "fzf" "https://github.com/junegunn/fzf.git" "${folder}" --depth 1 || return
+	bashy_install_git "fzf" "https://github.com/junegunn/fzf.git" "${folder}" --depth 1 --single-branch || return
 	"${folder}/install" --no-update-rc --key-bindings --completion > /dev/null
 }
 

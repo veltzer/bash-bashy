@@ -53,10 +53,14 @@ function _install_go() {
 	fi
 	rm -rf "${full_folder}"
 	bashy_install_extract "${tar}" "${folder}"
+	# `go mod download` strips write bits from ${GOPATH}/pkg/mod, so plain
+	# `rm -rf` hits Permission denied. Restore u+w first.
+	[ -e "${HOME}/install/gopath" ] && chmod -R u+w "${HOME}/install/gopath" 2>/dev/null
 	rm -rf "${HOME}/.cache/go-build" "${HOME}/install/gopath"
 	mkdir -p "${HOME}/install/gopath/bin"
 }
 function _uninstall_go() {
+	[ -e "${HOME}/install/gopath" ] && chmod -R u+w "${HOME}/install/gopath" 2>/dev/null
 	bashy_uninstall_directory "go" "${HOME}/install/go" "${HOME}/install/gopath"
 }
 
