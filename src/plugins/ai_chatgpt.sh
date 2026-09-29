@@ -13,3 +13,4 @@ function _install_chatgpt() {
 }
 
 register _activate_ai_chatgpt
+register_install _install_chatgpt

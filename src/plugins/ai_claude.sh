@@ -56,3 +56,4 @@ function _deactivate_ai_claude() {
 }
 
 register_interactive _activate_ai_claude _deactivate_ai_claude
+register_install _install_claude

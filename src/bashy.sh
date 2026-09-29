@@ -408,6 +408,31 @@ function bashy_install() {
 	"${installer}"
 }
 
+# bashy_upgrade
+# Run every registered installer, in the order the plugins are listed. This is
+# the "install or bring up to date everything bashy knows about" one shot: each
+# installer already reports whether the tool is up to date or needs upgrading,
+# and skips its work when there is nothing to do. Plugins that have no
+# installer, and disabled ones, are skipped.
+function bashy_upgrade() {
+	local plugin installer enabled
+	for plugin in "${bashy_array_plugin[@]}"
+	do
+		assoc_get bashy_assoc_enabled enabled "${plugin}"
+		if [ "${enabled}" = 0 ]
+		then
+			continue
+		fi
+		assoc_get _bashy_assoc_install installer "${plugin}"
+		if _bashy_null_is_null "${installer}"
+		then
+			continue
+		fi
+		echo "=== ${plugin} ==="
+		"${installer}"
+	done
+}
+
 # bashy_deactivate <plugin>
 # Run the deactivate function a plugin registered alongside its activate one.
 function bashy_deactivate() {

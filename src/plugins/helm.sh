@@ -45,3 +45,4 @@ function _uninstall_helm() {
 }
 
 register _activate_helm
+register_install _install_helm

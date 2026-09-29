@@ -33,3 +33,4 @@ function _uninstall_lens() {
 }
 
 register _activate_lens
+register_install _install_lens

@@ -102,3 +102,4 @@ function _deactivate_ai_copilot() {
 }
 
 register _activate_ai_copilot _deactivate_ai_copilot
+register_install _install_copilot

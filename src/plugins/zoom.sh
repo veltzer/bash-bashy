@@ -41,3 +41,4 @@ function _activate_zoom() {
 }
 
 register_interactive _activate_zoom
+register_install _install_zoom

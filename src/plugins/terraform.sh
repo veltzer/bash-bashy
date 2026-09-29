@@ -42,3 +42,4 @@ function _deactivate_terraform() {
 }
 
 register_interactive _activate_terraform _deactivate_terraform
+register_install _install_terraform

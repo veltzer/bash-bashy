@@ -57,3 +57,4 @@ function _deactivate_buck2() {
 }
 
 register_interactive _activate_buck2 _deactivate_buck2
+register_install _install_buck2

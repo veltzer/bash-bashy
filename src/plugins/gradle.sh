@@ -54,3 +54,4 @@ function _deactivate_gradle() {
 }
 
 register _activate_gradle _deactivate_gradle
+register_install _install_gradle

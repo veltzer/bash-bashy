@@ -25,3 +25,4 @@ function _activate_drawio() {
 }
 
 register_interactive _activate_drawio
+register_install _install_drawio

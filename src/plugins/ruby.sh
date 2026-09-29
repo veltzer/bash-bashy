@@ -27,3 +27,4 @@ function _deactivate_ruby() {
 }
 
 register _activate_ruby _deactivate_ruby
+register_install _install_bundler

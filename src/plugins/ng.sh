@@ -20,3 +20,4 @@ function _uninstall_ng() {
 }
 
 register_interactive _activate_ng
+register_install _install_ng

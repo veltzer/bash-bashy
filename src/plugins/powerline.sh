@@ -31,3 +31,4 @@ function _uninstall_powerline() {
 }
 
 register_interactive _activate_powerline
+register_install _install_powerline

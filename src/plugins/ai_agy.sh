@@ -83,3 +83,4 @@ function _deactivate_ai_agy() {
 }
 
 register _activate_ai_agy _deactivate_ai_agy
+register_install _install_agy

@@ -75,3 +75,4 @@ function _deactivate_ai_codex() {
 }
 
 register_interactive _activate_ai_codex _deactivate_ai_codex
+register_install _install_codex

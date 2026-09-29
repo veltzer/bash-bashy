@@ -19,3 +19,4 @@ function _uninstall_zoxide() {
 }
 
 register_interactive _activate_zoxide
+register_install _install_zoxide

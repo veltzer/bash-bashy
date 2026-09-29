@@ -35,3 +35,4 @@ function _activate_freetube() {
 }
 
 register_interactive _activate_freetube
+register_install _install_freetube

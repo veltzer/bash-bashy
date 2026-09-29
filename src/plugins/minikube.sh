@@ -50,3 +50,4 @@ function _deactivate_minikube() {
 }
 
 register_interactive _activate_minikube _deactivate_minikube
+register_install _install_minikube

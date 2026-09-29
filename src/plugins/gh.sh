@@ -51,3 +51,4 @@ function _deactivate_gh() {
 }
 
 register_interactive _activate_gh _deactivate_gh
+register_install _install_gh

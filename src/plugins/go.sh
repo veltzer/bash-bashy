@@ -72,3 +72,4 @@ function _deactivate_go() {
 }
 
 register _activate_go _deactivate_go
+register_install _install_go

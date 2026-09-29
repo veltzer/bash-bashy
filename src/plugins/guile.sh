@@ -20,3 +20,4 @@ function _deactivate_guile() {
 }
 
 register _activate_guile _deactivate_guile
+register_install _install_guile

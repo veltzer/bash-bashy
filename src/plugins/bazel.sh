@@ -40,3 +40,4 @@ function _uninstall_bazel() {
 }
 
 register_interactive _activate_bazel
+register_install _install_bazel

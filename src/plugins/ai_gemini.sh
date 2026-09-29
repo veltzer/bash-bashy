@@ -44,3 +44,4 @@ function _deactivate_ai_gemini() {
 }
 
 register_interactive _activate_ai_gemini _deactivate_ai_gemini
+register_install _install_gemini

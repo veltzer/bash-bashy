@@ -47,3 +47,4 @@ function _uninstall_oc() {
 }
 
 register _activate_oc
+register_install _install_oc

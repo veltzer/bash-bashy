@@ -54,3 +54,4 @@ function _uninstall_hugo() {
 }
 
 register_interactive _activate_hugo
+register_install _install_hugo

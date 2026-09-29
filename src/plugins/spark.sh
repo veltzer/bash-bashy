@@ -57,3 +57,4 @@ function _uninstall_spark() {
 }
 
 register _activate_spark
+register_install _install_spark

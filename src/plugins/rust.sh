@@ -99,3 +99,4 @@ function _deactivate_rust() {
 }
 
 register _activate_rust _deactivate_rust
+register_install _install_rust

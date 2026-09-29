@@ -28,3 +28,4 @@ function _install_nvm() {
 }
 
 register_interactive _activate_nvm
+register_install _install_nvm

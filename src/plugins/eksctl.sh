@@ -52,3 +52,4 @@ function _uninstall_eksctl() {
 }
 
 register_interactive _activate_eksctl
+register_install _install_eksctl

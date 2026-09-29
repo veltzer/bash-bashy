@@ -131,3 +131,4 @@ function _deactivate_nvim() {
 }
 
 register_interactive _activate_nvim _deactivate_nvim
+register_install _install_nvim

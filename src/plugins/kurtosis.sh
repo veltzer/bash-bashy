@@ -47,3 +47,4 @@ function _uninstall_kurtosis() {
 }
 
 register_interactive _activate_kurtosis
+register_install _install_kurtosis

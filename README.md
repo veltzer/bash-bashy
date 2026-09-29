@@ -158,6 +158,15 @@ bashy_install uv
 bashy_deactivate prompt_error
 ```
 
+`bashy_upgrade` runs every registered installer in turn, so a fresh machine (or a
+stale one) can be brought up to date with a single command. Each installer already
+knows whether its tool is missing, out of date or current and reports accordingly,
+so the run prints one section per plugin and does no unnecessary work.
+
+```bash
+bashy_upgrade
+```
+
 ## Writing Bashy plugins
 
 Bashy plugins may never fail a command (all commands need to return 0)

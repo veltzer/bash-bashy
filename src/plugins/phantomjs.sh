@@ -50,3 +50,4 @@ function _deactivate_phantomjs() {
 }
 
 register _activate_phantomjs _deactivate_phantomjs
+register_install _install_phantomjs

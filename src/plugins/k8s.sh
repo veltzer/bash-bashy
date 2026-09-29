@@ -48,3 +48,4 @@ function _deactivate_k8s() {
 }
 
 register _activate_k8s _deactivate_k8s
+register_install _install_k8s

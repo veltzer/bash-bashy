@@ -52,3 +52,4 @@ function _uninstall_audacity() {
 }
 
 register _activate_audacity
+register_install _install_audacity

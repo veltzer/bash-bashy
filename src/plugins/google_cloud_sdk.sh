@@ -52,3 +52,4 @@ function _deactivate_google_cloud_sdk() {
 }
 
 register_interactive _activate_google_cloud_sdk _deactivate_google_cloud_sdk
+register_install _install_google_cloud_sdk

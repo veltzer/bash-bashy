@@ -52,3 +52,4 @@ function _deactivate_brew() {
 }
 
 register _activate_brew _deactivate_brew
+register_install _install_brew

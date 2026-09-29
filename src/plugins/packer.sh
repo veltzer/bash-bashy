@@ -42,3 +42,4 @@ function _deactivate_packer() {
 }
 
 register_interactive _activate_packer _deactivate_packer
+register_install _install_packer
