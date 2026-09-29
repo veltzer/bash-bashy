@@ -10,6 +10,14 @@ function _activate_ai_claude() {
 	__var=0
 }
 
+function _install_claude() {
+	# the vendor's native installer is Anthropic's own recommended install and the
+	# one that stays in step with claude releases without waiting on a package
+	# maintainer, so it is the default here; the npm and brew variants remain for
+	# setups that want to manage claude through those channels
+	_install_claude_native
+}
+
 # The native installer is a shell script with no release asset to download and
 # verify instead, so it is fetched first and then run from disk rather than piped
 # straight into a shell.

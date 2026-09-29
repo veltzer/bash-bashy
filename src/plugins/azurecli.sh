@@ -4,6 +4,13 @@
 # Documentation about how to install the azure cli tools:
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt
 
+function _install_azurecli() {
+	# the deb variant is Microsoft's recommended path on debian/ubuntu: apt owns
+	# the package once installed, so updates and signature checking are handled by
+	# apt itself, and nothing downloaded over the network is executed as root
+	_install_azurecli_deb
+}
+
 # recommended
 #
 # This does by hand exactly what Microsoft's InstallAzureCLIDeb script does: add

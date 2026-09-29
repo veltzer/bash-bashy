@@ -50,6 +50,13 @@ function _remove_rust() {
 	sudo apt remove -y cargo rustc rust-src
 }
 
+function _install_rust() {
+	# rustup is the upstream-recommended install and the one _activate_rust is
+	# built around (CARGO_HOME points at ${HOME}/install/cargo, which rustup
+	# populates); the apt variant is kept for setups that prefer distro packages
+	_install_rust_rustup
+}
+
 function _install_rust_rustup() {
 	export CARGO_HOME="${HOME}/install/cargo"
 	export RUSTUP_HOME="${HOME}/.rustup"
