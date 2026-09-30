@@ -18,6 +18,7 @@ Components: main
 Architectures: amd64
 Signed-By: ${MSRING}
 EOF
+		unset _BASHY_APT_UPDATED
 	fi
 	bashy_install_apt "code" "code"
 }

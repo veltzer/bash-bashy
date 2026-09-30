@@ -85,8 +85,11 @@ function _install_claude_desktop_apt() {
 		return 1
 	fi
 	sudo install --mode=644 "${key}" "${CLAUDE_DESKTOP_KEYRING}"
-	echo "deb [arch=amd64,arm64 signed-by=${CLAUDE_DESKTOP_KEYRING}] ${CLAUDE_DESKTOP_REPO} stable main" \
-		| sudo tee "${CLAUDE_DESKTOP_SOURCES}" > /dev/null
+	local new_sources="deb [arch=amd64,arm64 signed-by=${CLAUDE_DESKTOP_KEYRING}] ${CLAUDE_DESKTOP_REPO} stable main"
+	if [ ! -f "${CLAUDE_DESKTOP_SOURCES}" ] || [ "$(cat "${CLAUDE_DESKTOP_SOURCES}" 2>/dev/null)" != "${new_sources}" ]; then
+		echo "${new_sources}" | sudo tee "${CLAUDE_DESKTOP_SOURCES}" > /dev/null
+		unset _BASHY_APT_UPDATED
+	fi
 	bashy_install_apt "claude-desktop" "claude-desktop"
 }
 

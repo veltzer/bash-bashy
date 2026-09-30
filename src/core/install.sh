@@ -279,6 +279,18 @@ function bashy_install_marker_version() {
 	fi
 }
 
+# _bashy_apt_update
+# Run apt-get update at most once per session, to avoid running it repeatedly
+# during a bashy_upgrade. Plugins that modify apt sources should unset
+# _BASHY_APT_UPDATED to force a fresh update.
+function _bashy_apt_update() {
+	if [ -z "${_BASHY_APT_UPDATED:-}" ]
+	then
+		sudo apt-get update
+		export _BASHY_APT_UPDATED=1
+	fi
+}
+
 # bashy_install_apt <name> <package...>
 # Install distribution packages, reporting in the standard format. There is no
 # version comparison here on purpose: apt already knows what is installed and
@@ -288,7 +300,7 @@ function bashy_install_apt() {
 	local name=$1
 	shift
 	echo "Installing ${name} via apt [$*]"
-	sudo apt-get update
+	_bashy_apt_update
 	sudo DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes "$@"
 }
 

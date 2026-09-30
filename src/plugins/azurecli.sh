@@ -51,8 +51,13 @@ function _install_azurecli_deb() {
 	fi
 	# the old style .list file would shadow the .sources one
 	sudo rm -f /etc/apt/sources.list.d/azure-cli.list
-	printf 'Types: deb\nURIs: https://packages.microsoft.com/repos/azure-cli/\nSuites: %s\nComponents: main\nArchitectures: %s\nSigned-by: %s\n' \
-		"${repo}" "$(dpkg --print-architecture)" "${keyring}" | sudo tee "${sources}" > /dev/null
+	local new_sources
+	new_sources=$(printf 'Types: deb\nURIs: https://packages.microsoft.com/repos/azure-cli/\nSuites: %s\nComponents: main\nArchitectures: %s\nSigned-by: %s\n' \
+		"${repo}" "$(dpkg --print-architecture)" "${keyring}")
+	if [ ! -f "${sources}" ] || [ "$(cat "${sources}" 2>/dev/null)" != "${new_sources}" ]; then
+		echo "${new_sources}" | sudo tee "${sources}" > /dev/null
+		unset _BASHY_APT_UPDATED
+	fi
 	bashy_install_apt "azure-cli" "azure-cli"
 }
 
