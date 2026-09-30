@@ -77,6 +77,12 @@ function _install_rust_rustup() {
 	chmod +x "${runner_dir}/rustup-init"
 	"${runner_dir}/rustup-init" -y --no-modify-path
 	rm -rf "${runner_dir}"
+	# rustup-init only sets up the toolchain. The cargo subcommands the fleet's
+	# builds and release scripts run (cargo nextest, cargo release, mdbook) are
+	# separate crates that live in CARGO_HOME/bin, which the rm -rf above wiped;
+	# put them back so the reinstall is complete rather than leaving
+	# "no such command" for the next build to find.
+	"${CARGO_HOME}/bin/cargo" install --locked cargo-nextest cargo-release mdbook
 }
 
 function _install_rust_apt() {
