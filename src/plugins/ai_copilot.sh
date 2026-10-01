@@ -60,9 +60,23 @@ function _uninstall_copilot() {
 # The vendor install script, which installs into ~/.local/bin (or /usr/local/bin
 # as root). Prefer _install_copilot above; this is kept for anyone who wants the
 # vendor's own layout. It is fetched first and then run from disk rather than
-# piped straight into a shell.
+# piped straight into a shell, and only when the release it would fetch is newer
+# than what it last put there.
 function _install_copilot_script() {
-	echo "Installing copilot via the vendor install script"
+	local release_json
+	bashy_github_release "github/copilot-cli" release_json || return
+	local latest_version
+	latest_version=$(bashy_github_version "${release_json}")
+	local executable="${HOME}/.local/bin/copilot"
+	local installed_version=""
+	if [ -x "${executable}" ]
+	then
+		installed_version=$("${executable}" --version 2>/dev/null | awk '/^GitHub Copilot CLI/{sub(/\.$/, "", $4); print $4; exit}')
+	fi
+	if bashy_install_check "copilot" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
 	local script
 	bashy_download "https://gh.io/copilot-install" script || return
 	echo "running [${script}], inspect it first if you like"

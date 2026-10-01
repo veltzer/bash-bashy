@@ -65,6 +65,14 @@ function _install_azurecli_deb() {
 # there is nothing to reimplement here. Download it first and run that file, rather
 # than piping it into a root shell, so there is something on disk to look at.
 function _install_azurecli_standalone() {
+	# the vendor script registers the apt repository and installs from it, so
+	# the az it leaves behind is whichever one is first in PATH
+	local installed_version latest_version
+	_bashy_azurecli_versions "$(command -v az || true)" installed_version latest_version || return 1
+	if bashy_install_check "azure-cli" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
 	echo "Installing azure-cli via the vendor install script"
 	local script
 	bashy_download "https://aka.ms/InstallAzureCLI" script || return 1
@@ -74,8 +82,34 @@ function _install_azurecli_standalone() {
 
 # The tarball install has never worked: the bundle expects to build its own python
 # and fails part way through. Kept so the approach is not tried again from scratch.
+# _bashy_azurecli_versions <az executable> <installed out_var> <latest out_var>
+# Work out the newest azure-cli release and the version <az executable> reports,
+# for the variants below that install something apt does not own.
+function _bashy_azurecli_versions() {
+	local executable=$1
+	local -n __installed=$2
+	local -n __latest=$3
+	local release_json
+	bashy_github_release "Azure/azure-cli" release_json || return 1
+	# releases are tagged "azure-cli-2.90.0"
+	__latest=$(bashy_github_version "${release_json}" "azure-cli-")
+	__installed=""
+	if [ -x "${executable}" ]
+	then
+		# the first line of --version is "azure-cli   2.90.0"
+		__installed=$("${executable}" --version 2>/dev/null | awk '/^azure-cli /{print $2; exit}')
+	fi
+}
+
 function _install_azurecli_tarball() {
 	local folder="${HOME}/install/azurecli"
+	local installed_version latest_version
+	_bashy_azurecli_versions "${folder}/bin/az" installed_version latest_version || return 1
+	if bashy_install_check "azure-cli" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
+	# the tarball has no versioned name, it is whatever the latest release is
 	local download_file="https://azurecliprod.blob.core.windows.net/msi/azure-cli-latest.tar.gz"
 	echo "Installing azure-cli from a tarball into [${folder}]"
 	bashy_install_download "${download_file}"
@@ -102,7 +136,9 @@ function _install_azurecli_tarball() {
 
 function _install_azurecli_extensions() {
 	echo "Installing azure-cli extensions [azure-devops]"
-	az extension add --name "azure-devops"
+	# az refuses to add an extension that is already there, and --upgrade is its
+	# way of saying "install it, or move it forward if it is already installed"
+	az extension add --upgrade --name "azure-devops"
 }
 
 function _uninstall_azurecli() {

@@ -71,17 +71,32 @@ function _install_nvim_latest_tar() {
 	bashy_install_extract "${tar}" "${HOME}/install"
 }
 
+# The nightly is a moving tag that is rebuilt every night, so the binary's own
+# version string (a dev build with a commit hash) has nothing published to be
+# compared against. The release does carry the time it was published, so that is
+# recorded with bashy_install_marker and a nightly is only taken again when a
+# newer one has been published since.
 function _install_nvim_nightly_tar() {
-	# the nightly is a moving tag, so there is no version to compare against -
-	# taking it again is the only way to be current
-	local download_file="https://github.com/neovim/neovim-releases/releases/download/nightly/nvim-linux-x86_64.tar.gz"
 	local folder="${HOME}/install/nvim-linux-x86_64"
-	echo "Installing nvim nightly"
+	local executable="${folder}/bin/nvim"
+	local latest_version
+	# a prerelease never shows up under releases/latest, so ask for the tag itself
+	latest_version=$(curl --fail --silent --location \
+		"https://api.github.com/repos/neovim/neovim-releases/releases/tags/nightly" \
+		| jq --raw-output '.published_at')
+	local installed_version
+	installed_version=$(bashy_install_marker_version "${HOME}/install" "nvim-nightly" "${executable}")
+	if bashy_install_check "nvim nightly" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
+	local download_file="https://github.com/neovim/neovim-releases/releases/download/nightly/nvim-linux-x86_64.tar.gz"
 	bashy_install_download "${download_file}"
 	local tar
 	bashy_download "${download_file}" tar || return
 	rm -rf "${folder}"
-	bashy_install_extract "${tar}" "${HOME}/install"
+	bashy_install_extract "${tar}" "${HOME}/install" || return
+	bashy_install_marker "${HOME}/install" "nvim-nightly" "${latest_version}" > /dev/null
 }
 
 function _install_nvim_apt() {

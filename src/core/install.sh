@@ -429,7 +429,9 @@ function bashy_uninstall_brew() {
 }
 
 # bashy_install_gh_extension <name> <owner/repo>
-# Install a gh(1) extension, reporting in the standard format.
+# Install a gh(1) extension, reporting in the standard format. gh refuses to
+# install an extension that is already there, and --force is its way of saying
+# "install it, upgrade it, or leave it alone if it is already the latest".
 function bashy_install_gh_extension() {
 	local name=$1
 	local extension=$2
@@ -439,7 +441,7 @@ function bashy_install_gh_extension() {
 		return 1
 	fi
 	echo "Installing ${name} via a gh extension [${extension}]"
-	gh extension install "${extension}"
+	gh extension install --force "${extension}"
 }
 
 # bashy_uninstall_gh_extension <name> <extension>

@@ -20,9 +20,25 @@ function _install_claude() {
 
 # The native installer is a shell script with no release asset to download and
 # verify instead, so it is fetched first and then run from disk rather than piped
-# straight into a shell.
+# straight into a shell. It installs each release side by side under
+# ~/.local/share/claude/versions and repoints the ~/.local/bin/claude symlink, so
+# the same script is also the upgrade path.
 function _install_claude_native() {
-	echo "Installing claude via the native installer"
+	local executable="${HOME}/.local/bin/claude"
+	local latest_version
+	# the "latest" endpoint is where the vendor installer itself reads the version
+	# to fetch, so ask the same source before deciding whether to run it
+	latest_version=$(curl --fail --silent --location "https://downloads.claude.ai/claude-code-releases/latest" \
+		| grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+	local installed_version=""
+	if [ -x "${executable}" ]
+	then
+		installed_version=$("${executable}" --version 2>/dev/null | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+	fi
+	if bashy_install_check "claude" "${installed_version}" "${latest_version}"
+	then
+		return
+	fi
 	local script
 	bashy_download "https://claude.ai/install.sh" script || return
 	echo "running [${script}], inspect it first if you like"
