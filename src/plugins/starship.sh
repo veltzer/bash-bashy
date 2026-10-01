@@ -15,6 +15,7 @@ function _activate_starship() {
 }
 
 function _install_starship() {
+	bashy_install_args "$@" || return
 	# install the release asset directly rather than piping the vendor install.sh
 	# into a shell, which would run unverified code from the network
 	local release_json

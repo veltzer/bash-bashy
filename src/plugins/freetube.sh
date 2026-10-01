@@ -1,6 +1,7 @@
 # this is a plugin for freetube
 
 function _install_freetube() {
+	bashy_install_args "$@" || return
 	# FreeTube ships only prereleases, so the "latest release" endpoint is empty -
 	# take the newest entry of the releases list instead.
 	local releases_json

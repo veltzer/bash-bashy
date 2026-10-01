@@ -23,6 +23,7 @@ function _activate_powerline() {
 }
 
 function _install_powerline() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "powerline" "powerline" "fonts-powerline"
 }
 

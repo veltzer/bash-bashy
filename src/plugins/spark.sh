@@ -13,6 +13,7 @@ function _activate_spark() {
 }
 
 function _install_spark() {
+	bashy_install_args "$@" || return
 	# instructions for installing spark are at
 	# https://medium.com/@patilmailbox4/install-apache-spark-on-ubuntu-ffa151e12e30
 	# the download mirror lists a directory per release, take the highest one

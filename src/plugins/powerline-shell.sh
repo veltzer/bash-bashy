@@ -19,6 +19,7 @@ function _activate_powerline_shell() {
 }
 
 function _install_powerline_shell() {
+	bashy_install_args "$@" || return
 	bashy_install_pip "powerline-shell" "powerline-shell" || return
 	bashy_install_apt "powerline-shell fonts" "fonts-powerline"
 }

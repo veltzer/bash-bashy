@@ -158,10 +158,19 @@ bashy_install uv
 bashy_deactivate prompt_error
 ```
 
+An installer does nothing when the tool is already at the latest version. Pass
+`--force` to install it again anyway, for a binary that got damaged, a package that
+was half removed, or a release that was republished under the same version:
+
+```bash
+bashy_install uv --force
+```
+
 `bashy_upgrade` runs every registered installer in turn, so a fresh machine (or a
 stale one) can be brought up to date with a single command. Each installer already
 knows whether its tool is missing, out of date or current and reports accordingly,
-so the run prints one section per plugin and does no unnecessary work.
+so the run prints one section per plugin and does no unnecessary work. It takes
+`--force` too, and hands it to every installer.
 
 ```bash
 bashy_upgrade
@@ -303,10 +312,13 @@ first argument and hand every other invocation to `command`.
 
 Install functions are named `_install_<name>` and should never hardcode a version
 number: always ask the project what its latest release is. The core modules provide
-the pieces so that every plugin behaves and reports the same way.
+the pieces so that every plugin behaves and reports the same way. Every installer
+starts by handing its arguments to `bashy_install_args`, which is what makes
+`--force` work and rejects anything else.
 
 ```bash
 function _install_hello() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "someorg/hello" release_json || return
 	local latest_version
@@ -347,7 +359,9 @@ The helpers involved:
 
 | function | purpose |
 | --- | --- |
-| `bashy_install_check <name> <installed> <latest>` | print the standard install/upgrade/up to date line, return 0 when there is nothing to do |
+| `bashy_install_args [--force]` | parse the installer's arguments, fail on anything but `--force` |
+| `bashy_install_forced` | succeed when `--force` was given, for a check that is not a version comparison |
+| `bashy_install_check <name> <installed> <latest>` | print the standard install/upgrade/up to date line, return 0 when there is nothing to do, or 1 under `--force` |
 | `bashy_install_download <url>` | report the artifact about to be fetched |
 | `bashy_github_release <owner/repo> [out]` | fetch the latest release json |
 | `bashy_github_version <json> [prefix]` | tag name with the prefix (default `v`) stripped |
@@ -370,13 +384,13 @@ only be a slower, worse version of the one it has.
 
 | function | purpose |
 | --- | --- |
-| `bashy_install_apt <name> <package...>` | install distribution packages |
+| `bashy_install_apt <name> <package...>` | install distribution packages, `--reinstall` under `--force` |
 | `bashy_uninstall_apt <name> <package...>` | purge them, reporting either way |
-| `bashy_install_npm <name> <package...>` | install global npm packages |
+| `bashy_install_npm <name> <package...>` | install global npm packages, `--force` under `--force` |
 | `bashy_uninstall_npm <name> <package...>` | remove them |
-| `bashy_install_pip <name> <package...>` | install python packages |
+| `bashy_install_pip <name> <package...>` | install python packages, `--force-reinstall` under `--force` |
 | `bashy_uninstall_pip <name> <package...>` | remove them |
-| `bashy_install_brew <name> <formula...>` | install homebrew formulae |
+| `bashy_install_brew <name> <formula...>` | install homebrew formulae, `brew reinstall` under `--force` |
 | `bashy_uninstall_brew <name> <formula...>` | remove them |
 | `bashy_install_gh_extension <name> <owner/repo>` | install a `gh(1)` extension |
 | `bashy_uninstall_gh_extension <name> <extension>` | remove one |

@@ -394,10 +394,17 @@ function bashy_check_deployment() {
 	return 1
 }
 
-# bashy_install <plugin>
-# Run the installer a plugin registered with register_install.
+# bashy_install <plugin> [--force]
+# Run the installer a plugin registered with register_install. Anything after
+# the plugin name goes to the installer, so --force reaches it.
 function bashy_install() {
+	if [ "$#" -eq 0 ]
+	then
+		echo "usage: bashy_install <plugin> [--force]" >&2
+		return 1
+	fi
 	local plugin=$1
+	shift
 	local installer
 	assoc_get _bashy_assoc_install installer "${plugin}"
 	if _bashy_null_is_null "${installer}"
@@ -405,15 +412,16 @@ function bashy_install() {
 		echo "no installer registered for [${plugin}]"
 		return 1
 	fi
-	"${installer}"
+	"${installer}" "$@"
 }
 
-# bashy_upgrade
+# bashy_upgrade [--force]
 # Run every registered installer, in the order the plugins are listed. This is
 # the "install or bring up to date everything bashy knows about" one shot: each
 # installer already reports whether the tool is up to date or needs upgrading,
 # and skips its work when there is nothing to do. Plugins that have no
-# installer, and disabled ones, are skipped.
+# installer, and disabled ones, are skipped. The arguments go to every
+# installer, so --force reinstalls everything.
 function bashy_upgrade() {
 	local plugin installer enabled
 	for plugin in "${bashy_array_plugin[@]}"
@@ -429,7 +437,7 @@ function bashy_upgrade() {
 			continue
 		fi
 		echo "=== ${plugin} ==="
-		"${installer}"
+		"${installer}" "$@"
 	done
 }
 

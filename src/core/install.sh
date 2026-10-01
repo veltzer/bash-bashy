@@ -6,11 +6,12 @@
 # checksum check and the removal around them. This module keeps all of that in
 # one place so every plugin behaves and reports identically.
 #
-# An installer is always the same shape: work out the latest version, work out
-# the installed one, hand both to bashy_install_check, and only then fetch and
-# unpack.
+# An installer is always the same shape: parse its arguments, work out the
+# latest version, work out the installed one, hand both to bashy_install_check,
+# and only then fetch and unpack.
 #
 #	function _install_gh() {
+#		bashy_install_args "$@" || return
 #		local release_json
 #		bashy_github_release "cli/cli" release_json || return
 #		local latest_version
@@ -56,11 +57,45 @@ function bashy_install_dir() {
 	echo "${BASHY_INSTALL_DIR}"
 }
 
+# bashy_install_args [--force]
+# Parse the arguments every installer accepts. An installer calls this first,
+# with its own "$@", and returns when it fails: a misspelt option must not
+# silently run a plain install. --force means "do the work even when the tool is
+# already at the latest version", for a binary that was damaged, a package that
+# was half removed, or a release that was republished under the same version.
+# The state lives in BASHY_INSTALL_FORCE and is reset on every call, so an
+# installer never inherits the flag from the one that ran before it.
+function bashy_install_args() {
+	BASHY_INSTALL_FORCE=0
+	local arg
+	for arg in "$@"
+	do
+		case "${arg}" in
+			--force)
+				BASHY_INSTALL_FORCE=1
+				;;
+			*)
+				echo "${FUNCNAME[1]}: unknown argument [${arg}], the only option is --force" >&2
+				return 1
+				;;
+		esac
+	done
+	return 0
+}
+
+# bashy_install_forced
+# Succeed when the running installer was given --force. For the plugins whose
+# "is it there already" check is not a version comparison.
+function bashy_install_forced() {
+	[ "${BASHY_INSTALL_FORCE:-0}" -eq 1 ]
+}
+
 # bashy_install_check <name> <installed_version> <latest_version>
 # Report what is about to happen and say whether there is anything to do.
 # An empty <installed_version> means the tool is not installed yet.
 # Returns 0 if <name> is already at <latest_version> (caller should return),
-# 1 if the caller should go on and install.
+# 1 if the caller should go on and install. Under --force the up to date case
+# says so and still returns 1, so the installer puts the same version back.
 function bashy_install_check() {
 	local name=$1
 	local installed=$2
@@ -77,6 +112,11 @@ function bashy_install_check() {
 	fi
 	if [ "${installed}" = "${latest}" ]
 	then
+		if bashy_install_forced
+		then
+			echo "${name} ${latest} is already installed (latest), reinstalling"
+			return 1
+		fi
 		echo "${name} ${latest} is already installed (latest)"
 		return 0
 	fi
@@ -305,7 +345,8 @@ function _bashy_apt_installed() {
 # beyond that on purpose: apt already knows what the archive offers, and
 # duplicating that check would only be a slower, worse version of what
 # "apt install" does by itself, so when anything is missing the whole list goes
-# to apt and it moves the rest forward if it has something newer.
+# to apt and it moves the rest forward if it has something newer. Under --force
+# a fully installed list is reinstalled instead of skipped.
 function bashy_install_apt() {
 	local name=$1
 	shift
@@ -318,14 +359,21 @@ function bashy_install_apt() {
 			missing+=("${package}")
 		fi
 	done
+	local options=()
 	if [ "${#missing[@]}" -eq 0 ]
 	then
-		echo "${name} is already installed via apt [$*]"
-		return 0
+		if ! bashy_install_forced
+		then
+			echo "${name} is already installed via apt [$*]"
+			return 0
+		fi
+		echo "Reinstalling ${name} via apt [$*]"
+		options+=("--reinstall")
+	else
+		echo "Installing ${name} via apt [$*]"
 	fi
-	echo "Installing ${name} via apt [$*]"
 	_bashy_apt_update
-	sudo DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes "$@"
+	sudo DEBIAN_FRONTEND=noninteractive apt-get install "${options[@]}" --assume-yes "$@"
 }
 
 # bashy_uninstall_apt <name> <package...>
@@ -353,7 +401,8 @@ function bashy_uninstall_apt() {
 
 # bashy_install_npm <name> <package...>
 # Install global npm packages, reporting in the standard format. npm resolves
-# "latest" itself, which is why nothing is pinned here.
+# "latest" itself, which is why nothing is pinned here. Under --force npm is
+# told to reinstall rather than keep what is already there.
 function bashy_install_npm() {
 	local name=$1
 	shift
@@ -362,8 +411,13 @@ function bashy_install_npm() {
 		echo "${name}: npm not found - install node first" >&2
 		return 1
 	fi
+	local options=()
+	if bashy_install_forced
+	then
+		options+=("--force")
+	fi
 	echo "Installing ${name} via npm [$*]"
-	npm install --global "$@"
+	npm install --global "${options[@]}" "$@"
 }
 
 # bashy_uninstall_npm <name> <package...>
@@ -381,7 +435,8 @@ function bashy_uninstall_npm() {
 }
 
 # bashy_install_pip <name> <package...>
-# Install python packages, reporting in the standard format.
+# Install python packages, reporting in the standard format. Under --force pip
+# reinstalls the packages even when they are already at the latest version.
 function bashy_install_pip() {
 	local name=$1
 	shift
@@ -390,8 +445,13 @@ function bashy_install_pip() {
 		echo "${name}: pip not found - install python first" >&2
 		return 1
 	fi
+	local options=()
+	if bashy_install_forced
+	then
+		options+=("--force-reinstall")
+	fi
 	echo "Installing ${name} via pip [$*]"
-	pip install --upgrade "$@"
+	pip install --upgrade "${options[@]}" "$@"
 }
 
 # bashy_uninstall_pip <name> <package...>
@@ -425,7 +485,8 @@ function bashy_install_git() {
 # bashy_install_brew <name> <formula...>
 # Install homebrew formulae, reporting in the standard format. "brew install"
 # already upgrades a formula that is out of date, so there is no version
-# arithmetic to do here either.
+# arithmetic to do here either. Under --force "brew reinstall" is used, which
+# is how brew puts back a formula that is already current.
 function bashy_install_brew() {
 	local name=$1
 	shift
@@ -433,6 +494,12 @@ function bashy_install_brew() {
 	then
 		echo "${name}: brew not found - install brew first" >&2
 		return 1
+	fi
+	if bashy_install_forced
+	then
+		echo "Reinstalling ${name} via brew [$*]"
+		brew reinstall "$@"
+		return
 	fi
 	echo "Installing ${name} via brew [$*]"
 	brew install "$@"

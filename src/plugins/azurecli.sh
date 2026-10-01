@@ -5,10 +5,11 @@
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt
 
 function _install_azurecli() {
+	bashy_install_args "$@" || return
 	# the deb variant is Microsoft's recommended path on debian/ubuntu: apt owns
 	# the package once installed, so updates and signature checking are handled by
 	# apt itself, and nothing downloaded over the network is executed as root
-	_install_azurecli_deb
+	_install_azurecli_deb "$@"
 }
 
 # recommended
@@ -21,6 +22,7 @@ function _install_azurecli() {
 #
 # Upstream script, for comparison: https://aka.ms/InstallAzureCLIDeb
 function _install_azurecli_deb() {
+	bashy_install_args "$@" || return
 	local keyring="/etc/apt/keyrings/microsoft.gpg"
 	local sources="/etc/apt/sources.list.d/azure-cli.sources"
 	bashy_install_apt "azure-cli prerequisites" \
@@ -65,6 +67,7 @@ function _install_azurecli_deb() {
 # there is nothing to reimplement here. Download it first and run that file, rather
 # than piping it into a root shell, so there is something on disk to look at.
 function _install_azurecli_standalone() {
+	bashy_install_args "$@" || return
 	# the vendor script registers the apt repository and installs from it, so
 	# the az it leaves behind is whichever one is first in PATH
 	local installed_version latest_version
@@ -102,6 +105,7 @@ function _bashy_azurecli_versions() {
 }
 
 function _install_azurecli_tarball() {
+	bashy_install_args "$@" || return
 	local folder="${HOME}/install/azurecli"
 	local installed_version latest_version
 	_bashy_azurecli_versions "${folder}/bin/az" installed_version latest_version || return 1
@@ -135,6 +139,7 @@ function _install_azurecli_tarball() {
 }
 
 function _install_azurecli_extensions() {
+	bashy_install_args "$@" || return
 	echo "Installing azure-cli extensions [azure-devops]"
 	# az refuses to add an extension that is already there, and --upgrade is its
 	# way of saying "install it, or move it forward if it is already installed"

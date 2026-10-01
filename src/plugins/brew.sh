@@ -18,6 +18,7 @@ function _activate_brew() {
 # https://docs.brew.sh/Installation#untar-anywhere-unsupported
 # https://superuser.com/questions/619498/can-i-install-homebrew-without-sudo-privileges
 function _install_brew() {
+	bashy_install_args "$@" || return
 	local folder="${HOME}/install/homebrew"
 	local executable="${folder}/bin/brew"
 	# homebrew tags releases as plain semver (e.g. "7.0.7"), so no "v" prefix to strip

@@ -6,6 +6,7 @@ MSAPT="/etc/apt/sources.list.d/vscode.sources"
 PACKAGE_NAME="code"
 
 function _install_code_apt() {
+	bashy_install_args "$@" || return
 	if [ ! -f "${MSAPT}" ]
 	then
 		sudo gpg --keyserver "keyserver.ubuntu.com" --recv-keys "${MSKEYID}"
@@ -24,14 +25,16 @@ EOF
 }
 
 function _install_code() {
+	bashy_install_args "$@" || return
 	# the direct .deb from Microsoft's update api is the recommended install:
 	# it exposes the true latest version to query, does not need a third-party
 	# apt source or gpg keyring on the system, and downloads a versioned asset
 	# that the download cache can key on
-	_install_code_direct
+	_install_code_direct "$@"
 }
 
 function _install_code_direct() {
+	bashy_install_args "$@" || return
 	# Get the latest version available from the VS Code update API
 	local latest_version
 	latest_version=$(curl --fail --silent --location "https://update.code.visualstudio.com/api/update/linux-deb-x64/stable/latest" | jq --raw-output '.productVersion')

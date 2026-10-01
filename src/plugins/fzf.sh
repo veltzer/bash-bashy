@@ -36,6 +36,7 @@ function _activate_fzf() {
 # matching github release. The clone is taken at the release tag, so the version
 # the binary reports is the one to compare against.
 function _install_fzf() {
+	bashy_install_args "$@" || return
 	# https://github.com/junegunn/fzf
 	local folder="${HOME}/install/fzf"
 	local release_json
@@ -59,6 +60,7 @@ function _install_fzf() {
 }
 
 function _install_fzf_apt() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "fzf" "fzf"
 }
 function _uninstall_fzf() {

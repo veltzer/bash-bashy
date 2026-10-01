@@ -7,6 +7,7 @@ function _activate_terraform() {
 }
 
 function _install_terraform() {
+	bashy_install_args "$@" || return
 	# latest version: https://github.com/hashicorp/terraform/issues/9803
 	local latest_version
 	latest_version=$(curl --fail --silent "https://checkpoint-api.hashicorp.com/v1/check/terraform" | jq --raw-output --monochrome-output ".current_version")

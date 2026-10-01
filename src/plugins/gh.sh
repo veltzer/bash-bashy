@@ -8,10 +8,12 @@ function _activate_gh() {
 }
 
 function _install_gh_apt() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "gh" "gh"
 }
 
 function _install_gh() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "cli/cli" release_json || return
 	local latest_version

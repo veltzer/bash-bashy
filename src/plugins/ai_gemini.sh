@@ -15,6 +15,7 @@ function _activate_ai_gemini() {
 # Install the latest stable Gemini CLI.
 # https://geminicli.com/docs/get-started/installation/
 function _install_gemini() {
+	bashy_install_args "$@" || return
 	local package="@google/gemini-cli"
 	if ! _bashy_pathutils_is_in_path "npm"
 	then

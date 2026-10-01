@@ -13,6 +13,7 @@ function _activate_helm() {
 }
 
 function _install_helm() {
+	bashy_install_args "$@" || return
 	# get.helm.sh publishes the latest tag of each line; "helm-latest-version" is the
 	# current one. The upstream get-helm-3 script is pinned to the v3 line, so using it
 	# here would forever reinstall v3 while this check compared against v4.

@@ -1,6 +1,7 @@
 # this is a plugin for zoom
 
 function _install_zoom() {
+	bashy_install_args "$@" || return
 	local download_file="https://zoom.us/client/latest/zoom_amd64.deb"
 	# zoom publishes no version endpoint, but the download redirects to a versioned
 	# cdn path, so the effective url names the version on offer
@@ -20,6 +21,7 @@ function _install_zoom() {
 # This pins a version on purpose: it exists to downgrade from the 7.x line back to
 # the last 6.x build, so it must not ask the project what the latest release is.
 function _install_zoom_6() {
+	bashy_install_args "$@" || return
 	local latest_version="6.4.6.1370"
 	local installed_version
 	installed_version=$(dpkg-query -W -f='${Version}' zoom 2>/dev/null || true)

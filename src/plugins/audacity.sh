@@ -8,6 +8,7 @@ function _activate_audacity() {
 }
 
 function _install_audacity() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "audacity/audacity" release_json || return
 	# audacity tags its releases "Audacity-<version>"

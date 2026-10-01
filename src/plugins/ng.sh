@@ -12,6 +12,7 @@ function _activate_ng() {
 }
 
 function _install_ng() {
+	bashy_install_args "$@" || return
 	bashy_install_npm "ng" "@angular/cli"
 }
 

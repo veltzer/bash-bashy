@@ -6,6 +6,7 @@ function _activate_lens() {
 }
 
 function _install_lens() {
+	bashy_install_args "$@" || return
 	# instructions for installing lens are at
 	# https://docs.k8slens.dev/getting-started/install-lens/#install-lens-desktop-from-the-appimage
 	local folder

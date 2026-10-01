@@ -11,11 +11,12 @@ function _activate_ai_claude() {
 }
 
 function _install_claude() {
+	bashy_install_args "$@" || return
 	# the vendor's native installer is Anthropic's own recommended install and the
 	# one that stays in step with claude releases without waiting on a package
 	# maintainer, so it is the default here; the npm and brew variants remain for
 	# setups that want to manage claude through those channels
-	_install_claude_native
+	_install_claude_native "$@"
 }
 
 # The native installer is a shell script with no release asset to download and
@@ -24,6 +25,7 @@ function _install_claude() {
 # ~/.local/share/claude/versions and repoints the ~/.local/bin/claude symlink, so
 # the same script is also the upgrade path.
 function _install_claude_native() {
+	bashy_install_args "$@" || return
 	local executable="${HOME}/.local/bin/claude"
 	local latest_version
 	# the "latest" endpoint is where the vendor installer itself reads the version
@@ -51,6 +53,7 @@ function _uninstall_claude_native() {
 }
 
 function _install_claude_npm() {
+	bashy_install_args "$@" || return
 	bashy_install_npm "claude" "@anthropic-ai/claude-code@latest"
 }
 
@@ -59,6 +62,7 @@ function _uninstall_claude_npm() {
 }
 
 function _install_claude_brew() {
+	bashy_install_args "$@" || return
 	bashy_install_brew "claude" "claude-code"
 }
 
@@ -81,7 +85,8 @@ CLAUDE_DESKTOP_REPO="https://downloads.claude.ai/claude-desktop/apt/stable"
 CLAUDE_DESKTOP_FINGERPRINT="31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE"
 
 function _install_claude_desktop() {
-	_install_claude_desktop_apt
+	bashy_install_args "$@" || return
+	_install_claude_desktop_apt "$@"
 }
 
 # recommended
@@ -91,6 +96,7 @@ function _install_claude_desktop() {
 # paths are the ones the package itself registers, so there is a single entry
 # for apt to find and "apt remove claude-desktop" cleans both up.
 function _install_claude_desktop_apt() {
+	bashy_install_args "$@" || return
 	local key
 	bashy_download "https://downloads.claude.ai/claude-desktop/key.asc" key || return 1
 	local fingerprint
@@ -114,6 +120,7 @@ function _install_claude_desktop_apt() {
 # registering the repository first. Installing the .deb registers it anyway, so
 # later updates still arrive through apt.
 function _install_claude_desktop_deb() {
+	bashy_install_args "$@" || return
 	local arch
 	arch=$(dpkg --print-architecture)
 	local index="${CLAUDE_DESKTOP_REPO}/dists/stable/main/binary-${arch}/Packages"

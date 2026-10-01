@@ -23,6 +23,7 @@ function _activate_go() {
 }
 
 function _install_go() {
+	bashy_install_args "$@" || return
 	# https://go.dev/dl/
 	local folder="${HOME}/install"
 	local full_folder="${folder}/go"

@@ -11,6 +11,7 @@ function _activate_phantomjs() {
 }
 
 function _install_phantomjs() {
+	bashy_install_args "$@" || return
 	# phantomjs was archived in 2018 with no releases to query, so this is the
 	# one installer that legitimately carries a version literal
 	local latest_version="2.1.1"

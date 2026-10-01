@@ -21,6 +21,7 @@ function _activate_pypowerline() {
 }
 
 function _install_pypowerline() {
+	bashy_install_args "$@" || return
 	bashy_install_pip "pypowerline" "pypowerline"
 }
 

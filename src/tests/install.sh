@@ -12,10 +12,51 @@ function testInstallCheckNotInstalled() {
 
 function testInstallCheckUpToDate() {
 	local out
+	bashy_install_args
 	out=$(bashy_install_check "gh" "2.96.0" "2.96.0")
 	_bashy_assert_equal "${out}" "gh 2.96.0 is already installed (latest)"
 	# up to date returns 0 so the caller returns early
 	bashy_install_check "gh" "2.96.0" "2.96.0" > /dev/null || _bashy_assert_fail
+}
+
+function testInstallCheckUpToDateForced() {
+	# --force turns the up to date case into a reinstall: the line says so and the
+	# caller is told to go on
+	local out
+	bashy_install_args --force
+	out=$(bashy_install_check "gh" "2.96.0" "2.96.0")
+	_bashy_assert_equal "${out}" "gh 2.96.0 is already installed (latest), reinstalling"
+	bashy_install_check "gh" "2.96.0" "2.96.0" > /dev/null && _bashy_assert_fail
+	# the other two cases read the same with or without the flag
+	_bashy_assert_equal "$(bashy_install_check "gh" "" "2.96.0")" "Installing gh 2.96.0"
+	_bashy_assert_equal "$(bashy_install_check "gh" "2.95.0" "2.96.0")" "gh 2.95.0 is installed, upgrading to 2.96.0"
+	bashy_install_args
+	return 0
+}
+
+function testInstallArgsParsesForce() {
+	# no arguments means a plain install, whatever the previous installer asked for
+	bashy_install_args --force || _bashy_assert_fail
+	bashy_install_forced || _bashy_assert_fail
+	bashy_install_args || _bashy_assert_fail
+	bashy_install_forced && _bashy_assert_fail
+	_bashy_assert_equal "${BASHY_INSTALL_FORCE}" "0"
+	return 0
+}
+
+function testInstallArgsRejectsUnknown() {
+	# a misspelt flag must fail loudly rather than run a plain install, and must
+	# name the installer that was called
+	function _install_thing() { bashy_install_args "$@" || return; echo "installed"; }
+	local out err
+	out=$(_install_thing --froce 2>/dev/null) && _bashy_assert_fail
+	_bashy_assert_equal "${out}" ""
+	err=$(_install_thing --froce 2>&1 > /dev/null)
+	_bashy_assert_equal "${err}" "_install_thing: unknown argument [--froce], the only option is --force"
+	_bashy_assert_equal "$(_install_thing --force)" "installed"
+	unset -f _install_thing
+	bashy_install_args
+	return 0
 }
 
 function testInstallCheckUpgrade() {
@@ -165,6 +206,22 @@ function testInstallAptSkipsInstalledPackages() {
 	out=$(bashy_install_apt "dpkg tools" "dpkg") || _bashy_assert_fail
 	_bashy_assert_equal "${out}" "dpkg tools is already installed via apt [dpkg]"
 	unset -f sudo
+}
+
+function testInstallAptReinstallsWhenForced() {
+	local IFS=' '
+	# every package is installed, which is normally a no-op, but --force sends
+	# the list back to apt with --reinstall
+	local calls=""
+	function sudo() { calls="${calls}${*}\n"; return 0; }
+	bashy_install_args --force
+	local out
+	out=$(bashy_install_apt "dpkg tools" "dpkg"; echo "${calls}")
+	[[ "${out}" == *"Reinstalling dpkg tools via apt [dpkg]"* ]] || _bashy_assert_fail
+	[[ "${out}" == *"apt-get install --reinstall --assume-yes dpkg"* ]] || _bashy_assert_fail
+	unset -f sudo
+	bashy_install_args
+	return 0
 }
 
 function testInstallAptInstallsMissingPackages() {

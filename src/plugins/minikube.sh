@@ -15,6 +15,7 @@ function _activate_minikube() {
 }
 
 function _install_minikube() {
+	bashy_install_args "$@" || return
 	# https://minikube.sigs.k8s.io/docs/start/
 	local release_json
 	bashy_github_release "kubernetes/minikube" release_json || return

@@ -14,6 +14,7 @@ function _activate_zola() {
 }
 
 function _install_zola() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "getzola/zola" release_json || return
 	local latest_version

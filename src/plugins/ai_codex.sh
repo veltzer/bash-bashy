@@ -13,6 +13,7 @@ function _activate_ai_codex() {
 }
 
 function _install_codex() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "openai/codex" release_json || return
 	# codex tags its releases "rust-v<version>"
@@ -54,6 +55,7 @@ function _uninstall_codex() {
 }
 
 function _install_codex_npm() {
+	bashy_install_args "$@" || return
 	bashy_install_npm "codex" "@openai/codex@latest"
 }
 
@@ -62,6 +64,7 @@ function _uninstall_codex_npm() {
 }
 
 function _install_codex_brew() {
+	bashy_install_args "$@" || return
 	bashy_install_brew "codex" "codex"
 }
 

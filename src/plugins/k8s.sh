@@ -15,6 +15,7 @@ function _activate_k8s() {
 }
 
 function _install_k8s() {
+	bashy_install_args "$@" || return
 	# instructions for installing k8s are at
 	# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
 	local latest_version

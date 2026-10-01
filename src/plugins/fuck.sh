@@ -7,6 +7,7 @@ function _activate_fuck() {
 }
 
 function _install_fuck() {
+	bashy_install_args "$@" || return
 	bashy_install_pip "thefuck" "thefuck"
 }
 

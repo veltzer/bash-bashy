@@ -13,6 +13,7 @@ function _activate_kurtosis() {
 }
 
 function _install_kurtosis() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "kurtosis-tech/kurtosis-cli-release-artifacts" release_json || return
 	# kurtosis tags with the bare version number, there is no v to strip

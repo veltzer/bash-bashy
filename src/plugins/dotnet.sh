@@ -2,6 +2,7 @@
 
 # https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 function _install_dotnet() {
+	bashy_install_args "$@" || return
 	# the microsoft repository package has to land before the sdk can be installed
 	local ubuntu_version
 	ubuntu_version=$(lsb_release -rs)

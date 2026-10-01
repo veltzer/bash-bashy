@@ -16,6 +16,7 @@ function _activate_ai_copilot() {
 # which is exactly what the vendor script (see _install_copilot_script) downloads,
 # so this does the same thing directly and verifies it.
 function _install_copilot() {
+	bashy_install_args "$@" || return
 	local arch
 	case "$(uname -m)" in
 		x86_64|amd64) arch="x64" ;;
@@ -63,6 +64,7 @@ function _uninstall_copilot() {
 # piped straight into a shell, and only when the release it would fetch is newer
 # than what it last put there.
 function _install_copilot_script() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "github/copilot-cli" release_json || return
 	local latest_version
@@ -84,6 +86,7 @@ function _install_copilot_script() {
 }
 
 function _install_copilot_npm() {
+	bashy_install_args "$@" || return
 	bashy_install_npm "copilot" "@github/copilot"
 }
 
@@ -93,6 +96,7 @@ function _uninstall_copilot_npm() {
 
 # copilot-cli is a homebrew cask, which "brew install" resolves by name
 function _install_copilot_brew() {
+	bashy_install_args "$@" || return
 	bashy_install_brew "copilot" "copilot-cli"
 }
 
@@ -103,6 +107,7 @@ function _uninstall_copilot_brew() {
 # The github/gh-copilot extension is archived upstream and superseded by the
 # standalone copilot above. Kept for setups that still use "gh copilot".
 function _install_copilot_gh() {
+	bashy_install_args "$@" || return
 	bashy_install_gh_extension "copilot" "github/gh-copilot"
 }
 

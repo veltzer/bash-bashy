@@ -10,13 +10,16 @@ function _activate_node() {
 }
 
 function _install_node() {
-	if ! _bashy_pathutils_is_in_path "npm"
+	bashy_install_args "$@" || return
+	# npm may come from somewhere other than apt (nvm, a tarball), so only ask
+	# apt when it is missing; --force hands it to apt regardless
+	if _bashy_pathutils_is_in_path "npm" && ! bashy_install_forced
 	then
-		bashy_install_apt "node" "npm" || return
-	else
 		echo "node npm is already installed (latest)"
+	else
+		bashy_install_apt "node" "npm" || return
 	fi
-	if [ ! -f "${HOME}/.bash_completion.d/npm" ]
+	if [ ! -f "${HOME}/.bash_completion.d/npm" ] || bashy_install_forced
 	then
 		echo "Installing node npm completions"
 		mkdir -p "${HOME}/.bash_completion.d"
@@ -24,7 +27,7 @@ function _install_node() {
 	else
 		echo "node npm completions are already installed (latest)"
 	fi
-	if [ ! -d "${HOME}/install/node/node_modules/.bin" ]
+	if [ ! -d "${HOME}/install/node/node_modules/.bin" ] || bashy_install_forced
 	then
 		echo "Installing node node_modules folder"
 		mkdir -p "${HOME}/install/node/node_modules/.bin"

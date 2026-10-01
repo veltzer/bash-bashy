@@ -21,6 +21,7 @@ function _activate_nvim_with_folder() {
 }
 
 function _install_nvim() {
+	bashy_install_args "$@" || return
 	# https://github.com/neovim/neovim/blob/master/INSTALL.md
 	local release_json
 	bashy_github_release "neovim/neovim" release_json || return
@@ -46,6 +47,7 @@ function _install_nvim() {
 }
 
 function _install_nvim_latest_tar() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "neovim/neovim" release_json || return
 	local latest_version
@@ -77,6 +79,7 @@ function _install_nvim_latest_tar() {
 # recorded with bashy_install_marker and a nightly is only taken again when a
 # newer one has been published since.
 function _install_nvim_nightly_tar() {
+	bashy_install_args "$@" || return
 	local folder="${HOME}/install/nvim-linux-x86_64"
 	local executable="${folder}/bin/nvim"
 	local latest_version
@@ -100,10 +103,12 @@ function _install_nvim_nightly_tar() {
 }
 
 function _install_nvim_apt() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "nvim" "neovim"
 }
 
 function _install_nvim_lazy() {
+	bashy_install_args "$@" || return
 	# The starter repo (LazyVim/starter) is a template with no releases, so the
 	# version that matters is the LazyVim plugin it pulls in. lazy.nvim clones
 	# that into its own tree and checks out the release tag, so the installed

@@ -7,6 +7,7 @@ function _activate_guile() {
 }
 
 function _install_guile() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "guile" "guile-2.2" "guile-2.2-dev"
 }
 

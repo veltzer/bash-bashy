@@ -9,6 +9,7 @@ function _activate_bazel() {
 }
 
 function _install_bazel() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "bazelbuild/bazel" release_json || return
 	# bazel tags with the bare version number, there is no v to strip

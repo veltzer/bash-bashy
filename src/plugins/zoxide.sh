@@ -11,6 +11,7 @@ function _activate_zoxide() {
 }
 
 function _install_zoxide() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "zoxide" "zoxide"
 }
 

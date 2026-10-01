@@ -23,6 +23,7 @@ function _activate_nvm() {
 }
 
 function _install_nvm() {
+	bashy_install_args "$@" || return
 	# TBD
 	:
 }

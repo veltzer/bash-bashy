@@ -26,6 +26,7 @@ function _activate_google_cloud_sdk() {
 # straight into a shell. It only runs for a fresh install: once the sdk is in
 # place, moving it forward is the job of its own component manager.
 function _install_google_cloud_sdk() {
+	bashy_install_args "$@" || return
 	export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 	export CLOUDSDK_INSTALL_DIR="${HOME}/install"
 	local folder="${CLOUDSDK_INSTALL_DIR}/google-cloud-sdk"
@@ -46,10 +47,16 @@ function _install_google_cloud_sdk() {
 	then
 		return
 	fi
-	if [ -n "${installed_version}" ]
+	if [ -n "${installed_version}" ] && ! bashy_install_forced
 	then
 		"${folder}/bin/gcloud" components update
 		return
+	fi
+	# a forced run takes the sdk again from scratch, the vendor script does not
+	# install over an existing tree
+	if bashy_install_forced
+	then
+		rm -rf "${folder}"
 	fi
 	echo "Installing google-cloud-sdk via the vendor install script"
 	local script

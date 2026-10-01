@@ -51,13 +51,15 @@ function _remove_rust() {
 }
 
 function _install_rust() {
+	bashy_install_args "$@" || return
 	# rustup is the upstream-recommended install and the one _activate_rust is
 	# built around (CARGO_HOME points at ${HOME}/install/cargo, which rustup
 	# populates); the apt variant is kept for setups that prefer distro packages
-	_install_rust_rustup
+	_install_rust_rustup "$@"
 }
 
 function _install_rust_rustup() {
+	bashy_install_args "$@" || return
 	export CARGO_HOME="${HOME}/install/cargo"
 	export RUSTUP_HOME="${HOME}/.rustup"
 	local release_json
@@ -77,10 +79,11 @@ function _install_rust_rustup() {
 	then
 		return
 	fi
-	if [ -n "${installed_version}" ]
+	if [ -n "${installed_version}" ] && ! bashy_install_forced
 	then
 		# rustup is already in place, so an upgrade is its job: it moves the stable
-		# toolchain forward and keeps the cargo subcommands in CARGO_HOME/bin intact
+		# toolchain forward and keeps the cargo subcommands in CARGO_HOME/bin intact;
+		# --force skips this and takes the toolchain again from rustup-init below
 		"${CARGO_HOME}/bin/rustup" update stable
 		return
 	fi
@@ -112,6 +115,7 @@ function _install_rust_rustup() {
 # to the builds and not to it.
 
 function _install_rust_apt() {
+	bashy_install_args "$@" || return
 	# these are the ubuntu packages for rust
 	bashy_install_apt "rust" "cargo" "rustc" "rust-src"
 }

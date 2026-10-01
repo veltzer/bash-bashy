@@ -27,6 +27,7 @@ function uv() {
 }
 
 function _install_uv() {
+	bashy_install_args "$@" || return
 	# uv ships prebuilt binaries, but this installer builds it from source as a
 	# rust executable. uv is not published on crates.io, so cargo pulls the
 	# tagged source from github and compiles it - expect the build to take a

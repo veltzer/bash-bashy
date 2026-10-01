@@ -14,10 +14,12 @@ function _activate_hugo() {
 }
 
 function _install_hugo_apt() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "hugo" "hugo"
 }
 
 function _install_hugo() {
+	bashy_install_args "$@" || return
 	# instructions for installing hugo are at https://gohugo.io/installation/linux/
 	local release_json
 	bashy_github_release "gohugoio/hugo" release_json || return

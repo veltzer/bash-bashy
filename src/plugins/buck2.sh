@@ -1,6 +1,7 @@
 # this is a plugin for buck2
 
 function _install_buck2() {
+	bashy_install_args "$@" || return
 	# buck2 has no versioned releases: a rolling "latest" tag is moved to a new commit
 	# every night and the assets under it are overwritten. The tag's published_at
 	# never changes and the assets' updated_at is the upload time, which is the day

@@ -17,6 +17,7 @@ function _activate_ai_agy() {
 # than running the script. It installs to ~/.local/bin/agy, where install.sh puts
 # it and where agy updates itself in the background.
 function _install_agy() {
+	bashy_install_args "$@" || return
 	local arch
 	case "$(uname -m)" in
 		x86_64|amd64) arch="amd64" ;;

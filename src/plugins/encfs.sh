@@ -37,6 +37,7 @@ function encfs_umount() {
 }
 
 function _install_encfs() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "encfs" "encfs"
 }
 

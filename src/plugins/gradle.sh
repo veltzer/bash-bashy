@@ -9,6 +9,7 @@ function _activate_gradle() {
 }
 
 function _install_gradle() {
+	bashy_install_args "$@" || return
 	# this function installs the latest gradle from a binary zip file distribution
 	local latest_version
 	latest_version=$(curl --fail --silent --location "https://services.gradle.org/versions/current" | jq --raw-output '.version')
@@ -33,6 +34,7 @@ function _install_gradle() {
 }
 
 function _install_gradle_apt() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "gradle" "gradle"
 }
 function _uninstall_gradle() {

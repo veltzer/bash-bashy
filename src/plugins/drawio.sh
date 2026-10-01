@@ -1,6 +1,7 @@
 # this is a plugin for drawio (draw.io desktop)
 
 function _install_drawio() {
+	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "jgraph/drawio-desktop" release_json || return
 	local latest_version

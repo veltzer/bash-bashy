@@ -7,6 +7,7 @@ function _activate_ansible() {
 }
 
 function _install_ansible() {
+	bashy_install_args "$@" || return
 	bashy_install_apt "ansible" "ansible"
 }
 
