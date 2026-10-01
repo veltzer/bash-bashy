@@ -30,13 +30,7 @@ function _install_brew() {
 	then
 		installed_version=$("${executable}" --version 2>/dev/null | awk '/^Homebrew/{print $2; exit}')
 	fi
-	if bashy_install_check "brew" "${installed_version}" "${latest_version}"
-	then
-		# already at the latest release; still refresh the formula database so
-		# subsequent "brew install" calls see current versions
-		"${executable}" update --quiet
-		return
-	fi
+	bashy_install_check "brew" "${installed_version}" "${latest_version}" && return
 	bashy_install_git "brew" "https://github.com/Homebrew/brew" "${folder}" --depth 1 --single-branch || return
 	"${executable}" update --force --quiet
 }
