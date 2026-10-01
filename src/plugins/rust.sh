@@ -75,15 +75,13 @@ function _install_rust_rustup() {
 	fi
 	if bashy_install_check "rust" "${installed_version}" "${latest_version}"
 	then
-		_install_rust_cargo_tools
 		return
 	fi
 	if [ -n "${installed_version}" ]
 	then
 		# rustup is already in place, so an upgrade is its job: it moves the stable
 		# toolchain forward and keeps the cargo subcommands in CARGO_HOME/bin intact
-		"${CARGO_HOME}/bin/rustup" update stable || return
-		_install_rust_cargo_tools
+		"${CARGO_HOME}/bin/rustup" update stable
 		return
 	fi
 	# sh.rustup.rs is a shim that downloads this same rustup-init and runs it. Fetch
@@ -103,30 +101,15 @@ function _install_rust_rustup() {
 	chmod +x "${runner_dir}/rustup-init"
 	"${runner_dir}/rustup-init" -y --no-modify-path
 	rm -rf "${runner_dir}"
-	_install_rust_cargo_tools
 }
 
-# rustup only manages the toolchain. The cargo subcommands the fleet's builds and
-# release scripts run (cargo nextest, cargo release, cargo deny, mdbook) are separate
-# crates that live in CARGO_HOME/bin; put in whichever is missing so a fresh install
-# is complete rather than leaving "no such command" for the next build to find, and
-# leave the ones already there alone, because cargo install builds from source.
-function _install_rust_cargo_tools() {
-	local tool
-	local missing=()
-	for tool in cargo-nextest cargo-release cargo-deny mdbook
-	do
-		if [ ! -x "${CARGO_HOME}/bin/${tool}" ]
-		then
-			missing+=("${tool}")
-		fi
-	done
-	if [ "${#missing[@]}" -eq 0 ]
-	then
-		return
-	fi
-	"${CARGO_HOME}/bin/cargo" install --locked "${missing[@]}"
-}
+# This plugin installs the toolchain only. The cargo subcommands and other
+# crates a repository's build and release run (cargo-deny, cargo-nextest,
+# cargo-release, mdbook) are not a machine-level concern: each repository
+# declares them under [dependencies] cargo in its rsconstruct.toml, and
+# `rsconstruct tools install-deps` there installs whichever are missing. A
+# second list here would be the stale copy — it was, when cargo-deny was added
+# to the builds and not to it.
 
 function _install_rust_apt() {
 	# these are the ubuntu packages for rust
