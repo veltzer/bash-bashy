@@ -107,14 +107,14 @@ function _install_rust_rustup() {
 }
 
 # rustup only manages the toolchain. The cargo subcommands the fleet's builds and
-# release scripts run (cargo nextest, cargo release, mdbook) are separate crates
-# that live in CARGO_HOME/bin; put in whichever is missing so a fresh install is
-# complete rather than leaving "no such command" for the next build to find, and
+# release scripts run (cargo nextest, cargo release, cargo deny, mdbook) are separate
+# crates that live in CARGO_HOME/bin; put in whichever is missing so a fresh install
+# is complete rather than leaving "no such command" for the next build to find, and
 # leave the ones already there alone, because cargo install builds from source.
 function _install_rust_cargo_tools() {
 	local tool
 	local missing=()
-	for tool in cargo-nextest cargo-release mdbook
+	for tool in cargo-nextest cargo-release cargo-deny mdbook
 	do
 		if [ ! -x "${CARGO_HOME}/bin/${tool}" ]
 		then
