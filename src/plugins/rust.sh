@@ -60,6 +60,32 @@ function _install_rust() {
 function _install_rust_rustup() {
 	export CARGO_HOME="${HOME}/install/cargo"
 	export RUSTUP_HOME="${HOME}/.rustup"
+	local release_json
+	bashy_github_release "rust-lang/rust" release_json || return
+	local latest_version
+	# rust tags its releases as bare versions, there is no "v" prefix to strip
+	latest_version=$(bashy_github_version "${release_json}" "")
+	# rustc in CARGO_HOME/bin is a rustup proxy, it reports the stable toolchain
+	# that RUSTUP_HOME holds
+	local rustc="${CARGO_HOME}/bin/rustc"
+	local installed_version=""
+	if [ -x "${rustc}" ]
+	then
+		installed_version=$("${rustc}" --version 2>/dev/null | grep -oP '^rustc \K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+	fi
+	if bashy_install_check "rust" "${installed_version}" "${latest_version}"
+	then
+		_install_rust_cargo_tools
+		return
+	fi
+	if [ -n "${installed_version}" ]
+	then
+		# rustup is already in place, so an upgrade is its job: it moves the stable
+		# toolchain forward and keeps the cargo subcommands in CARGO_HOME/bin intact
+		"${CARGO_HOME}/bin/rustup" update stable || return
+		_install_rust_cargo_tools
+		return
+	fi
 	# sh.rustup.rs is a shim that downloads this same rustup-init and runs it. Fetch
 	# the binary directly instead, because rust publishes a sha256 next to it, so it
 	# can be checked before anything is executed.
@@ -77,12 +103,29 @@ function _install_rust_rustup() {
 	chmod +x "${runner_dir}/rustup-init"
 	"${runner_dir}/rustup-init" -y --no-modify-path
 	rm -rf "${runner_dir}"
-	# rustup-init only sets up the toolchain. The cargo subcommands the fleet's
-	# builds and release scripts run (cargo nextest, cargo release, mdbook) are
-	# separate crates that live in CARGO_HOME/bin, which the rm -rf above wiped;
-	# put them back so the reinstall is complete rather than leaving
-	# "no such command" for the next build to find.
-	"${CARGO_HOME}/bin/cargo" install --locked cargo-nextest cargo-release mdbook
+	_install_rust_cargo_tools
+}
+
+# rustup only manages the toolchain. The cargo subcommands the fleet's builds and
+# release scripts run (cargo nextest, cargo release, mdbook) are separate crates
+# that live in CARGO_HOME/bin; put in whichever is missing so a fresh install is
+# complete rather than leaving "no such command" for the next build to find, and
+# leave the ones already there alone, because cargo install builds from source.
+function _install_rust_cargo_tools() {
+	local tool
+	local missing=()
+	for tool in cargo-nextest cargo-release mdbook
+	do
+		if [ ! -x "${CARGO_HOME}/bin/${tool}" ]
+		then
+			missing+=("${tool}")
+		fi
+	done
+	if [ "${#missing[@]}" -eq 0 ]
+	then
+		return
+	fi
+	"${CARGO_HOME}/bin/cargo" install --locked "${missing[@]}"
 }
 
 function _install_rust_apt() {
