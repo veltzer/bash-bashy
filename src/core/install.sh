@@ -291,14 +291,38 @@ function _bashy_apt_update() {
 	fi
 }
 
+# _bashy_apt_installed <package>
+# Succeed when dpkg has <package> fully installed.
+function _bashy_apt_installed() {
+	dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
+}
+
 # bashy_install_apt <name> <package...>
-# Install distribution packages, reporting in the standard format. There is no
-# version comparison here on purpose: apt already knows what is installed and
-# what the archive offers, and duplicating that check would only be a slower,
-# worse version of what "apt install" does by itself.
+# Install distribution packages, reporting in the standard format. When every
+# package is already installed nothing runs at all, not even apt-get update: a
+# bashy_upgrade must not cost a sudo prompt and an index refresh for each of
+# the twenty plugins that are already in place. There is no version comparison
+# beyond that on purpose: apt already knows what the archive offers, and
+# duplicating that check would only be a slower, worse version of what
+# "apt install" does by itself, so when anything is missing the whole list goes
+# to apt and it moves the rest forward if it has something newer.
 function bashy_install_apt() {
 	local name=$1
 	shift
+	local package
+	local missing=()
+	for package in "$@"
+	do
+		if ! _bashy_apt_installed "${package}"
+		then
+			missing+=("${package}")
+		fi
+	done
+	if [ "${#missing[@]}" -eq 0 ]
+	then
+		echo "${name} is already installed via apt [$*]"
+		return 0
+	fi
 	echo "Installing ${name} via apt [$*]"
 	_bashy_apt_update
 	sudo DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes "$@"
@@ -313,7 +337,7 @@ function bashy_uninstall_apt() {
 	local found=1
 	for package in "$@"
 	do
-		if dpkg-query -W -f='${Status}' "${package}" 2>/dev/null | grep -q "install ok installed"
+		if _bashy_apt_installed "${package}"
 		then
 			found=0
 		fi

@@ -156,3 +156,28 @@ function testInstallExtractZipStripsNothing() {
 	_bashy_assert_equal "$(cat "${dir}/thing")" "hello"
 	rm -rf "${dir}"
 }
+
+function testInstallAptSkipsInstalledPackages() {
+	# dpkg is installed on any machine that has dpkg-query, so nothing is missing
+	# and apt must not be touched at all: no index refresh, no install, no sudo
+	function sudo() { echo "sudo must not run for an installed package [$*]" >&2; return 1; }
+	local out
+	out=$(bashy_install_apt "dpkg tools" "dpkg") || _bashy_assert_fail
+	_bashy_assert_equal "${out}" "dpkg tools is already installed via apt [dpkg]"
+	unset -f sudo
+}
+
+function testInstallAptInstallsMissingPackages() {
+	# the runner sets IFS to a newline, which would change how "$*" joins below
+	local IFS=' '
+	# one missing package is enough for the whole list to go to apt
+	local calls=""
+	function sudo() { calls="${calls}${*}\n"; return 0; }
+	local out
+	out=$(bashy_install_apt "nothing" "dpkg" "bashy-no-such-package-$$"; echo "${calls}")
+	[[ "${out}" == *"Installing nothing via apt [dpkg bashy-no-such-package-$$]"* ]] || _bashy_assert_fail
+	[[ "${out}" == *"apt-get update"* ]] || _bashy_assert_fail
+	[[ "${out}" == *"apt-get install --assume-yes dpkg bashy-no-such-package-$$"* ]] || _bashy_assert_fail
+	unset -f sudo
+	return 0
+}
