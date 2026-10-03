@@ -91,6 +91,12 @@ function testGithubVersionStripsPrefix() {
 	# bazel tags without any prefix, an empty prefix must leave it alone
 	local bazel='{"tag_name": "9.2.0"}'
 	_bashy_assert_equal "$(bashy_github_version "${bazel}" "")" "9.2.0"
+	# biome tags with an npm package name, so the prefix holds a slash and
+	# a dot - both must be taken literally
+	local biome='{"tag_name": "@biomejs/biome@2.5.15"}'
+	_bashy_assert_equal "$(bashy_github_version "${biome}" "@biomejs/biome@")" "2.5.15"
+	# a prefix that is not there must leave the tag alone, not strip part of it
+	_bashy_assert_equal "$(bashy_github_version "${json}" "x")" "v1.2.3"
 }
 
 function _test_install_assets_json() {

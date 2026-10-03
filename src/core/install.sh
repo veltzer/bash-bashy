@@ -194,10 +194,14 @@ function bashy_github_release() {
 # bashy_github_version <release json> [prefix]
 # Echo the version of a release, with <prefix> stripped from the tag name.
 # The prefix defaults to "v", which is what almost every project tags with.
+# The prefix is a literal, not a pattern: biome tags "@biomejs/biome@2.5.15",
+# and a prefix with a slash in it broke the sed expression this used to be.
 function bashy_github_version() {
 	local json=$1
 	local prefix=${2-v}
-	echo "${json}" | jq --raw-output '.tag_name' | sed "s/^${prefix}//"
+	local tag
+	tag=$(echo "${json}" | jq --raw-output '.tag_name')
+	echo "${tag#"${prefix}"}"
 }
 
 # bashy_github_asset <release json> <jq test regex> [out_var]
