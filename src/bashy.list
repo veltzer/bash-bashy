@@ -82,6 +82,7 @@ brew
 gradle
 encfs
 node
+oxlint
 proxy
 # pip - completion for bare pip(1), superseded here by the uv plugin, which
 #       completes "uv pip". Kept because bare pip still exists in virtualenvs.
