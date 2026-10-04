@@ -7,36 +7,36 @@
 # no dep_inputs needed: the configs are lua and read via load_lua(path="...")
 # and version_str(path="..."), which the tera analyzer discovers and
 # content-tracks by itself.
-[processor.tera]
+[processor.generator.tera]
 src_dirs = ["tera.templates"]
 
 # shellcheck every shell file in the repo. --external-sources is needed because
 # plugins source files outside the repo (e.g. plugins/git.sh sources the system
 # git completion). .shellcheckrc is a tracked dependency by default.
-[processor.shellcheck]
+[processor.checker.shellcheck]
 src_dirs = ["src", "scripts"]
 src_extensions = [".sh"]
 args = ["--shell=bash", "--external-sources"]
 
 # run the test suite whenever any shell file changes. test_all.sh takes no
 # arguments and ignores the file list the checker passes it.
-[processor.script.test_all]
+[processor.checker.script.test_all]
 command = "scripts/test_all.sh"
 src_dirs = ["src", "scripts"]
 src_extensions = [".sh"]
 batch = true
 
 # lint the GitHub Actions workflow files with actionlint
-[processor.actionlint]
+[processor.checker.actionlint]
 src_dirs = [".github/workflows"]
 
 # ─── markdown ────────────────────────────────────────────────────────────────
 
-[processor.rumdl]
+[processor.checker.rumdl]
 src_dirs = ["doc"]
 src_files = ["CLAUDE.md", "README.md"]
 
 # ─── lua ─────────────────────────────────────────────────────────────────────
 
-[processor.luacheck]
+[processor.checker.luacheck]
 src_dirs = ["config"]
