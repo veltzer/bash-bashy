@@ -91,7 +91,7 @@ by hand; nothing bumps it as a build side effect anymore.
 The configs in `config/` are lua and templates read them with
 `load_lua(path="...")` or `version_str(path="...")`; both add the file as a
 content-tracked input, so the output is rebuilt when the config changes
-(`rsconstruct functions list` shows what each function tracks).
+(`rsconstruct function list` shows what each function tracks).
 
 `LICENSE` and `.github/workflows/build.yml` are not generated. Both are
 fleet-wide files kept byte-identical by `rsmultigit check same`, as are

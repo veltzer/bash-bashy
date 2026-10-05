@@ -110,7 +110,7 @@ function _install_rust_rustup() {
 # crates a repository's build and release run (cargo-deny, cargo-nextest,
 # cargo-release, mdbook) are not a machine-level concern: each repository
 # declares them under [dependencies] cargo in its rsconstruct.toml, and
-# `rsconstruct tools install-deps` there installs whichever are missing. A
+# `rsconstruct tool install-deps` there installs whichever are missing. A
 # second list here would be the stale copy — it was, when cargo-deny was added
 # to the builds and not to it.
 
