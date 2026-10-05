@@ -94,6 +94,6 @@ content-tracked input, so the output is rebuilt when the config changes
 (`rsconstruct functions list` shows what each function tracks).
 
 `LICENSE` and `.github/workflows/build.yml` are not generated. Both are
-fleet-wide files kept byte-identical by `rsmultigit check-same`, as are
+fleet-wide files kept byte-identical by `rsmultigit check same`, as are
 `tera.templates/README.md.tera` and `tera.templates/.github/dependabot.yml.tera`,
 so a change to any of them is a fleet change, not a change to this repo.
