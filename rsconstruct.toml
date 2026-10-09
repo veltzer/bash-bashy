@@ -38,5 +38,5 @@ src_files = ["CLAUDE.md", "README.md"]
 
 # ─── lua ─────────────────────────────────────────────────────────────────────
 
-[processor.checker.luacheck]
+[processor.checker.iluacheck]
 src_dirs = ["config"]
