@@ -10,13 +10,14 @@
 [processor.generator.tera]
 src_dirs = ["tera.templates"]
 
-# shellcheck every shell file in the repo. --external-sources is needed because
+# shellcheck every shell file in the repo. external_sources is needed because
 # plugins source files outside the repo (e.g. plugins/git.sh sources the system
 # git completion). .shellcheckrc is a tracked dependency by default.
-[processor.checker.shellcheck]
+[processor.checker.ishellcheck]
 src_dirs = ["src", "scripts"]
 src_extensions = [".sh"]
-args = ["--shell=bash", "--external-sources"]
+shell = "bash"
+external_sources = true
 
 # run the test suite whenever any shell file changes. test_all.sh takes no
 # arguments and ignores the file list the checker passes it.
