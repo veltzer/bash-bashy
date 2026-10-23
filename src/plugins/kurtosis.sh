@@ -13,6 +13,14 @@ function _activate_kurtosis() {
 }
 
 function _install_kurtosis() {
+	bashy_install_via _install_kurtosis_tar "$@"
+}
+
+function _uninstall_kurtosis() {
+	_uninstall_kurtosis_tar
+}
+
+function _install_kurtosis_tar() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "kurtosis-tech/kurtosis-cli-release-artifacts" release_json || return
@@ -43,7 +51,7 @@ function _install_kurtosis() {
 	bashy_install_extract "${tar}" "${folder}" kurtosis
 }
 
-function _uninstall_kurtosis() {
+function _uninstall_kurtosis_tar() {
 	bashy_uninstall_binary "kurtosis"
 }
 

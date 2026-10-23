@@ -10,7 +10,7 @@
 # latest version, work out the installed one, hand both to bashy_install_check,
 # and only then fetch and unpack.
 #
-#	function _install_gh() {
+#	function _install_gh_tar() {
 #		bashy_install_args "$@" || return
 #		local release_json
 #		bashy_github_release "cli/cli" release_json || return
@@ -81,6 +81,19 @@ function bashy_install_args() {
 		esac
 	done
 	return 0
+}
+
+# bashy_install_via <installer> [args...]
+# Say which install method is about to run and run it with [args...]. A plugin
+# that can install its tool more than one way names each way after how it
+# installs (_install_go_tar, _install_ansible_apt, ...), and its _install_<name>
+# routes to one of them through here, so running the plugin's installer always
+# says what kind of install it is doing.
+function bashy_install_via() {
+	local installer=$1
+	shift
+	echo "using ${installer}"
+	"${installer}" "$@"
 }
 
 # bashy_install_forced

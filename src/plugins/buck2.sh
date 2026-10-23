@@ -1,6 +1,14 @@
 # this is a plugin for buck2
 
 function _install_buck2() {
+	bashy_install_via _install_buck2_zst "$@"
+}
+
+function _uninstall_buck2() {
+	_uninstall_buck2_zst
+}
+
+function _install_buck2_zst() {
 	bashy_install_args "$@" || return
 	# buck2 has no versioned releases: a rolling "latest" tag is moved to a new commit
 	# every night and the assets under it are overwritten. The tag's published_at
@@ -58,7 +66,7 @@ function _install_buck2() {
 	mv -f "${tmp}" "${executable}"
 }
 
-function _uninstall_buck2() {
+function _uninstall_buck2_zst() {
 	bashy_uninstall_binary "buck2"
 	# left over from the old published_at based version check
 	rm -f "$(bashy_install_dir)/.buck2_published_at"

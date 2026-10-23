@@ -8,6 +8,14 @@ function _activate_audacity() {
 }
 
 function _install_audacity() {
+	bashy_install_via _install_audacity_appimage "$@"
+}
+
+function _uninstall_audacity() {
+	_uninstall_audacity_appimage
+}
+
+function _install_audacity_appimage() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "audacity/audacity" release_json || return
@@ -47,7 +55,7 @@ function _install_audacity() {
 	bashy_install_marker "${folder}" "audacity" "${latest_version}" > /dev/null
 }
 
-function _uninstall_audacity() {
+function _uninstall_audacity_appimage() {
 	bashy_uninstall_binary "audacity"
 	rm -f "$(bashy_install_marker "$(bashy_install_dir)" "audacity")"
 }

@@ -15,6 +15,14 @@ function _activate_oc() {
 }
 
 function _install_oc() {
+	bashy_install_via _install_oc_tar "$@"
+}
+
+function _uninstall_oc() {
+	_uninstall_oc_tar
+}
+
+function _install_oc_tar() {
 	bashy_install_args "$@" || return
 	# instructions for installing oc are at
 	# https://access.redhat.com/documentation/en-us/red_hat_build_of_microshift/4.12/html/cli_tools/microshift-oc-cli-install
@@ -43,7 +51,7 @@ function _install_oc() {
 	bashy_install_extract "${tar}" "${folder}" oc
 }
 
-function _uninstall_oc() {
+function _uninstall_oc_tar() {
 	bashy_uninstall_binary "oc"
 }
 

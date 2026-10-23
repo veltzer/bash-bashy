@@ -44,6 +44,21 @@ function testInstallArgsParsesForce() {
 	return 0
 }
 
+function testInstallViaNamesTheMethod() {
+	# the router says which method it picked and hands that method its arguments
+	function _install_thing_tar() { bashy_install_args "$@" || return; echo "tar ${BASHY_INSTALL_FORCE}"; }
+	local out
+	out=$(bashy_install_via _install_thing_tar --force)
+	_bashy_assert_equal "${out}" $'using _install_thing_tar\ntar 1'
+	# called directly, a method runs without the line
+	_bashy_assert_equal "$(_install_thing_tar --force)" "tar 1"
+	# the method's own status comes back
+	bashy_install_via _install_thing_tar --froce > /dev/null 2>&1 && _bashy_assert_fail
+	unset -f _install_thing_tar
+	bashy_install_args
+	return 0
+}
+
 function testInstallArgsRejectsUnknown() {
 	# a misspelt flag must fail loudly rather than run a plain install, and must
 	# name the installer that was called

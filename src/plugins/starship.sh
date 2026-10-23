@@ -15,6 +15,14 @@ function _activate_starship() {
 }
 
 function _install_starship() {
+	bashy_install_via _install_starship_tar "$@"
+}
+
+function _uninstall_starship() {
+	_uninstall_starship_tar
+}
+
+function _install_starship_tar() {
 	bashy_install_args "$@" || return
 	# install the release asset directly rather than piping the vendor install.sh
 	# into a shell, which would run unverified code from the network
@@ -44,7 +52,7 @@ function _install_starship() {
 	bashy_install_extract "${tar}" "${folder}" starship
 }
 
-function _uninstall_starship() {
+function _uninstall_starship_tar() {
 	bashy_uninstall_binary "starship"
 }
 

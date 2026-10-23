@@ -19,12 +19,20 @@ function _activate_powerline_shell() {
 }
 
 function _install_powerline_shell() {
+	bashy_install_via _install_powerline_shell_pip "$@"
+}
+
+function _uninstall_powerline_shell() {
+	_uninstall_powerline_shell_pip
+}
+
+function _install_powerline_shell_pip() {
 	bashy_install_args "$@" || return
 	bashy_install_pip "powerline-shell" "powerline-shell" || return
 	bashy_install_apt "powerline-shell fonts" "fonts-powerline"
 }
 
-function _uninstall_powerline_shell() {
+function _uninstall_powerline_shell_pip() {
 	bashy_uninstall_pip "powerline-shell" "powerline-shell"
 }
 

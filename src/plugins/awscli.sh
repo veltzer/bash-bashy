@@ -30,13 +30,23 @@ function _activate_awscli_wrapper() {
 	__var=0
 }
 
-function _install_awscli_wrapper() {
+function _install_awscli_pip() {
 	bashy_install_args "$@" || return
 	# installation of a pip wrapper - this is not the official aws client
 	bashy_install_pip "awscliv2" "awscliv2"
 }
 
 function _install_awscli() {
+	# the zip is aws's own v2 installer and the official client; the pip
+	# variant is a third party wrapper around it
+	bashy_install_via _install_awscli_zip "$@"
+}
+
+function _uninstall_awscli() {
+	_uninstall_awscli_zip
+}
+
+function _install_awscli_zip() {
 	bashy_install_args "$@" || return
 	local folder="${HOME}/install/aws"
 	local executable="${folder}/bin/aws"
@@ -71,10 +81,10 @@ function _install_awscli() {
 		bashy_uninstall_pip "the old pypi awscli" "awscli"
 	fi
 	# eks needs the authenticator alongside the client, install it in the same pass
-	_install_aws_iam_authenticator "$@"
+	_install_aws_iam_authenticator_binary "$@"
 }
 
-function _install_aws_iam_authenticator() {
+function _install_aws_iam_authenticator_binary() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "kubernetes-sigs/aws-iam-authenticator" release_json || return
@@ -102,7 +112,7 @@ function _install_aws_iam_authenticator() {
 	bashy_install_binary "aws-iam-authenticator" "${download_file}" "${executable}"
 }
 
-function _uninstall_awscli() {
+function _uninstall_awscli_zip() {
 	bashy_uninstall_directory "awscli" "${HOME}/install/aws"
 }
 

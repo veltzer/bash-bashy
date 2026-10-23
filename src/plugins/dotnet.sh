@@ -1,7 +1,15 @@
 # This is a plugin for dotnet
 
-# https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 function _install_dotnet() {
+	bashy_install_via _install_dotnet_apt "$@"
+}
+
+function _uninstall_dotnet() {
+	_uninstall_dotnet_apt
+}
+
+# https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
+function _install_dotnet_apt() {
 	bashy_install_args "$@" || return
 	# the microsoft repository package has to land before the sdk can be installed
 	local ubuntu_version
@@ -11,7 +19,7 @@ function _install_dotnet() {
 	bashy_install_apt "dotnet" "dotnet-sdk-8.0"
 }
 
-function _uninstall_dotnet() {
+function _uninstall_dotnet_apt() {
 	bashy_uninstall_apt "dotnet" "dotnet-sdk-8.0"
 }
 

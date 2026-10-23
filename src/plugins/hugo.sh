@@ -19,6 +19,16 @@ function _install_hugo_apt() {
 }
 
 function _install_hugo() {
+	# the release tarball is the extended build, checked against the published
+	# checksums; the distro package trails the releases
+	bashy_install_via _install_hugo_tar "$@"
+}
+
+function _uninstall_hugo() {
+	_uninstall_hugo_tar
+}
+
+function _install_hugo_tar() {
 	bashy_install_args "$@" || return
 	# instructions for installing hugo are at https://gohugo.io/installation/linux/
 	local release_json
@@ -51,7 +61,7 @@ function _install_hugo() {
 	bashy_install_extract "${tar}" "${folder}" hugo
 }
 
-function _uninstall_hugo() {
+function _uninstall_hugo_tar() {
 	bashy_uninstall_binary "hugo"
 }
 

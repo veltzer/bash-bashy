@@ -23,11 +23,19 @@ function _activate_powerline() {
 }
 
 function _install_powerline() {
+	bashy_install_via _install_powerline_apt "$@"
+}
+
+function _uninstall_powerline() {
+	_uninstall_powerline_apt
+}
+
+function _install_powerline_apt() {
 	bashy_install_args "$@" || return
 	bashy_install_apt "powerline" "powerline" "fonts-powerline"
 }
 
-function _uninstall_powerline() {
+function _uninstall_powerline_apt() {
 	bashy_uninstall_apt "powerline" "powerline" "fonts-powerline"
 }
 

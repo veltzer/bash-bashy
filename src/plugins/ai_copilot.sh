@@ -10,12 +10,22 @@ function _activate_ai_copilot() {
 	__var=0
 }
 
+function _install_copilot() {
+	# the release tarball is what the vendor script fetches too, taken directly
+	# and checked against the published SHA256SUMS.txt
+	bashy_install_via _install_copilot_tar "$@"
+}
+
+function _uninstall_copilot() {
+	_uninstall_copilot_tar
+}
+
 # Install the latest GitHub Copilot CLI, the standalone "copilot" agent.
 # https://github.com/github/copilot-cli
 # Every release ships a single binary tarball per platform plus a SHA256SUMS.txt,
 # which is exactly what the vendor script (see _install_copilot_script) downloads,
 # so this does the same thing directly and verifies it.
-function _install_copilot() {
+function _install_copilot_tar() {
 	bashy_install_args "$@" || return
 	local arch
 	case "$(uname -m)" in
@@ -54,12 +64,12 @@ function _install_copilot() {
 	bashy_install_extract "${tar}" "$(bashy_install_dir)" "copilot"
 }
 
-function _uninstall_copilot() {
+function _uninstall_copilot_tar() {
 	bashy_uninstall_binary "copilot"
 }
 
 # The vendor install script, which installs into ~/.local/bin (or /usr/local/bin
-# as root). Prefer _install_copilot above; this is kept for anyone who wants the
+# as root). Prefer _install_copilot_tar above; this is kept for anyone who wants the
 # vendor's own layout. It is fetched first and then run from disk rather than
 # piped straight into a shell, and only when the release it would fetch is newer
 # than what it last put there.

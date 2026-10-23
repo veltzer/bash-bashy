@@ -13,6 +13,14 @@ function _activate_spark() {
 }
 
 function _install_spark() {
+	bashy_install_via _install_spark_tar "$@"
+}
+
+function _uninstall_spark() {
+	_uninstall_spark_tar
+}
+
+function _install_spark_tar() {
 	bashy_install_args "$@" || return
 	# instructions for installing spark are at
 	# https://medium.com/@patilmailbox4/install-apache-spark-on-ubuntu-ffa151e12e30
@@ -46,7 +54,7 @@ function _install_spark() {
 	ln -sfn "${HOME}/install/${toplevel}" "${HOME}/install/spark"
 }
 
-function _uninstall_spark() {
+function _uninstall_spark_tar() {
 	# the symlink points at the versioned directory and may be relative, so
 	# resolve it before handing it over to be removed
 	local target=""

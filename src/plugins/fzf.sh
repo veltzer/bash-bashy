@@ -30,12 +30,22 @@ function _activate_fzf() {
 	__var=0
 }
 
+function _install_fzf() {
+	# the clone is what _activate_fzf is built around, and the distro package
+	# trails the releases
+	bashy_install_via _install_fzf_git "$@"
+}
+
+function _uninstall_fzf() {
+	_uninstall_fzf_git
+}
+
 # fzf is installed from its repository rather than a release tarball because the
 # install script in the clone is what lays down the key bindings and completion
 # files that _activate_fzf sources; the binary itself the script downloads from the
 # matching github release. The clone is taken at the release tag, so the version
 # the binary reports is the one to compare against.
-function _install_fzf() {
+function _install_fzf_git() {
 	bashy_install_args "$@" || return
 	# https://github.com/junegunn/fzf
 	local folder="${HOME}/install/fzf"
@@ -63,7 +73,8 @@ function _install_fzf_apt() {
 	bashy_install_args "$@" || return
 	bashy_install_apt "fzf" "fzf"
 }
-function _uninstall_fzf() {
+
+function _uninstall_fzf_git() {
 	bashy_uninstall_directory "fzf" "${HOME}/install/fzf" "${HOME}/.fzf"
 }
 

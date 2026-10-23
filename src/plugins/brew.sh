@@ -15,9 +15,17 @@ function _activate_brew() {
 	__var=0
 }
 
+function _install_brew() {
+	bashy_install_via _install_brew_git "$@"
+}
+
+function _uninstall_brew() {
+	_uninstall_brew_git
+}
+
 # https://docs.brew.sh/Installation#untar-anywhere-unsupported
 # https://superuser.com/questions/619498/can-i-install-homebrew-without-sudo-privileges
-function _install_brew() {
+function _install_brew_git() {
 	bashy_install_args "$@" || return
 	local folder="${HOME}/install/homebrew"
 	local executable="${folder}/bin/brew"
@@ -36,7 +44,7 @@ function _install_brew() {
 	"${executable}" update --force --quiet
 }
 
-function _uninstall_brew() {
+function _uninstall_brew_git() {
 	bashy_uninstall_directory "brew" "${HOME}/install/homebrew"
 }
 

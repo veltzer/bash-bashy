@@ -15,8 +15,11 @@ function _activate_ai_kiro() {
 # system trusts for code signing and name Amazon as its owner, and the signature
 # has to verify against its key.
 #
-#	_install_kiro		the deb, system wide in /usr/share/kiro (the default)
+#	_install_kiro_deb	the deb, system wide in /usr/share/kiro
 #	_install_kiro_tar	the tarball, for one user in ~/install/kiro, no apt
+#
+# _install_kiro picks the deb where dpkg is there to own it and the tarball
+# everywhere else, and _uninstall_kiro follows the same choice.
 
 # Where _install_kiro_tar unpacks to, and the AppArmor profile it needs there.
 KIRO_TAR_FOLDER="${HOME}/install/kiro"
@@ -124,9 +127,29 @@ function _kiro_verify() {
 	return 0
 }
 
+function _install_kiro() {
+	# the deb is the vendor's own linux install and the one the package manager
+	# owns afterwards; the tarball is for systems without dpkg
+	if _bashy_pathutils_is_in_path "dpkg"
+	then
+		bashy_install_via _install_kiro_deb "$@"
+	else
+		bashy_install_via _install_kiro_tar "$@"
+	fi
+}
+
+function _uninstall_kiro() {
+	if _bashy_pathutils_is_in_path "dpkg"
+	then
+		_uninstall_kiro_deb
+	else
+		_uninstall_kiro_tar
+	fi
+}
+
 # Install the latest kiro IDE from its signed deb package.
 # https://kiro.dev/downloads/
-function _install_kiro() {
+function _install_kiro_deb() {
 	bashy_install_args "$@" || return
 	local metadata
 	_kiro_metadata "deb" metadata || return
@@ -151,7 +174,7 @@ function _install_kiro() {
 	sudo dpkg --install "${deb}" || sudo apt-get install --fix-broken --assume-yes
 }
 
-function _uninstall_kiro() {
+function _uninstall_kiro_deb() {
 	bashy_uninstall_apt "kiro" "kiro"
 }
 

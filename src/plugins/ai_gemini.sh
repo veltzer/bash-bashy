@@ -12,9 +12,17 @@ function _activate_ai_gemini() {
 	__var=0
 }
 
+function _install_gemini() {
+	bashy_install_via _install_gemini_npm "$@"
+}
+
+function _uninstall_gemini() {
+	_uninstall_gemini_npm
+}
+
 # Install the latest stable Gemini CLI.
 # https://geminicli.com/docs/get-started/installation/
-function _install_gemini() {
+function _install_gemini_npm() {
 	bashy_install_args "$@" || return
 	local package="@google/gemini-cli"
 	if ! _bashy_pathutils_is_in_path "npm"
@@ -35,7 +43,7 @@ function _install_gemini() {
 	bashy_install_npm "gemini" "${package}@${latest_version:-latest}"
 }
 
-function _uninstall_gemini() {
+function _uninstall_gemini_npm() {
 	bashy_uninstall_npm "gemini" "@google/gemini-cli"
 }
 

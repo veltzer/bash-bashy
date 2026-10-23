@@ -11,13 +11,21 @@ function _activate_ruby() {
 }
 
 function _install_bundler() {
+	bashy_install_via _install_bundler_apt "$@"
+}
+
+function _uninstall_bundler() {
+	_uninstall_bundler_apt
+}
+
+function _install_bundler_apt() {
 	bashy_install_args "$@" || return
 	# the alternative is "gem install bundler", but the distribution packages
 	# bring ruby itself along with it
 	bashy_install_apt "bundler" "ruby" "ruby-dev" "ruby-bundler"
 }
 
-function _uninstall_bundler() {
+function _uninstall_bundler_apt() {
 	bashy_uninstall_apt "bundler" "ruby" "ruby-dev" "ruby-bundler"
 }
 

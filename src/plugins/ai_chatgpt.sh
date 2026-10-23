@@ -4,14 +4,4 @@ function _activate_ai_chatgpt() {
 	__var=0
 }
 
-# There is no chatgpt command line client to install: the url below was never a
-# real one. Left in place as the marker for where such an installer would go, so
-# that nobody re-adds the placeholder that downloaded from example.com as root.
-function _install_chatgpt() {
-	bashy_install_args "$@" || return
-	echo "chatgpt: there is no command line client to install" >&2
-	return 1
-}
-
 register _activate_ai_chatgpt
-register_install _install_chatgpt

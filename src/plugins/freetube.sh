@@ -1,6 +1,14 @@
 # this is a plugin for freetube
 
 function _install_freetube() {
+	bashy_install_via _install_freetube_deb "$@"
+}
+
+function _uninstall_freetube() {
+	_uninstall_freetube_deb
+}
+
+function _install_freetube_deb() {
 	bashy_install_args "$@" || return
 	# FreeTube ships only prereleases, so the "latest release" endpoint is empty -
 	# take the newest entry of the releases list instead.
@@ -25,7 +33,7 @@ function _install_freetube() {
 	bashy_install_deb "freetube" "${download_file}"
 }
 
-function _uninstall_freetube() {
+function _uninstall_freetube_deb() {
 	bashy_uninstall_apt "freetube" "freetube"
 }
 

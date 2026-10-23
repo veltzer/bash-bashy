@@ -13,6 +13,14 @@ function _activate_helm() {
 }
 
 function _install_helm() {
+	bashy_install_via _install_helm_tar "$@"
+}
+
+function _uninstall_helm() {
+	_uninstall_helm_tar
+}
+
+function _install_helm_tar() {
 	bashy_install_args "$@" || return
 	# get.helm.sh publishes the latest tag of each line; "helm-latest-version" is the
 	# current one. The upstream get-helm-3 script is pinned to the v3 line, so using it
@@ -41,7 +49,7 @@ function _install_helm() {
 	bashy_install_extract "${tar}" "${folder}" --strip-components=1 linux-amd64/helm
 }
 
-function _uninstall_helm() {
+function _uninstall_helm_tar() {
 	bashy_uninstall_binary "helm"
 }
 

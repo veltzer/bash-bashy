@@ -37,11 +37,19 @@ function encfs_umount() {
 }
 
 function _install_encfs() {
+	bashy_install_via _install_encfs_apt "$@"
+}
+
+function _uninstall_encfs() {
+	_uninstall_encfs_apt
+}
+
+function _install_encfs_apt() {
 	bashy_install_args "$@" || return
 	bashy_install_apt "encfs" "encfs"
 }
 
-function _uninstall_encfs() {
+function _uninstall_encfs_apt() {
 	bashy_uninstall_apt "encfs" "encfs"
 }
 

@@ -12,11 +12,19 @@ function _activate_ng() {
 }
 
 function _install_ng() {
+	bashy_install_via _install_ng_npm "$@"
+}
+
+function _uninstall_ng() {
+	_uninstall_ng_npm
+}
+
+function _install_ng_npm() {
 	bashy_install_args "$@" || return
 	bashy_install_npm "ng" "@angular/cli"
 }
 
-function _uninstall_ng() {
+function _uninstall_ng_npm() {
 	bashy_uninstall_npm "ng" "@angular/cli"
 }
 

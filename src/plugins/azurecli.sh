@@ -5,11 +5,14 @@
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt
 
 function _install_azurecli() {
-	bashy_install_args "$@" || return
 	# the deb variant is Microsoft's recommended path on debian/ubuntu: apt owns
 	# the package once installed, so updates and signature checking are handled by
 	# apt itself, and nothing downloaded over the network is executed as root
-	_install_azurecli_deb "$@"
+	bashy_install_via _install_azurecli_apt "$@"
+}
+
+function _uninstall_azurecli() {
+	_uninstall_azurecli_apt
 }
 
 # recommended
@@ -21,7 +24,7 @@ function _install_azurecli() {
 # so updates and signature checking are handled by apt itself.
 #
 # Upstream script, for comparison: https://aka.ms/InstallAzureCLIDeb
-function _install_azurecli_deb() {
+function _install_azurecli_apt() {
 	bashy_install_args "$@" || return
 	local keyring="/etc/apt/keyrings/microsoft.gpg"
 	local sources="/etc/apt/sources.list.d/azure-cli.sources"
@@ -66,7 +69,7 @@ function _install_azurecli_deb() {
 # The standalone installer is a python bootstrap with no packaged equivalent, so
 # there is nothing to reimplement here. Download it first and run that file, rather
 # than piping it into a root shell, so there is something on disk to look at.
-function _install_azurecli_standalone() {
+function _install_azurecli_script() {
 	bashy_install_args "$@" || return
 	# the vendor script registers the apt repository and installs from it, so
 	# the az it leaves behind is whichever one is first in PATH
@@ -104,7 +107,7 @@ function _bashy_azurecli_versions() {
 	fi
 }
 
-function _install_azurecli_tarball() {
+function _install_azurecli_tar() {
 	bashy_install_args "$@" || return
 	local folder="${HOME}/install/azurecli"
 	local installed_version latest_version
@@ -138,7 +141,7 @@ function _install_azurecli_tarball() {
 	rm -rf "${tmp_dir}"
 }
 
-function _install_azurecli_extensions() {
+function _install_azurecli_extensions_az() {
 	bashy_install_args "$@" || return
 	echo "Installing azure-cli extensions [azure-devops]"
 	# az refuses to add an extension that is already there, and --upgrade is its
@@ -146,7 +149,7 @@ function _install_azurecli_extensions() {
 	az extension add --upgrade --name "azure-devops"
 }
 
-function _uninstall_azurecli() {
+function _uninstall_azurecli_apt() {
 	bashy_uninstall_apt "azure-cli" "azure-cli"
 }
 
@@ -178,5 +181,5 @@ function _activate_azurecli_manual() {
 	__var=0
 }
 
-register_install _install_azurecli_deb
+register_install _install_azurecli
 register_interactive _activate_azurecli

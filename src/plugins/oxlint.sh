@@ -10,6 +10,14 @@ function _activate_oxlint() {
 }
 
 function _install_oxlint() {
+	bashy_install_via _install_oxlint_tar "$@"
+}
+
+function _uninstall_oxlint() {
+	_uninstall_oxlint_tar
+}
+
+function _install_oxlint_tar() {
 	bashy_install_args "$@" || return
 	# oxc is a monorepo that cuts a release per product (oxlint_v*, oxfmt_v*,
 	# crates_v*, ...), so the "latest release" endpoint may answer with some
@@ -56,7 +64,7 @@ function _install_oxlint() {
 	bashy_install_extract "${tar}" "${folder}" "oxlint-x86_64-unknown-linux-gnu" --transform 's/^oxlint-x86_64-unknown-linux-gnu$/oxlint/'
 }
 
-function _uninstall_oxlint() {
+function _uninstall_oxlint_tar() {
 	bashy_uninstall_binary "oxlint"
 }
 

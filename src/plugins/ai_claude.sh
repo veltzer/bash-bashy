@@ -11,20 +11,23 @@ function _activate_ai_claude() {
 }
 
 function _install_claude() {
-	bashy_install_args "$@" || return
 	# the vendor's native installer is Anthropic's own recommended install and the
 	# one that stays in step with claude releases without waiting on a package
 	# maintainer, so it is the default here; the npm and brew variants remain for
 	# setups that want to manage claude through those channels
-	_install_claude_native "$@"
+	bashy_install_via _install_claude_script "$@"
 }
 
-# The native installer is a shell script with no release asset to download and
+function _uninstall_claude() {
+	_uninstall_claude_script
+}
+
+# The native installer, the vendor's own, is a shell script with no release asset to download and
 # verify instead, so it is fetched first and then run from disk rather than piped
 # straight into a shell. It installs each release side by side under
 # ~/.local/share/claude/versions and repoints the ~/.local/bin/claude symlink, so
 # the same script is also the upgrade path.
-function _install_claude_native() {
+function _install_claude_script() {
 	bashy_install_args "$@" || return
 	local executable="${HOME}/.local/bin/claude"
 	local latest_version
@@ -47,7 +50,7 @@ function _install_claude_native() {
 	bash "${script}"
 }
 
-function _uninstall_claude_native() {
+function _uninstall_claude_script() {
 	bashy_uninstall_binary "claude" "${HOME}/.local/bin/claude"
 	bashy_uninstall_directory "claude" "${HOME}/.local/share/claude"
 }
@@ -85,8 +88,7 @@ CLAUDE_DESKTOP_REPO="https://downloads.claude.ai/claude-desktop/apt/stable"
 CLAUDE_DESKTOP_FINGERPRINT="31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE"
 
 function _install_claude_desktop() {
-	bashy_install_args "$@" || return
-	_install_claude_desktop_apt "$@"
+	bashy_install_via _install_claude_desktop_apt "$@"
 }
 
 # recommended

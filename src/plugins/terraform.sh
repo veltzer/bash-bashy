@@ -7,6 +7,14 @@ function _activate_terraform() {
 }
 
 function _install_terraform() {
+	bashy_install_via _install_terraform_zip "$@"
+}
+
+function _uninstall_terraform() {
+	_uninstall_terraform_zip
+}
+
+function _install_terraform_zip() {
 	bashy_install_args "$@" || return
 	# latest version: https://github.com/hashicorp/terraform/issues/9803
 	local latest_version
@@ -33,7 +41,7 @@ function _install_terraform() {
 	bashy_install_extract "${archive}" "${folder}" terraform
 }
 
-function _uninstall_terraform() {
+function _uninstall_terraform_zip() {
 	bashy_uninstall_binary "terraform"
 }
 

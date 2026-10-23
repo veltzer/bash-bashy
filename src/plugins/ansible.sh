@@ -7,11 +7,19 @@ function _activate_ansible() {
 }
 
 function _install_ansible() {
+	bashy_install_via _install_ansible_apt "$@"
+}
+
+function _uninstall_ansible() {
+	_uninstall_ansible_apt
+}
+
+function _install_ansible_apt() {
 	bashy_install_args "$@" || return
 	bashy_install_apt "ansible" "ansible"
 }
 
-function _uninstall_ansible() {
+function _uninstall_ansible_apt() {
 	bashy_uninstall_apt "ansible" "ansible"
 }
 

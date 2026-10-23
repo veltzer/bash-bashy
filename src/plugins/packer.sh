@@ -7,6 +7,14 @@ function _activate_packer() {
 }
 
 function _install_packer() {
+	bashy_install_via _install_packer_zip "$@"
+}
+
+function _uninstall_packer() {
+	_uninstall_packer_zip
+}
+
+function _install_packer_zip() {
 	bashy_install_args "$@" || return
 	# latest version: https://github.com/hashicorp/terraform/issues/9803
 	local latest_version
@@ -33,7 +41,7 @@ function _install_packer() {
 	bashy_install_extract "${archive}" "${folder}" packer
 }
 
-function _uninstall_packer() {
+function _uninstall_packer_zip() {
 	bashy_uninstall_binary "packer"
 }
 

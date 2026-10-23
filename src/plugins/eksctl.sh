@@ -19,6 +19,14 @@ function _activate_eksctl() {
 }
 
 function _install_eksctl() {
+	bashy_install_via _install_eksctl_tar "$@"
+}
+
+function _uninstall_eksctl() {
+	_uninstall_eksctl_tar
+}
+
+function _install_eksctl_tar() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "eksctl-io/eksctl" release_json || return
@@ -48,7 +56,7 @@ function _install_eksctl() {
 	bashy_install_extract "${tar}" "${folder}" eksctl
 }
 
-function _uninstall_eksctl() {
+function _uninstall_eksctl_tar() {
 	bashy_uninstall_binary "eksctl"
 }
 

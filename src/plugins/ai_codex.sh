@@ -13,6 +13,16 @@ function _activate_ai_codex() {
 }
 
 function _install_codex() {
+	# the release package is checked against the published checksums and stays
+	# in step with every release, without waiting on npm or brew
+	bashy_install_via _install_codex_tar "$@"
+}
+
+function _uninstall_codex() {
+	_uninstall_codex_tar
+}
+
+function _install_codex_tar() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "openai/codex" release_json || return
@@ -54,7 +64,7 @@ function _install_codex() {
 	ln -sfn "${package}/bin/codex" "${executable}"
 }
 
-function _uninstall_codex() {
+function _uninstall_codex_tar() {
 	bashy_uninstall_binary "codex"
 	bashy_uninstall_binary "codex-code-mode-host"
 	bashy_uninstall_directory "codex" "${HOME}/install/codex"

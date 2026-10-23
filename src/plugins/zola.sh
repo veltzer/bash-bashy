@@ -14,6 +14,14 @@ function _activate_zola() {
 }
 
 function _install_zola() {
+	bashy_install_via _install_zola_tar "$@"
+}
+
+function _uninstall_zola() {
+	_uninstall_zola_tar
+}
+
+function _install_zola_tar() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "getzola/zola" release_json || return
@@ -46,7 +54,7 @@ function _install_zola() {
 	bashy_install_extract "${tar}" "${folder}" zola
 }
 
-function _uninstall_zola() {
+function _uninstall_zola_tar() {
 	bashy_uninstall_binary "zola"
 }
 

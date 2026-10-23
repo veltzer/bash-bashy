@@ -9,6 +9,14 @@ function _activate_bazel() {
 }
 
 function _install_bazel() {
+	bashy_install_via _install_bazel_binary "$@"
+}
+
+function _uninstall_bazel() {
+	_uninstall_bazel_binary
+}
+
+function _install_bazel_binary() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "bazelbuild/bazel" release_json || return
@@ -36,7 +44,7 @@ function _install_bazel() {
 	bashy_install_binary "bazel" "${download_file}" "${executable}"
 }
 
-function _uninstall_bazel() {
+function _uninstall_bazel_binary() {
 	bashy_uninstall_binary "bazel"
 }
 

@@ -21,11 +21,19 @@ function _activate_pypowerline() {
 }
 
 function _install_pypowerline() {
+	bashy_install_via _install_pypowerline_pip "$@"
+}
+
+function _uninstall_pypowerline() {
+	_uninstall_pypowerline_pip
+}
+
+function _install_pypowerline_pip() {
 	bashy_install_args "$@" || return
 	bashy_install_pip "pypowerline" "pypowerline"
 }
 
-function _uninstall_pypowerline() {
+function _uninstall_pypowerline_pip() {
 	bashy_uninstall_pip "pypowerline" "pypowerline"
 }
 

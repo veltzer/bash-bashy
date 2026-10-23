@@ -23,7 +23,7 @@ An installer must ask the project what its latest release is, never carry a vers
 literal. Version numbers embedded in a download url count too, and so do pinned
 distro codenames in an asset name.
 
-The exceptions are deliberate and carry a comment saying so: `_install_zoom_6` pins
+The exceptions are deliberate and carry a comment saying so: `_install_zoom_6_deb` pins
 a version because it exists to downgrade, and `src/plugins/phantomjs.sh` pins one
 because the project was archived with no releases to query.
 

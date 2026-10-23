@@ -1,6 +1,14 @@
 # this is a plugin for drawio (draw.io desktop)
 
 function _install_drawio() {
+	bashy_install_via _install_drawio_deb "$@"
+}
+
+function _uninstall_drawio() {
+	_uninstall_drawio_deb
+}
+
+function _install_drawio_deb() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "jgraph/drawio-desktop" release_json || return
@@ -23,7 +31,7 @@ function _install_drawio() {
 	bashy_install_deb "drawio" "${download_file}"
 }
 
-function _uninstall_drawio() {
+function _uninstall_drawio_deb() {
 	bashy_uninstall_apt "drawio" "draw.io"
 }
 

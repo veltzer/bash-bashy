@@ -15,6 +15,14 @@ function _activate_k8s() {
 }
 
 function _install_k8s() {
+	bashy_install_via _install_k8s_binary "$@"
+}
+
+function _uninstall_k8s() {
+	_uninstall_k8s_binary
+}
+
+function _install_k8s_binary() {
 	bashy_install_args "$@" || return
 	# instructions for installing k8s are at
 	# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
@@ -39,7 +47,7 @@ function _install_k8s() {
 	bashy_install_binary "kubectl" "${download_file}" "${executable}"
 }
 
-function _uninstall_k8s() {
+function _uninstall_k8s_binary() {
 	bashy_uninstall_binary "kubectl"
 }
 

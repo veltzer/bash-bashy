@@ -21,11 +21,19 @@ function _activate_google_cloud_sdk() {
 	__var=0
 }
 
+function _install_google_cloud_sdk() {
+	bashy_install_via _install_google_cloud_sdk_script "$@"
+}
+
+function _uninstall_google_cloud_sdk() {
+	_uninstall_google_cloud_sdk_script
+}
+
 # The vendor installer is a shell script with no release asset to download and
 # verify instead, so it is fetched first and then run from disk rather than piped
 # straight into a shell. It only runs for a fresh install: once the sdk is in
 # place, moving it forward is the job of its own component manager.
-function _install_google_cloud_sdk() {
+function _install_google_cloud_sdk_script() {
 	bashy_install_args "$@" || return
 	export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 	export CLOUDSDK_INSTALL_DIR="${HOME}/install"
@@ -67,7 +75,7 @@ function _install_google_cloud_sdk() {
 	"${folder}/bin/gcloud" components update
 }
 
-function _uninstall_google_cloud_sdk() {
+function _uninstall_google_cloud_sdk_script() {
 	bashy_uninstall_directory "google-cloud-sdk" "${HOME}/install/google-cloud-sdk"
 }
 

@@ -10,6 +10,14 @@ function _activate_node() {
 }
 
 function _install_node() {
+	bashy_install_via _install_node_apt "$@"
+}
+
+function _uninstall_node() {
+	_uninstall_node_apt
+}
+
+function _install_node_apt() {
 	bashy_install_args "$@" || return
 	# npm may come from somewhere other than apt (nvm, a tarball), so only ask
 	# apt when it is missing; --force hands it to apt regardless
@@ -39,7 +47,7 @@ function _install_node() {
 function npm_logout() {
 	sed -i "/\(registry=\|_authToken=\)/d" "${HOME}/.npmrc"
 }
-function _uninstall_node() {
+function _uninstall_node_apt() {
 	bashy_uninstall_directory "node" "${HOME}/install/node"
 }
 

@@ -22,11 +22,4 @@ function _activate_nvm() {
 	__var=0
 }
 
-function _install_nvm() {
-	bashy_install_args "$@" || return
-	# TBD
-	:
-}
-
 register_interactive _activate_nvm
-register_install _install_nvm

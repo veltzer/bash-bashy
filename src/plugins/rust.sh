@@ -51,11 +51,14 @@ function _remove_rust() {
 }
 
 function _install_rust() {
-	bashy_install_args "$@" || return
 	# rustup is the upstream-recommended install and the one _activate_rust is
 	# built around (CARGO_HOME points at ${HOME}/install/cargo, which rustup
 	# populates); the apt variant is kept for setups that prefer distro packages
-	_install_rust_rustup "$@"
+	bashy_install_via _install_rust_rustup "$@"
+}
+
+function _uninstall_rust() {
+	_uninstall_rust_rustup
 }
 
 function _install_rust_rustup() {
@@ -123,7 +126,8 @@ function _install_rust_apt() {
 function _uninstall_rust_apt() {
 	bashy_uninstall_apt "rust" "cargo" "rustc" "rust-src"
 }
-function _uninstall_rust() {
+
+function _uninstall_rust_rustup() {
 	bashy_uninstall_directory "rust" "${HOME}/install/cargo" "${HOME}/.cargo" "${HOME}/.rustup"
 }
 

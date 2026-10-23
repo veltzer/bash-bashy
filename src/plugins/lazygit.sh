@@ -3,6 +3,14 @@
 # need to think about plugins like that.
 
 function _install_lazygit() {
+	bashy_install_via _install_lazygit_tar "$@"
+}
+
+function _uninstall_lazygit() {
+	_uninstall_lazygit_tar
+}
+
+function _install_lazygit_tar() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "jesseduffield/lazygit" release_json || return
@@ -39,7 +47,7 @@ function _activate_lazygit() {
 	__var=0
 }
 
-function _uninstall_lazygit() {
+function _uninstall_lazygit_tar() {
 	bashy_uninstall_binary "lazygit"
 }
 

@@ -23,6 +23,14 @@ function _activate_go() {
 }
 
 function _install_go() {
+	bashy_install_via _install_go_tar "$@"
+}
+
+function _uninstall_go() {
+	_uninstall_go_tar
+}
+
+function _install_go_tar() {
 	bashy_install_args "$@" || return
 	# https://go.dev/dl/
 	local folder="${HOME}/install"
@@ -60,7 +68,7 @@ function _install_go() {
 	rm -rf "${HOME}/.cache/go-build" "${HOME}/install/gopath"
 	mkdir -p "${HOME}/install/gopath/bin"
 }
-function _uninstall_go() {
+function _uninstall_go_tar() {
 	[ -e "${HOME}/install/gopath" ] && chmod -R u+w "${HOME}/install/gopath" 2>/dev/null
 	bashy_uninstall_directory "go" "${HOME}/install/go" "${HOME}/install/gopath"
 }

@@ -10,13 +10,21 @@ function _activate_ai_agy() {
 	__var=0
 }
 
+function _install_agy() {
+	bashy_install_via _install_agy_tar "$@"
+}
+
+function _uninstall_agy() {
+	_uninstall_agy_tar
+}
+
 # Install the latest agy, the Google Antigravity command line coding agent.
 # https://antigravity.google/cli
 # Upstream's install.sh reads a per platform json manifest naming the latest
 # version, its tarball and a sha512, so this does the same thing directly rather
 # than running the script. It installs to ~/.local/bin/agy, where install.sh puts
 # it and where agy updates itself in the background.
-function _install_agy() {
+function _install_agy_tar() {
 	bashy_install_args "$@" || return
 	local arch
 	case "$(uname -m)" in
@@ -74,7 +82,7 @@ function _install_agy() {
 	bashy_install_extract "${tar}" "${folder}" "antigravity" --transform 's/^antigravity$/agy/'
 }
 
-function _uninstall_agy() {
+function _uninstall_agy_tar() {
 	bashy_uninstall_binary "agy" "${HOME}/.local/bin/agy"
 }
 

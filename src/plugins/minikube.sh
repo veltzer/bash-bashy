@@ -15,6 +15,14 @@ function _activate_minikube() {
 }
 
 function _install_minikube() {
+	bashy_install_via _install_minikube_binary "$@"
+}
+
+function _uninstall_minikube() {
+	_uninstall_minikube_binary
+}
+
+function _install_minikube_binary() {
 	bashy_install_args "$@" || return
 	# https://minikube.sigs.k8s.io/docs/start/
 	local release_json
@@ -41,7 +49,7 @@ function _install_minikube() {
 	bashy_install_binary "minikube" "${download_file}" "${executable}"
 }
 
-function _uninstall_minikube() {
+function _uninstall_minikube_binary() {
 	bashy_uninstall_binary "minikube"
 }
 

@@ -13,6 +13,16 @@ function _install_gh_apt() {
 }
 
 function _install_gh() {
+	# the release tarball is checked against the published checksums and is
+	# always the newest gh, where the distro package trails behind
+	bashy_install_via _install_gh_tar "$@"
+}
+
+function _uninstall_gh() {
+	_uninstall_gh_tar
+}
+
+function _install_gh_tar() {
 	bashy_install_args "$@" || return
 	local release_json
 	bashy_github_release "cli/cli" release_json || return
@@ -43,7 +53,7 @@ function _install_gh() {
 	bashy_install_extract "${tar}" "${folder}" --wildcards "*/bin/gh" --transform 's/.*\/bin\/gh/gh/g'
 }
 
-function _uninstall_gh() {
+function _uninstall_gh_tar() {
 	bashy_uninstall_binary "gh"
 }
 

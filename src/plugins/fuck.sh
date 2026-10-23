@@ -7,11 +7,19 @@ function _activate_fuck() {
 }
 
 function _install_fuck() {
+	bashy_install_via _install_fuck_pip "$@"
+}
+
+function _uninstall_fuck() {
+	_uninstall_fuck_pip
+}
+
+function _install_fuck_pip() {
 	bashy_install_args "$@" || return
 	bashy_install_pip "thefuck" "thefuck"
 }
 
-function _uninstall_fuck() {
+function _uninstall_fuck_pip() {
 	bashy_uninstall_pip "thefuck" "thefuck"
 }
 

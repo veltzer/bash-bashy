@@ -7,11 +7,19 @@ function _activate_guile() {
 }
 
 function _install_guile() {
+	bashy_install_via _install_guile_apt "$@"
+}
+
+function _uninstall_guile() {
+	_uninstall_guile_apt
+}
+
+function _install_guile_apt() {
 	bashy_install_args "$@" || return
 	bashy_install_apt "guile" "guile-2.2" "guile-2.2-dev"
 }
 
-function _uninstall_guile() {
+function _uninstall_guile_apt() {
 	bashy_uninstall_apt "guile" "guile-2.2" "guile-2.2-dev"
 }
 

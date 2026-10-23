@@ -11,6 +11,14 @@ function _activate_phantomjs() {
 }
 
 function _install_phantomjs() {
+	bashy_install_via _install_phantomjs_tar "$@"
+}
+
+function _uninstall_phantomjs() {
+	_uninstall_phantomjs_tar
+}
+
+function _install_phantomjs_tar() {
 	bashy_install_args "$@" || return
 	# phantomjs was archived in 2018 with no releases to query, so this is the
 	# one installer that legitimately carries a version literal
@@ -33,7 +41,7 @@ function _install_phantomjs() {
 	bashy_install_extract "${archive}" "${HOME}/install"
 	ln -sfn "${HOME}/install/${toplevel}" "${HOME}/install/phantomjs"
 }
-function _uninstall_phantomjs() {
+function _uninstall_phantomjs_tar() {
 	# the symlink points at the versioned directory and may be relative, so
 	# resolve it before handing it over to be removed
 	local target=""

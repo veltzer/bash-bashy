@@ -10,6 +10,14 @@ function _activate_biome() {
 }
 
 function _install_biome() {
+	bashy_install_via _install_biome_binary "$@"
+}
+
+function _uninstall_biome() {
+	_uninstall_biome_binary
+}
+
+function _install_biome_binary() {
 	bashy_install_args "$@" || return
 	# every release in the biome repo is a cli release, tagged
 	# "@biomejs/biome@<version>", so the latest release endpoint is reliable
@@ -39,7 +47,7 @@ function _install_biome() {
 	bashy_install_binary "biome" "${download_file}" "${executable}"
 }
 
-function _uninstall_biome() {
+function _uninstall_biome_binary() {
 	bashy_uninstall_binary "biome"
 }
 

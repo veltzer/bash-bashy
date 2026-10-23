@@ -9,6 +9,16 @@ function _activate_gradle() {
 }
 
 function _install_gradle() {
+	# the binary zip is the current gradle, checked against its published sha256,
+	# and is the ~/install/gradle that _activate_gradle looks for
+	bashy_install_via _install_gradle_zip "$@"
+}
+
+function _uninstall_gradle() {
+	_uninstall_gradle_zip
+}
+
+function _install_gradle_zip() {
 	bashy_install_args "$@" || return
 	# this function installs the latest gradle from a binary zip file distribution
 	local latest_version
@@ -37,8 +47,8 @@ function _install_gradle_apt() {
 	bashy_install_args "$@" || return
 	bashy_install_apt "gradle" "gradle"
 }
-function _uninstall_gradle() {
-	# the symlink points at the versioned directory, drop both
+
+function _uninstall_gradle_zip() {
 	# the symlink points at the versioned directory and may be relative, so
 	# resolve it before handing it over to be removed
 	local target=""

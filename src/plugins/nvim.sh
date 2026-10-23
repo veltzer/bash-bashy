@@ -21,6 +21,16 @@ function _activate_nvim_with_folder() {
 }
 
 function _install_nvim() {
+	# the appimage is the newest release as a single file in the binaries folder,
+	# which is where _activate_nvim finds it; the distro package trails behind
+	bashy_install_via _install_nvim_appimage "$@"
+}
+
+function _uninstall_nvim() {
+	_uninstall_nvim_appimage
+}
+
+function _install_nvim_appimage() {
 	bashy_install_args "$@" || return
 	# https://github.com/neovim/neovim/blob/master/INSTALL.md
 	local release_json
@@ -107,7 +117,7 @@ function _install_nvim_apt() {
 	bashy_install_apt "nvim" "neovim"
 }
 
-function _install_nvim_lazy() {
+function _install_nvim_lazy_git() {
 	bashy_install_args "$@" || return
 	# The starter repo (LazyVim/starter) is a template with no releases, so the
 	# version that matters is the LazyVim plugin it pulls in. lazy.nvim clones
@@ -141,7 +151,7 @@ function _config_clean_nvim() {
 	rm -rf "${HOME}/.config/nvim"
 }
 
-function _uninstall_nvim() {
+function _uninstall_nvim_appimage() {
 	bashy_uninstall_binary "nvim"
 }
 

@@ -27,6 +27,14 @@ function uv() {
 }
 
 function _install_uv() {
+	bashy_install_via _install_uv_cargo "$@"
+}
+
+function _uninstall_uv() {
+	_uninstall_uv_cargo
+}
+
+function _install_uv_cargo() {
 	bashy_install_args "$@" || return
 	# uv ships prebuilt binaries, but this installer builds it from source as a
 	# rust executable. uv is not published on crates.io, so cargo pulls the
@@ -75,7 +83,7 @@ function _install_uv() {
 	rm -rf "${root}"
 }
 
-function _uninstall_uv() {
+function _uninstall_uv_cargo() {
 	bashy_uninstall_binary "uv"
 	bashy_uninstall_binary "uvx"
 }

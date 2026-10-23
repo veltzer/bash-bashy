@@ -11,11 +11,19 @@ function _activate_zoxide() {
 }
 
 function _install_zoxide() {
+	bashy_install_via _install_zoxide_apt "$@"
+}
+
+function _uninstall_zoxide() {
+	_uninstall_zoxide_apt
+}
+
+function _install_zoxide_apt() {
 	bashy_install_args "$@" || return
 	bashy_install_apt "zoxide" "zoxide"
 }
 
-function _uninstall_zoxide() {
+function _uninstall_zoxide_apt() {
 	bashy_uninstall_apt "zoxide" "zoxide"
 }
 
