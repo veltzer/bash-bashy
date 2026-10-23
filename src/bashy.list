@@ -69,6 +69,7 @@ ai_codex
 ai_copilot
 ai_chatgpt
 ai_gemini
+ai_kiro
 # bazel - still needs work
 # oc - slow
 # helm - slow
