@@ -113,3 +113,23 @@ function testLatestListAndClean() {
 	_latest_test_teardown
 	return 0
 }
+
+function testLatestUpgradeStamp() {
+	_latest_test_setup
+	# a plugin bashy_upgrade never ran is not fresh
+	bashy_upgrade_fresh "foo" && _bashy_assert_fail
+	bashy_upgrade_mark "foo"
+	bashy_upgrade_fresh "foo" || _bashy_assert_fail
+	bashy_upgrade_fresh "bar" && _bashy_assert_fail
+	# past the ttl it has to be checked again
+	touch --date="@$(( $(date +%s) - BASHY_LATEST_TTL - 1 ))" "${BASHY_LATEST_CACHE}/upgrade/foo"
+	bashy_upgrade_fresh "foo" && _bashy_assert_fail
+	# the stamps are not cached answers, so the list does not show them
+	bashy_upgrade_mark "foo"
+	_bashy_assert_equal "$(bashy_latest_list)" ""
+	# and cleaning the cache forgets them
+	bashy_latest_clean > /dev/null
+	bashy_upgrade_fresh "foo" && _bashy_assert_fail
+	_latest_test_teardown
+	return 0
+}

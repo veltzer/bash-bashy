@@ -421,11 +421,23 @@ function bashy_install() {
 # the "install or bring up to date everything bashy knows about" one shot: each
 # installer already reports whether the tool is up to date or needs upgrading,
 # and skips its work when there is nothing to do. Plugins that have no
-# installer, and disabled ones, are skipped. The arguments go to every
-# installer, so --force reinstalls everything and --refresh asks every project
-# for its latest version again instead of using an answer from the last hour.
+# installer, and disabled ones, are skipped. So is a plugin whose installer
+# succeeded within the last BASHY_LATEST_TTL seconds, which makes a second run
+# check nothing at all (see latest.sh). The arguments go to every installer, so
+# --force reinstalls everything and --refresh asks every project for its latest
+# version again instead of using an answer from the last hour; both also run
+# the installers that were skipped as recently checked.
 function bashy_upgrade() {
+	local recheck=0
+	local arg
+	for arg in "$@"
+	do
+		case "${arg}" in
+			--force|--refresh) recheck=1 ;;
+		esac
+	done
 	local plugin installer enabled
+	local skipped=0
 	for plugin in "${bashy_array_plugin[@]}"
 	do
 		assoc_get bashy_assoc_enabled enabled "${plugin}"
@@ -438,9 +450,21 @@ function bashy_upgrade() {
 		then
 			continue
 		fi
+		if [ "${recheck}" -eq 0 ] && bashy_upgrade_fresh "${plugin}"
+		then
+			(( skipped+=1 ))
+			continue
+		fi
 		echo "=== ${plugin} ==="
-		"${installer}" "$@"
+		if "${installer}" "$@"
+		then
+			bashy_upgrade_mark "${plugin}"
+		fi
 	done
+	if [ "${skipped}" -gt 0 ]
+	then
+		echo "${skipped} plugins were checked in the last ${BASHY_LATEST_TTL}s and skipped, --refresh checks them again"
+	fi
 }
 
 # bashy_deactivate <plugin>

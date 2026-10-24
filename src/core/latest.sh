@@ -23,6 +23,14 @@
 # and its mtime is when it was fetched. A <hash>.url file beside it holds the url,
 # for bashy_latest_list. Only successful fetches are kept, so an outage or a rate
 # limit answer is never mistaken for the latest release.
+#
+# Caching the answers alone does not make a second bashy_upgrade fast: every
+# installer still runs, asks the tool for its installed version, and the npm,
+# pip and git ones redo their whole install. So bashy_upgrade also keeps, under
+# upgrade/ in the same cache, one empty file per plugin whose installer
+# succeeded, and skips that plugin while the file is younger than
+# BASHY_LATEST_TTL - the same hour in which its latest version would come from
+# the cache anyway. --refresh and --force run every installer again.
 
 # location of the cache, honoring XDG_CACHE_HOME, overridable via BASHY_LATEST_CACHE
 if [ -z "${BASHY_LATEST_CACHE+x}" ]
@@ -55,6 +63,17 @@ function _bashy_latest_age() {
 	__age=$(( now - mtime ))
 }
 
+# _bashy_latest_fresh <file> <age_var>
+# Succeed when <file> exists and is younger than BASHY_LATEST_TTL seconds, and
+# put its age into <age_var>.
+function _bashy_latest_fresh() {
+	local -n __fresh_age=$2
+	[ -f "$1" ] || return 1
+	_bashy_latest_age "$1" __fresh_age
+	# a negative age is a clock that went backwards, not a fresh answer
+	[ "${__fresh_age}" -ge 0 ] && [ "${__fresh_age}" -lt "${BASHY_LATEST_TTL}" ]
+}
+
 # bashy_fetch_latest <url> [out_var]
 # The body of <url>, from the cache when it was fetched less than
 # BASHY_LATEST_TTL seconds ago and the installer was not given --refresh or
@@ -66,16 +85,11 @@ function bashy_fetch_latest() {
 	_bashy_latest_file "${__latest_url}" __latest_file
 	local __latest_body __latest_age
 	local __latest_hit=0
-	if [ "${BASHY_INSTALL_REFRESH:-0}" -ne 1 ] && [ -f "${__latest_file}" ]
+	if [ "${BASHY_INSTALL_REFRESH:-0}" -ne 1 ] && _bashy_latest_fresh "${__latest_file}" __latest_age
 	then
-		_bashy_latest_age "${__latest_file}" __latest_age
-		# a negative age is a clock that went backwards, not a fresh answer
-		if [ "${__latest_age}" -ge 0 ] && [ "${__latest_age}" -lt "${BASHY_LATEST_TTL}" ]
-		then
-			bashy_log "core/latest" "${BASHY_LOG_INFO}" "cache hit for [${__latest_url}], ${__latest_age}s old"
-			__latest_body=$(< "${__latest_file}")
-			__latest_hit=1
-		fi
+		bashy_log "core/latest" "${BASHY_LOG_INFO}" "cache hit for [${__latest_url}], ${__latest_age}s old"
+		__latest_body=$(< "${__latest_file}")
+		__latest_hit=1
 	fi
 	if [ "${__latest_hit}" -eq 0 ]
 	then
@@ -101,6 +115,21 @@ function bashy_fetch_latest() {
 	fi
 }
 
+# bashy_upgrade_fresh <plugin>
+# Succeed when bashy_upgrade ran the installer of <plugin> successfully less
+# than BASHY_LATEST_TTL seconds ago.
+function bashy_upgrade_fresh() {
+	local age
+	_bashy_latest_fresh "${BASHY_LATEST_CACHE}/upgrade/$1" age
+}
+
+# bashy_upgrade_mark <plugin>
+# Record that the installer of <plugin> just ran successfully.
+function bashy_upgrade_mark() {
+	mkdir --parents "${BASHY_LATEST_CACHE}/upgrade"
+	touch "${BASHY_LATEST_CACHE}/upgrade/$1"
+}
+
 # bashy_latest_list
 # Show every cached answer: its age in seconds and the url it answers.
 function bashy_latest_list() {
@@ -115,7 +144,8 @@ function bashy_latest_list() {
 }
 
 # bashy_latest_clean
-# Remove the entire cache, so the next installer asks again.
+# Remove the entire cache, so the next installer asks again and the next
+# bashy_upgrade runs every installer.
 function bashy_latest_clean() {
 	if [ -d "${BASHY_LATEST_CACHE}" ]
 	then

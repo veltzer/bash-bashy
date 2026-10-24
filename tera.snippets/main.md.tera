@@ -158,8 +158,10 @@ bashy_upgrade
 
 Asking each project for its latest version is one network query per plugin, and
 github allows only 60 unauthenticated api calls an hour. So the answer is kept for
-an hour, and running `bashy_upgrade` again within that hour asks nothing. Pass
-`--refresh` to ask again anyway; `--force` implies it. The answers live under
+an hour, and running `bashy_upgrade` again within that hour asks nothing. It does
+not even run the installers that succeeded within that hour, so a second run checks
+no tool at all and returns at once; the ones that failed run again. Pass
+`--refresh` to ask and check again anyway; `--force` implies it. The answers live under
 `${XDG_CACHE_HOME:-~/.cache}/bashy/latest`, overridable with `BASHY_LATEST_CACHE`, and
 `BASHY_LATEST_TTL` sets how long one stays fresh, in seconds. `bashy_latest_list`
 shows what is kept and how old each answer is, and `bashy_latest_clean` drops it all.
