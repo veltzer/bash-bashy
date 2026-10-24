@@ -156,6 +156,18 @@ so the run prints one section per plugin and does no unnecessary work. It takes
 bashy_upgrade
 ```
 
+Asking each project for its latest version is one network query per plugin, and
+github allows only 60 unauthenticated api calls an hour. So the answer is kept for
+an hour, and running `bashy_upgrade` again within that hour asks nothing. Pass
+`--refresh` to ask again anyway; `--force` implies it. The answers live under
+`${XDG_CACHE_HOME:-~/.cache}/bashy/latest`, overridable with `BASHY_LATEST_CACHE`, and
+`BASHY_LATEST_TTL` sets how long one stays fresh, in seconds. `bashy_latest_list`
+shows what is kept and how old each answer is, and `bashy_latest_clean` drops it all.
+
+```bash
+bashy_upgrade --refresh
+```
+
 ## Writing Bashy plugins
 
 Bashy plugins may never fail a command (all commands need to return 0)
@@ -372,11 +384,12 @@ The helpers involved:
 | function | purpose |
 | --- | --- |
 | `bashy_install_via <installer> [args...]` | print which install method runs, then run it |
-| `bashy_install_args [--force]` | parse the installer's arguments, fail on anything but `--force` |
+| `bashy_install_args [--force] [--refresh]` | parse the installer's arguments, fail on anything but `--force` and `--refresh` |
 | `bashy_install_forced` | succeed when `--force` was given, for a check that is not a version comparison |
 | `bashy_install_check <name> <installed> <latest>` | print the standard install/upgrade/up to date line, return 0 when there is nothing to do, or 1 under `--force` |
 | `bashy_install_download <url>` | report the artifact about to be fetched |
-| `bashy_github_release <owner/repo> [out]` | fetch the latest release json |
+| `bashy_fetch_latest <url> [out]` | curl for a "what is the latest version" query, answered from the cache for an hour, use it for every such query |
+| `bashy_github_release <owner/repo> [out]` | fetch the latest release json, through `bashy_fetch_latest` |
 | `bashy_github_version <json> [prefix]` | tag name with the prefix (default `v`) stripped |
 | `bashy_github_asset <json> <regex> [out]` | the single asset url matching a regex, fails on an ambiguous match |
 | `bashy_download <url> [out]` | download through the cache, revalidating against the origin |

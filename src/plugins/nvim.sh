@@ -94,7 +94,7 @@ function _install_nvim_nightly_tar() {
 	local executable="${folder}/bin/nvim"
 	local latest_version
 	# a prerelease never shows up under releases/latest, so ask for the tag itself
-	latest_version=$(curl --fail --silent --location \
+	latest_version=$(bashy_fetch_latest \
 		"https://api.github.com/repos/neovim/neovim-releases/releases/tags/nightly" \
 		| jq --raw-output '.published_at')
 	local installed_version

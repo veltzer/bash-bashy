@@ -41,7 +41,7 @@ function _install_google_cloud_sdk_script() {
 	local latest_version
 	# the component manifest of the rapid channel is what gcloud itself consults
 	# to find out whether it is current, so ask the same source
-	latest_version=$(curl --fail --silent --location \
+	latest_version=$(bashy_fetch_latest \
 		"https://dl.google.com/dl/cloudsdk/channels/rapid/components-2.json" \
 		| jq --raw-output '.version')
 	local installed_version=""

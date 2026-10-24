@@ -67,7 +67,7 @@ function testInstallArgsRejectsUnknown() {
 	out=$(_install_thing --froce 2>/dev/null) && _bashy_assert_fail
 	_bashy_assert_equal "${out}" ""
 	err=$(_install_thing --froce 2>&1 > /dev/null)
-	_bashy_assert_equal "${err}" "_install_thing: unknown argument [--froce], the only option is --force"
+	_bashy_assert_equal "${err}" "_install_thing: unknown argument [--froce], the options are --force and --refresh"
 	_bashy_assert_equal "$(_install_thing --force)" "installed"
 	unset -f _install_thing
 	bashy_install_args

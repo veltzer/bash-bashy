@@ -36,7 +36,7 @@ function _install_go_tar() {
 	local folder="${HOME}/install"
 	local full_folder="${folder}/go"
 	local latest_version
-	latest_version=$(curl --fail --show-error --silent "https://go.dev/VERSION?m=text" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
+	latest_version=$(bashy_fetch_latest "https://go.dev/VERSION?m=text" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
 	local executable="${full_folder}/bin/go"
 	local installed_version=""
 	if [ -x "${executable}" ]

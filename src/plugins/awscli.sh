@@ -51,7 +51,7 @@ function _install_awscli_zip() {
 	local folder="${HOME}/install/aws"
 	local executable="${folder}/bin/aws"
 	local latest_version
-	latest_version=$(curl --fail --silent --location "https://api.github.com/repos/aws/aws-cli/tags?per_page=20" | jq --raw-output '[.[] | select(.name | startswith("2."))][0].name')
+	latest_version=$(bashy_fetch_latest "https://api.github.com/repos/aws/aws-cli/tags?per_page=20" | jq --raw-output '[.[] | select(.name | startswith("2."))][0].name')
 	local installed_version=""
 	if [ -x "${executable}" ]
 	then

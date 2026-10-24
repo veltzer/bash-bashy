@@ -33,7 +33,7 @@ function _install_claude_script() {
 	local latest_version
 	# the "latest" endpoint is where the vendor installer itself reads the version
 	# to fetch, so ask the same source before deciding whether to run it
-	latest_version=$(curl --fail --silent --location "https://downloads.claude.ai/claude-code-releases/latest" \
+	latest_version=$(bashy_fetch_latest "https://downloads.claude.ai/claude-code-releases/latest" \
 		| grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 	local installed_version=""
 	if [ -x "${executable}" ]
@@ -128,7 +128,7 @@ function _install_claude_desktop_deb() {
 	local index="${CLAUDE_DESKTOP_REPO}/dists/stable/main/binary-${arch}/Packages"
 	# one line per package stanza: version, pool path, digest, newest last
 	local newest
-	newest=$(curl --fail --silent --location "${index}" \
+	newest=$(bashy_fetch_latest "${index}" \
 		| awk '/^Version:/{v=$2} /^Filename:/{f=$2} /^SHA256:/{s=$2} /^$/{if(v!="")print v, f, s; v=""} END{if(v!="")print v, f, s}' \
 		| sort --version-sort | tail -n 1)
 	local latest_version filename sha256

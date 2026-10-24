@@ -36,7 +36,7 @@ function _install_code_deb() {
 	bashy_install_args "$@" || return
 	# Get the latest version available from the VS Code update API
 	local latest_version
-	latest_version=$(curl --fail --silent --location "https://update.code.visualstudio.com/api/update/linux-deb-x64/stable/latest" | jq --raw-output '.productVersion')
+	latest_version=$(bashy_fetch_latest "https://update.code.visualstudio.com/api/update/linux-deb-x64/stable/latest" | jq --raw-output '.productVersion')
 	local installed_version=""
 	if _bashy_pathutils_is_in_path "code"
 	then

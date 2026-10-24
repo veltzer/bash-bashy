@@ -59,6 +59,7 @@ bashy_core_order=(
 	profile
 	version
 	stamp
+	latest
 	install
 	completion
 	secret
@@ -415,13 +416,14 @@ function bashy_install() {
 	"${installer}" "$@"
 }
 
-# bashy_upgrade [--force]
+# bashy_upgrade [--force] [--refresh]
 # Run every registered installer, in the order the plugins are listed. This is
 # the "install or bring up to date everything bashy knows about" one shot: each
 # installer already reports whether the tool is up to date or needs upgrading,
 # and skips its work when there is nothing to do. Plugins that have no
 # installer, and disabled ones, are skipped. The arguments go to every
-# installer, so --force reinstalls everything.
+# installer, so --force reinstalls everything and --refresh asks every project
+# for its latest version again instead of using an answer from the last hour.
 function bashy_upgrade() {
 	local plugin installer enabled
 	for plugin in "${bashy_array_plugin[@]}"

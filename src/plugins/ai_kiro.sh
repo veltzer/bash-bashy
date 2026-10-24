@@ -51,7 +51,7 @@ function _kiro_metadata() {
 	then
 		name="metadata-linux-${arch}-deb-stable.json"
 	fi
-	if ! __metadata=$(curl --fail --silent --location "https://prod.download.desktop.kiro.dev/stable/${name}")
+	if ! bashy_fetch_latest "https://prod.download.desktop.kiro.dev/stable/${name}" __metadata
 	then
 		echo "kiro: could not fetch the release metadata" >&2
 		return 1

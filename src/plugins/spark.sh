@@ -26,7 +26,7 @@ function _install_spark_tar() {
 	# https://medium.com/@patilmailbox4/install-apache-spark-on-ubuntu-ffa151e12e30
 	# the download mirror lists a directory per release, take the highest one
 	local latest_version
-	latest_version=$(curl --fail --silent --location "https://dlcdn.apache.org/spark/" | grep -oP 'href="spark-\K[0-9]+\.[0-9]+\.[0-9]+(?=/")' | sort --version-sort --unique | tail -1)
+	latest_version=$(bashy_fetch_latest "https://dlcdn.apache.org/spark/" | grep -oP 'href="spark-\K[0-9]+\.[0-9]+\.[0-9]+(?=/")' | sort --version-sort --unique | tail -1)
 	local toplevel="spark-${latest_version}-bin-hadoop3"
 	# ~/install/spark is a symlink into the versioned directory, so it names what is installed
 	local installed_version=""

@@ -20,7 +20,7 @@ function _install_buck2_zst() {
 	local repo="facebook/buck2"
 	local asset="buck2-x86_64-unknown-linux-gnu.zst"
 	local ref_json
-	if ! ref_json=$(curl --fail --silent --location "https://api.github.com/repos/${repo}/git/ref/tags/latest")
+	if ! bashy_fetch_latest "https://api.github.com/repos/${repo}/git/ref/tags/latest" ref_json
 	then
 		echo "buck2: could not fetch the commit of the latest tag" >&2
 		return 1
@@ -42,7 +42,7 @@ function _install_buck2_zst() {
 	# this is the one release that is not the project's "latest release", so it is
 	# fetched by tag rather than with bashy_github_release
 	local release_json
-	if ! release_json=$(curl --fail --silent --location "https://api.github.com/repos/${repo}/releases/tags/latest")
+	if ! bashy_fetch_latest "https://api.github.com/repos/${repo}/releases/tags/latest" release_json
 	then
 		echo "buck2: could not fetch the latest release" >&2
 		return 1

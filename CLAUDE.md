@@ -50,6 +50,9 @@ same way and put the fixes in one place. See the "writing an installer" section 
   install/upgrade/up to date line, returns 0 when there is nothing to do
 - `bashy_github_release` / `bashy_github_version` / `bashy_github_asset` - the
   latest release json, its version, and the one asset matching a regex
+- `bashy_fetch_latest <url> [out]` - curl for any "what is the latest version"
+  query that is not `bashy_github_release`; it caches the answer for an hour
+  (`--refresh` / `--force` skip it), so never curl such a query directly
 - `bashy_download <url> [out]` - download through the revalidating cache
 - `bashy_verify_sha256 <file> <url or digest>` - check against a published sha256,
   whenever the project publishes one

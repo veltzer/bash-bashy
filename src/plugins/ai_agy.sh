@@ -36,7 +36,7 @@ function _install_agy_tar() {
 			;;
 	esac
 	local manifest
-	if ! manifest=$(curl --fail --silent --location "https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/linux_${arch}.json")
+	if ! bashy_fetch_latest "https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/linux_${arch}.json" manifest
 	then
 		echo "agy: could not fetch the release manifest" >&2
 		return 1

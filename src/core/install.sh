@@ -57,25 +57,36 @@ function bashy_install_dir() {
 	echo "${BASHY_INSTALL_DIR}"
 }
 
-# bashy_install_args [--force]
+# bashy_install_args [--force] [--refresh]
 # Parse the arguments every installer accepts. An installer calls this first,
 # with its own "$@", and returns when it fails: a misspelt option must not
 # silently run a plain install. --force means "do the work even when the tool is
 # already at the latest version", for a binary that was damaged, a package that
 # was half removed, or a release that was republished under the same version.
-# The state lives in BASHY_INSTALL_FORCE and is reset on every call, so an
-# installer never inherits the flag from the one that ran before it.
+# --refresh means "ask the project for its latest version again" rather than use
+# the answer bashy_fetch_latest kept from the last BASHY_LATEST_TTL seconds.
+# --force implies --refresh: a forced reinstall should put back the real latest.
+# The state lives in BASHY_INSTALL_FORCE and BASHY_INSTALL_REFRESH and is reset
+# on every call, so an installer never inherits a flag from the one before it.
 function bashy_install_args() {
 	BASHY_INSTALL_FORCE=0
+	# shellcheck disable=SC2034 # read by bashy_fetch_latest in latest.sh
+	BASHY_INSTALL_REFRESH=0
 	local arg
 	for arg in "$@"
 	do
 		case "${arg}" in
 			--force)
 				BASHY_INSTALL_FORCE=1
+				# shellcheck disable=SC2034 # read by bashy_fetch_latest in latest.sh
+				BASHY_INSTALL_REFRESH=1
+				;;
+			--refresh)
+				# shellcheck disable=SC2034 # read by bashy_fetch_latest in latest.sh
+				BASHY_INSTALL_REFRESH=1
 				;;
 			*)
-				echo "${FUNCNAME[1]}: unknown argument [${arg}], the only option is --force" >&2
+				echo "${FUNCNAME[1]}: unknown argument [${arg}], the options are --force and --refresh" >&2
 				return 1
 				;;
 		esac
@@ -185,12 +196,13 @@ function bashy_uninstall_directory() {
 }
 
 # bashy_github_release <owner/repo> [out_var]
-# Fetch the json of the latest release of a github project.
-# Assigns to out_var when given, otherwise echoes. Returns 1 when the fetch fails.
+# Fetch the json of the latest release of a github project, through the
+# bashy_fetch_latest cache. Assigns to out_var when given, otherwise echoes.
+# Returns 1 when the fetch fails.
 function bashy_github_release() {
 	local repo=$1
 	local json
-	if ! json=$(curl --fail --silent --location "https://api.github.com/repos/${repo}/releases/latest")
+	if ! bashy_fetch_latest "https://api.github.com/repos/${repo}/releases/latest" json
 	then
 		echo "bashy_github_release: could not fetch the latest release of [${repo}]" >&2
 		return 1

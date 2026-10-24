@@ -22,7 +22,7 @@ function _install_gradle_zip() {
 	bashy_install_args "$@" || return
 	# this function installs the latest gradle from a binary zip file distribution
 	local latest_version
-	latest_version=$(curl --fail --silent --location "https://services.gradle.org/versions/current" | jq --raw-output '.version')
+	latest_version=$(bashy_fetch_latest "https://services.gradle.org/versions/current" | jq --raw-output '.version')
 	local toplevel="gradle-${latest_version}"
 	local installed_version=""
 	if [ -x "${HOME}/install/gradle/bin/gradle" ]

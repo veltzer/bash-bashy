@@ -27,7 +27,7 @@ function _install_k8s_binary() {
 	# instructions for installing k8s are at
 	# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
 	local latest_version
-	latest_version=$(curl --fail --silent --location "https://dl.k8s.io/release/stable.txt")
+	latest_version=$(bashy_fetch_latest "https://dl.k8s.io/release/stable.txt")
 	local folder
 	folder=$(bashy_install_dir)
 	local executable="${folder}/kubectl"

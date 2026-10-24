@@ -23,7 +23,7 @@ function _install_oxlint_tar() {
 	# crates_v*, ...), so the "latest release" endpoint may answer with some
 	# other product. Walk the releases list and take the newest oxlint one.
 	local releases_json
-	if ! releases_json=$(curl --fail --silent --location "https://api.github.com/repos/oxc-project/oxc/releases?per_page=30")
+	if ! bashy_fetch_latest "https://api.github.com/repos/oxc-project/oxc/releases?per_page=30" releases_json
 	then
 		echo "oxlint: could not fetch the releases" >&2
 		return 1

@@ -33,7 +33,7 @@ function _install_oc_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/oc"
 	local latest_version
-	latest_version=$(curl --fail --silent --location "${base}/release.txt" | grep -oP 'Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+	latest_version=$(bashy_fetch_latest "${base}/release.txt" | grep -oP 'Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 	local installed_version=""
 	if [ -x "${executable}" ]
 	then

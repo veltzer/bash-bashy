@@ -18,7 +18,7 @@ function _install_terraform_zip() {
 	bashy_install_args "$@" || return
 	# latest version: https://github.com/hashicorp/terraform/issues/9803
 	local latest_version
-	latest_version=$(curl --fail --silent "https://checkpoint-api.hashicorp.com/v1/check/terraform" | jq --raw-output --monochrome-output ".current_version")
+	latest_version=$(bashy_fetch_latest "https://checkpoint-api.hashicorp.com/v1/check/terraform" | jq --raw-output --monochrome-output ".current_version")
 	local folder
 	folder=$(bashy_install_dir)
 	local executable="${folder}/terraform"

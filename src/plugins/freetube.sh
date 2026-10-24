@@ -13,7 +13,7 @@ function _install_freetube_deb() {
 	# FreeTube ships only prereleases, so the "latest release" endpoint is empty -
 	# take the newest entry of the releases list instead.
 	local releases_json
-	if ! releases_json=$(curl --fail --silent --location "https://api.github.com/repos/FreeTubeApp/FreeTube/releases")
+	if ! bashy_fetch_latest "https://api.github.com/repos/FreeTubeApp/FreeTube/releases" releases_json
 	then
 		echo "freetube: could not fetch the releases" >&2
 		return 1
