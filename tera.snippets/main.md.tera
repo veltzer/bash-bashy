@@ -158,12 +158,12 @@ bashy_upgrade
 
 Asking each project for its latest version is one network query per plugin, and
 github allows only 60 unauthenticated api calls an hour. So the answer is kept for
-an hour, and running `bashy_upgrade` again within that hour asks nothing. It does
-not even run the installers that succeeded within that hour, so a second run checks
+a day, and running `bashy_upgrade` again within that day asks nothing. It does
+not even run the installers that succeeded within that day, so a second run checks
 no tool at all and returns at once; the ones that failed run again. Pass
 `--refresh` to ask and check again anyway; `--force` implies it. The answers live under
 `${XDG_CACHE_HOME:-~/.cache}/bashy/latest`, overridable with `BASHY_LATEST_CACHE`, and
-`BASHY_LATEST_TTL` sets how long one stays fresh, in seconds. `bashy_latest_list`
+`BASHY_LATEST_TTL` sets how long one stays fresh, in seconds (default 86400). `bashy_latest_list`
 shows what is kept and how old each answer is, and `bashy_latest_clean` drops it all.
 
 ```bash
@@ -390,7 +390,7 @@ The helpers involved:
 | `bashy_install_forced` | succeed when `--force` was given, for a check that is not a version comparison |
 | `bashy_install_check <name> <installed> <latest>` | print the standard install/upgrade/up to date line, return 0 when there is nothing to do, or 1 under `--force` |
 | `bashy_install_download <url>` | report the artifact about to be fetched |
-| `bashy_fetch_latest <url> [out]` | curl for a "what is the latest version" query, answered from the cache for an hour, use it for every such query |
+| `bashy_fetch_latest <url> [out]` | curl for a "what is the latest version" query, answered from the cache for `BASHY_LATEST_TTL` seconds, use it for every such query |
 | `bashy_github_release <owner/repo> [out]` | fetch the latest release json, through `bashy_fetch_latest` |
 | `bashy_github_version <json> [prefix]` | tag name with the prefix (default `v`) stripped |
 | `bashy_github_asset <json> <regex> [out]` | the single asset url matching a regex, fails on an ambiguous match |

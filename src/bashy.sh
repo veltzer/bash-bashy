@@ -425,7 +425,7 @@ function bashy_install() {
 # succeeded within the last BASHY_LATEST_TTL seconds, which makes a second run
 # check nothing at all (see latest.sh). The arguments go to every installer, so
 # --force reinstalls everything and --refresh asks every project for its latest
-# version again instead of using an answer from the last hour; both also run
+# version again instead of using a cached answer; both also run
 # the installers that were skipped as recently checked.
 function bashy_upgrade() {
 	local recheck=0

@@ -6,7 +6,7 @@
 # which a couple of runs use up.
 #
 # bashy_fetch_latest is curl for those queries: it keeps the answer, and for
-# BASHY_LATEST_TTL seconds (default an hour) returns the kept answer instead of
+# BASHY_LATEST_TTL seconds returns the kept answer instead of
 # asking again. It caches the whole response, not just the version taken out of
 # it, because installers read more than the version from the same answer - the
 # asset url, a checksum - and those have to agree with the version.
@@ -29,8 +29,8 @@
 # pip and git ones redo their whole install. So bashy_upgrade also keeps, under
 # upgrade/ in the same cache, one empty file per plugin whose installer
 # succeeded, and skips that plugin while the file is younger than
-# BASHY_LATEST_TTL - the same hour in which its latest version would come from
-# the cache anyway. --refresh and --force run every installer again.
+# BASHY_LATEST_TTL - the same interval in which its latest version would come
+# from the cache anyway. --refresh and --force run every installer again.
 
 # location of the cache, honoring XDG_CACHE_HOME, overridable via BASHY_LATEST_CACHE
 if [ -z "${BASHY_LATEST_CACHE+x}" ]
@@ -38,10 +38,11 @@ then
 	export BASHY_LATEST_CACHE="${XDG_CACHE_HOME:-${HOME}/.cache}/bashy/latest"
 fi
 
-# how long an answer stays fresh, in seconds, overridable via BASHY_LATEST_TTL
+# how long an answer stays fresh, in seconds, overridable via BASHY_LATEST_TTL;
+# this is the one place the default is set, everything else refers to the variable
 if [ -z "${BASHY_LATEST_TTL+x}" ]
 then
-	export BASHY_LATEST_TTL=3600
+	export BASHY_LATEST_TTL=$(( 24 * 60 * 60 ))
 fi
 
 # _bashy_latest_file <url> <out_var>
