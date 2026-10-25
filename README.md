@@ -9,7 +9,7 @@ project website: https://veltzer.github.io/bash-bashy
 
 author: Mark Veltzer
 
-version: 0.1.7
+version: 0.1.8
 
 ## github
 
