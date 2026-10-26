@@ -53,8 +53,9 @@ and it is incremental: it prints the files that changed and copies nothing else.
 a renamed or removed plugin does not linger. Run it again after every `git pull`.
 
 Each install is stamped: `~/.bashy/.stamp` records the commit, the version and the
-time of the install, and `bashy_version` shows them. The stamp is what lets a
-running shell notice a newer install, see below.
+time of the install, and `bashy_version` shows them (`bashy_version --terse`
+prints just the version). The stamp is what lets a running shell notice a newer
+install, see below.
 
 Bashy finds its own core, plugins and `bashy.list` next to `bashy.sh`, so you can
 also skip the install and source the checkout directly, which is handy while

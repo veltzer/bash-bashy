@@ -334,14 +334,16 @@ function bashy_on() {
 	fi
 }
 
-# bashy_version
-# The version, and when there is an install stamp what was installed and when.
+# bashy_version [--terse]
+# What was installed and when, from the install stamp. Running from a checkout
+# there is no stamp, so only the version is shown. --terse prints just the version.
 function bashy_version() {
-	echo "${BASHY_VERSION_STR}"
-	if [ -n "${_BASHY_STAMP}" ]
+	if [ "${1:-}" = "--terse" ] || [ -z "${_BASHY_STAMP}" ]
 	then
-		echo "installed: $(_bashy_stamp_describe "${_BASHY_STAMP}")"
+		echo "${BASHY_VERSION_STR}"
+		return
 	fi
+	echo "installed: $(_bashy_stamp_describe "${_BASHY_STAMP}")"
 }
 
 # bashy_check_deployment [source checkout]
