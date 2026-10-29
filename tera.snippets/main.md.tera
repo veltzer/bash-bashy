@@ -243,8 +243,8 @@ under a directory you are already in.
 
 Two helpers in `core/git.sh` cover the common shapes, so a plugin only says what
 to do rather than how to notice when to do it. `git_prompt_repo_path` keeps a
-folder of the repository on `PATH` while inside it, which is all `prompt_gems` and
-`prompt_node` are. `git_prompt_repo_conf` watches for a file at the repository
+folder of the repository on `PATH` while inside it, which is all `prompt_gems`,
+`prompt_node` and `prompt_rsconstruct` are. `git_prompt_repo_conf` watches for a file at the repository
 root and calls an enter function on every prompt that finds it and an exit
 function once on the way out, which is what `prompt_k8s`, `prompt_aws`,
 `prompt_gcp` and `prompt_auto` are built on:

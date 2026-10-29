@@ -94,6 +94,7 @@ proxy
 # so the order must be env, gcp, aws
 prompt_gems
 prompt_node
+prompt_rsconstruct
 prompt_uv
 prompt_auto
 prompt_gcp
