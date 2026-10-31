@@ -159,6 +159,19 @@ bashy_install uv
 bashy_deactivate prompt_error
 ```
 
+The `ai_cursor` plugin installs both the Cursor desktop editor (the native `.deb`
+for Debian/Ubuntu on x86-64 or ARM64) and Cursor Agent:
+
+```bash
+bashy_install ai_cursor
+```
+
+To install only one component, use `_install_cursor_deb` or
+`_install_cursor_agent_tar`. Cursor Agent uses the vendor's versioned layout in
+`~/.local/share/cursor-agent`, with `agent` and `cursor-agent` commands in
+`~/.local/bin`; ensure that directory is on your `PATH`. `_uninstall_cursor`
+removes both components without removing your Cursor settings.
+
 An installer does nothing when the tool is already at the latest version. Pass
 `--force` to install it again anyway, for a binary that got damaged, a package that
 was half removed, or a release that was republished under the same version:
