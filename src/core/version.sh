@@ -1,2 +1,2 @@
 ### auto generated version file
-export BASHY_VERSION_STR="0.1.8"
+export BASHY_VERSION_STR="0.2.0"
