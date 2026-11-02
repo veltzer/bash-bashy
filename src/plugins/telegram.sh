@@ -7,8 +7,10 @@
 # and Updater. It is unpacked whole into TELEGRAM_FOLDER and Telegram is linked
 # into BASHY_INSTALL_DIR. The Updater is kept, so Telegram can keep updating
 # itself between runs of the installer, the same as an install done by hand.
-# On first start Telegram writes its own desktop entry into
-# ~/.local/share/applications, so the installer does not write one.
+# Every time it starts, Telegram writes its own desktop entry into
+# ~/.local/share/applications and its icon into ~/.local/share/icons. Until that
+# first start the menu has nothing to start it from, so the installer writes a
+# stand in entry, see _telegram_desktop.
 
 # Where _install_telegram_tar unpacks to.
 TELEGRAM_FOLDER="${HOME}/install/telegram"
@@ -90,6 +92,61 @@ function _install_telegram_tar() {
 	fi
 	bashy_install_marker "${folder}" "telegram" "${latest_version}" > /dev/null
 	ln --symbolic --force --no-dereference "${executable}" "$(bashy_install_dir)/telegram"
+	_telegram_desktop "${executable}" "$(echo "${release_json}" | jq --raw-output '.tag_name')"
+}
+
+# _telegram_desktop <executable> <release tag>
+# Write a desktop entry for <executable> and the icon it names, so Telegram is in
+# the menu before it was ever started. Telegram names its own entry
+# org.telegram.desktop._<md5 of its path>, and when it writes that entry it
+# deletes telegram.desktop as a leftover of older versions. Under that name the
+# stand in is replaced on the first start instead of showing up twice. The icon
+# goes where Telegram puts its own, under the name its entry uses, and comes from
+# the source tree of the same release, since the tarball has none outside the
+# binary. A missing icon only costs the menu its picture, so it does not fail
+# the install.
+function _telegram_desktop() {
+	local executable=$1
+	local tag=$2
+	local icons="${HOME}/.local/share/icons/hicolor/256x256/apps"
+	local icon_url="https://raw.githubusercontent.com/telegramdesktop/tdesktop/${tag}/Telegram/Resources/art/logo_256.png"
+	local icon
+	if mkdir -p "${icons}" && bashy_download "${icon_url}" icon
+	then
+		cp "${icon}" "${icons}/org.telegram.desktop.png"
+	else
+		echo "telegram: could not fetch the icon, the menu entry will have none" >&2
+	fi
+	local applications="${HOME}/.local/share/applications"
+	mkdir -p "${applications}" || return
+	# the entry Telegram writes, lib/xdg/org.telegram.desktop.desktop in its
+	# source tree, minus DBusActivatable, which needs the dbus service file
+	# Telegram also only writes when it starts
+	cat > "${applications}/telegram.desktop" << EOF
+[Desktop Entry]
+Name=Telegram
+Comment=New era of messaging
+TryExec=${executable}
+Exec=${executable} -- %U
+Icon=org.telegram.desktop
+Terminal=false
+StartupWMClass=TelegramDesktop
+Type=Application
+Categories=Chat;Network;InstantMessaging;Qt;
+MimeType=x-scheme-handler/tg;x-scheme-handler/tonsite;x-scheme-handler/ton;
+Keywords=tg;chat;im;messaging;messenger;sms;tdesktop;
+Actions=quit;
+SingleMainWindow=true
+
+[Desktop Action quit]
+Exec=${executable} -quit
+Name=Quit Telegram
+Icon=application-exit
+EOF
+	if _bashy_pathutils_is_in_path "update-desktop-database"
+	then
+		update-desktop-database "${applications}"
+	fi
 }
 
 function _uninstall_telegram_tar() {
@@ -102,6 +159,18 @@ function _uninstall_telegram_tar() {
 	fi
 	# the account data lives in ~/.local/share/TelegramDesktop and is left alone
 	bashy_uninstall_directory "telegram" "${TELEGRAM_FOLDER}"
+	# the stand in entry, or the one Telegram wrote over it, both of which run
+	# the executable just removed
+	local applications="${HOME}/.local/share/applications"
+	local entry
+	for entry in "${applications}/telegram.desktop" "${applications}"/org.telegram.desktop._*.desktop
+	do
+		if [ -f "${entry}" ] && grep --quiet --fixed-strings "${TELEGRAM_FOLDER}/Telegram" "${entry}"
+		then
+			echo "removing ${entry}"
+			rm -f "${entry}"
+		fi
+	done
 }
 
 register_interactive _activate_telegram
