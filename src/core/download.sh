@@ -95,9 +95,16 @@ function bashy_download() {
 	# download to a temp file in the cache dir so an interrupted download
 	# never leaves a truncated file that would later look like a cache hit
 	local tmp="${target}.part"
-	if ! curl --fail --location --silent --show-error "${url}" --output "${tmp}"
+	local rc=0
+	curl --fail --location --silent --show-error "${url}" --output "${tmp}" || rc=$?
+	if [ "${rc}" -ne 0 ]
 	then
-		echo "bashy_download: failed to download [${url}]" >&2
+		# curl has already printed its own reason above; the exit code says which
+		# kind of failure it was (6 dns, 7 connect, 18 partial, 22 http error,
+		# 28 timeout, 56 receive error), and the byte count how far it got
+		local got=0
+		[ -f "${tmp}" ] && got=$(stat --format=%s "${tmp}")
+		echo "bashy_download: failed to download [${url}]: curl exit ${rc}, ${got} bytes received" >&2
 		rm -f "${tmp}"
 		return 1
 	fi

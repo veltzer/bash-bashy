@@ -127,3 +127,16 @@ function testDownloadKeepsCacheWhenOffline() {
 	unset -f _bashy_download_validator
 	rm -rf "${dir}"
 }
+
+function testDownloadFailureReportsCurlExit() {
+	local dir
+	dir=$(mktemp --directory)
+	export BASHY_DOWNLOAD_CACHE="${dir}/cache"
+	local out="" err
+	# a missing local file fails curl without the network (exit 37); the message
+	# has to carry curl's exit code, and no partial file may stay behind
+	err=$(bashy_download "file://${dir}/missing.tar.gz" out 2>&1 >/dev/null) && _bashy_assert_fail
+	[[ "${err}" == *"curl exit 37, 0 bytes received"* ]] || _bashy_assert_fail
+	[ -e "${dir}/cache/missing.tar.gz.part" ] && _bashy_assert_fail
+	rm -rf "${dir}"
+}

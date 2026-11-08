@@ -194,7 +194,9 @@ Asking each project for its latest version is one network query per plugin, and
 github allows only 60 unauthenticated api calls an hour. So the answer is kept for
 a day, and running `bashy_upgrade` again within that day asks nothing. It does
 not even run the installers that succeeded within that day, so a second run checks
-no tool at all and returns at once; the ones that failed run again. Pass
+no tool at all and returns at once; the ones that failed run again. A run that
+had failures ends by listing those plugins with their exit codes and returns 1,
+so they do not get lost in the output above. Pass
 `--refresh` to ask and check again anyway; `--force` implies it. The answers live under
 `${XDG_CACHE_HOME:-~/.cache}/bashy/latest`, overridable with `BASHY_LATEST_CACHE`, and
 `BASHY_LATEST_TTL` sets how long one stays fresh, in seconds (default 86400). `bashy_latest_list`

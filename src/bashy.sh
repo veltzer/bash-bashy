@@ -428,7 +428,9 @@ function bashy_install() {
 # check nothing at all (see latest.sh). The arguments go to every installer, so
 # --force reinstalls everything and --refresh asks every project for its latest
 # version again instead of using a cached answer; both also run
-# the installers that were skipped as recently checked.
+# the installers that were skipped as recently checked. An installer that fails
+# is not marked, so the next run tries it again; the run ends by listing those
+# plugins with their exit codes and returns 1.
 function bashy_upgrade() {
 	local recheck=0
 	local arg
@@ -440,6 +442,8 @@ function bashy_upgrade() {
 	done
 	local plugin installer enabled
 	local skipped=0
+	local -a failed=()
+	local rc
 	for plugin in "${bashy_array_plugin[@]}"
 	do
 		assoc_get bashy_assoc_enabled enabled "${plugin}"
@@ -458,14 +462,26 @@ function bashy_upgrade() {
 			continue
 		fi
 		echo "=== ${plugin} ==="
-		if "${installer}" "$@"
+		rc=0
+		"${installer}" "$@" || rc=$?
+		if [ "${rc}" -eq 0 ]
 		then
 			bashy_upgrade_mark "${plugin}"
+		else
+			failed+=("${plugin} (exit ${rc})")
 		fi
 	done
 	if [ "${skipped}" -gt 0 ]
 	then
 		echo "${skipped} plugins were checked in the last ${BASHY_LATEST_TTL}s and skipped, --refresh checks them again"
+	fi
+	if [ "${#failed[@]}" -gt 0 ]
+	then
+		# the reason scrolled past in that plugin's section; name the plugins here,
+		# where the run ends, since they are the ones the next run will try again
+		echo "${#failed[@]} installers failed and will run again next time, see their sections above:"
+		printf '  %s\n' "${failed[@]}"
+		return 1
 	fi
 }
 
