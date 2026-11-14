@@ -139,7 +139,28 @@ function _install_nvim_lazy_git() {
 	then
 		return
 	fi
-	bashy_install_git "nvim-lazy" "https://github.com/LazyVim/starter" "${HOME}/.config/nvim" --depth 1 --single-branch || return
+	# ~/.config/nvim is where the user's own plugin specs live (lua/plugins/*.lua,
+	# often symlinked in from a dotfiles repo), so it is never deleted and
+	# recloned here - that silently drops them. The starter is cloned only when
+	# there is no config yet; an existing checkout is fast-forwarded, which
+	# leaves untracked files alone; a config that is not a git checkout is the
+	# user's own and is not touched. Updating LazyVim itself is the "Lazy! sync"
+	# below. _config_clean_nvim is the deliberate way to start over.
+	local config="${HOME}/.config/nvim"
+	if [ ! -e "${config}" ]
+	then
+		bashy_install_git "nvim-lazy" "https://github.com/LazyVim/starter" "${config}" --depth 1 --single-branch || return
+	elif [ -d "${config}/.git" ]
+	then
+		echo "Updating nvim-lazy starter in [${config}], keeping local files"
+		if ! git -C "${config}" pull --ff-only --quiet
+		then
+			echo "nvim-lazy: could not fast-forward [${config}] - resolve local changes there, or run _config_clean_nvim to start over" >&2
+			return 1
+		fi
+	else
+		echo "nvim-lazy: [${config}] is not a git checkout, leaving it as is"
+	fi
 	nvim --headless "+Lazy! sync" +qa
 }
 

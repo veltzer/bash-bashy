@@ -438,7 +438,7 @@ only be a slower, worse version of the one it has.
 | `bashy_uninstall_brew <name> <formula...>` | remove them |
 | `bashy_install_gh_extension <name> <owner/repo>` | install a `gh(1)` extension |
 | `bashy_uninstall_gh_extension <name> <extension>` | remove one |
-| `bashy_install_git <name> <url> <folder> [git args...]` | install by cloning, replacing any previous clone |
+| `bashy_install_git <name> <url> <folder> [git args...]` | install by cloning, replacing any previous clone (not for folders holding user files - see `_install_nvim_lazy_git`) |
 
 Downloads are cached under `${XDG_CACHE_HOME:-~/.cache}/bashy/downloads`, overridable
 with `BASHY_DOWNLOAD_CACHE`. Single binaries are installed into `BASHY_INSTALL_DIR`,
