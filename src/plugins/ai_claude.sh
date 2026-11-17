@@ -1,7 +1,27 @@
 # The api key is read from pass(1) when claude runs, not at shell start, and is
 # set for that process only. This also grants claude all permissions.
+#
+# claude has no option of its own to cap its memory, so it runs in a transient
+# systemd scope (a cgroup) that caps it and everything it starts (builds, tests).
+# MemoryHigh throttles and reclaims, MemoryMax kills only claude rather than
+# freezing the desktop, and swap is off so it cannot drag the machine into
+# thrashing. The limits can be overridden per user in the environment.
+# Without a systemd user session claude runs uncapped, as before.
+: "${BASHY_CLAUDE_MEMORY_HIGH:=6G}"
+: "${BASHY_CLAUDE_MEMORY_MAX:=8G}"
+: "${BASHY_CLAUDE_MEMORY_SWAP_MAX:=0}"
 function claude() {
-	bashy_with_secret ANTHROPIC_API_KEY "keys/claude.ai" claude --dangerously-skip-permissions "$@"
+	local -a cap=()
+	# the user manager's socket, not "systemctl --user is-system-running", which
+	# fails on a merely "degraded" session that runs scopes perfectly well
+	if command -v systemd-run > /dev/null && [ -S "${XDG_RUNTIME_DIR}/systemd/private" ]
+	then
+		cap=(systemd-run --user --scope --quiet
+			-p "MemoryHigh=${BASHY_CLAUDE_MEMORY_HIGH}"
+			-p "MemoryMax=${BASHY_CLAUDE_MEMORY_MAX}"
+			-p "MemorySwapMax=${BASHY_CLAUDE_MEMORY_SWAP_MAX}")
+	fi
+	bashy_with_secret ANTHROPIC_API_KEY "keys/claude.ai" "${cap[@]}" claude --dangerously-skip-permissions "$@"
 }
 
 function _activate_ai_claude() {
@@ -167,6 +187,7 @@ function _uninstall_claude_desktop() {
 # Undo the activation in the running shell, for bashy_deactivate.
 function _deactivate_ai_claude() {
 	unset -f claude
+	unset BASHY_CLAUDE_MEMORY_HIGH BASHY_CLAUDE_MEMORY_MAX BASHY_CLAUDE_MEMORY_SWAP_MAX
 }
 
 register_interactive _activate_ai_claude _deactivate_ai_claude
