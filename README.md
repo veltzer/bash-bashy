@@ -18,6 +18,7 @@ version: 0.2.0
 ## build
 
 ![build](https://github.com/veltzer/bash-bashy/workflows/build/badge.svg)
+
 Bashy is bash based system to enable you control of your bash with precision and elegance.
 It is plugin based and allows for easy extension.
 
