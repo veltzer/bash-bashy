@@ -55,11 +55,13 @@ bashy_check_deployment ~/git/bash-bashy
 ## Debugging Bashy
 
 Just add this line before sourcing bashy:
+
 ```bash
 set -o xtrace
 ```
 
 To see all errors use:
+
 ```bash
 bashy_errors
 ```
@@ -494,6 +496,7 @@ readonly PROXY_ENABLED=false
 ```
 
 This is a bash file and so you can overwrite values by using conditionals so:
+
 ```bash
 if [ "$HOSTNAME" = "ion" ]
 then
