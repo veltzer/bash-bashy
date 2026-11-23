@@ -6,7 +6,7 @@ function _activate_nomailcheck() {
 	# bash doesn't do mail checking anymore
 	# References:
 	# - https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html#index-MAILCHECK
-	if [ -z "${MAILCHECK}" ]
+	if [[ -z "${MAILCHECK}" ]]
 	then
 		__error="[${MAILCHECK}] is not set"
 		__var=1

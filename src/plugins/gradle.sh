@@ -22,12 +22,12 @@ function _install_gradle_zip() {
 	bashy_install_args "$@" || return
 	# this function installs the latest gradle from a binary zip file distribution
 	local latest_version
-	latest_version=$(bashy_fetch_latest "https://services.gradle.org/versions/current" | jq --raw-output '.version')
+	latest_version=$({ bashy_fetch_latest "https://services.gradle.org/versions/current" || true; } | jq --raw-output '.version')
 	local toplevel="gradle-${latest_version}"
 	local installed_version=""
-	if [ -x "${HOME}/install/gradle/bin/gradle" ]
+	if [[ -x "${HOME}/install/gradle/bin/gradle" ]]
 	then
-		installed_version=$("${HOME}/install/gradle/bin/gradle" --version 2>/dev/null | awk '/^Gradle /{print $2; exit}')
+		installed_version=$({ "${HOME}/install/gradle/bin/gradle" --version 2>/dev/null || true; } | awk '/^Gradle /{print $2; exit}')
 	fi
 	if bashy_install_check "gradle" "${installed_version}" "${latest_version}"
 	then
@@ -52,7 +52,7 @@ function _uninstall_gradle_zip() {
 	# the symlink points at the versioned directory and may be relative, so
 	# resolve it before handing it over to be removed
 	local target=""
-	if [ -L "${HOME}/install/gradle" ]
+	if [[ -L "${HOME}/install/gradle" ]]
 	then
 		target=$(readlink --canonicalize "${HOME}/install/gradle")
 	fi

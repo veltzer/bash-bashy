@@ -19,7 +19,7 @@ function checkDirectoryExists() {
 	local directory=$1
 	local -n __var2=$2
 	local -n __error2=$3
-	if [ ! -d "${directory}" ]
+	if [[ ! -d "${directory}" ]]
 	then
 		__error2="directory [${directory}] doesnt exist"
 		__var2=1
@@ -34,7 +34,7 @@ function checkExecutableFile() {
 	local filename=$1
 	local -n __var2=$2
 	local -n __error2=$3
-	if [ -f "${filename}" ] && [ -x "${filename}" ]
+	if [[ -f "${filename}" ]] && [[ -x "${filename}" ]]
 	then
 		__var2=0
 		return 0
@@ -48,7 +48,7 @@ function checkReadableFile() {
 	local filename=$1
 	local -n __var2=$2
 	local -n __error2=$3
-	if [ -f "${filename}" ] && [ -r "${filename}" ]
+	if [[ -f "${filename}" ]] && [[ -r "${filename}" ]]
 	then
 		__var2=0
 		return 0

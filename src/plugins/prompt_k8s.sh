@@ -11,7 +11,7 @@ k8s_conf_file_name=".k8s.conf"
 
 function _prompt_k8s_enter() {
 	local conf=$1
-	if [ "${KUBECONFIG-}" != "${conf}" ]
+	if [[ "${KUBECONFIG-}" != "${conf}" ]]
 	then
 		export KUBECONFIG="${conf}"
 	fi
@@ -35,7 +35,7 @@ function _activate_prompt_k8s() {
 # Undo the activation in the running shell, for bashy_deactivate.
 function _deactivate_prompt_k8s() {
 	_bashy_prompt_deregister prompt_k8s
-	if [ -n "${PROMPT_K8S_CONF-}" ]
+	if [[ -n "${PROMPT_K8S_CONF-}" ]]
 	then
 		_prompt_k8s_exit "${PROMPT_K8S_CONF}"
 		unset PROMPT_K8S_CONF

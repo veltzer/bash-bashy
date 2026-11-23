@@ -37,7 +37,7 @@
 # ~/.bashy and from a source checkout. Sourced as a bare "bashy.sh" there is no
 # slash to strip, which is what the second line is for.
 _BASHY_HOME="${BASH_SOURCE[0]%/*}"
-if [ "${_BASHY_HOME}" = "${BASH_SOURCE[0]}" ]
+if [[ "${_BASHY_HOME}" = "${BASH_SOURCE[0]}" ]]
 then
 	_BASHY_HOME="."
 fi
@@ -80,7 +80,7 @@ function _bashy_load_core() {
 	local _ordered=()
 	local _module
 	for _module in "${bashy_core_order[@]}"; do
-		if [ -r "${_dir}/${_module}.sh" ]; then
+		if [[ -r "${_dir}/${_module}.sh" ]]; then
 			_ordered+=("${_dir}/${_module}.sh")
 		fi
 	done
@@ -88,18 +88,18 @@ function _bashy_load_core() {
 	for _f in "${_dir}"/*.sh; do
 		local _base="${_f##*/}"
 		_base="${_base%.sh}"
-		if [ "${_base}" = "source" ]; then
+		if [[ "${_base}" = "source" ]]; then
 			continue
 		fi
 		# array.sh is not loaded yet at this point, so check by hand
 		local _known=1
 		for _module in "${bashy_core_order[@]}"; do
-			if [ "${_module}" = "${_base}" ]; then
+			if [[ "${_module}" = "${_base}" ]]; then
 				_known=0
 				break
 			fi
 		done
-		if [ "${_known}" -ne 0 ]; then
+		if [[ "${_known}" -ne 0 ]]; then
 			_ordered+=("${_f}")
 		fi
 	done
@@ -118,7 +118,7 @@ function _bashy_read_plugins_filename() {
 	local line plugin enabled
 	# "|| [ -n ... ]" keeps a final line that has no trailing newline: read returns
 	# false on it but still fills the variable, and that line used to be lost.
-	while read -r line || [ -n "${line}" ]; do
+	while read -r line || [[ -n "${line}" ]]; do
 		if [[ "${line}" =~ ^#.* ]]; then
 			continue
 		fi
@@ -141,7 +141,7 @@ function _bashy_read_plugins() {
 	local filename="${_BASHY_HOME}/bashy.list"
 	_bashy_read_plugins_filename "${filename}"
 	filename="${HOME}/.bashy.list"
-	if [ -f "${filename}" ]; then
+	if [[ -f "${filename}" ]]; then
 		_bashy_read_plugins_filename "${filename}"
 	fi
 }
@@ -172,7 +172,7 @@ function _bashy_load_plugins() {
 
 function _bashy_load_config() {
 	local bashy_config="${HOME}/.bashy.config"
-	if [ -f "${bashy_config}" ]; then
+	if [[ -f "${bashy_config}" ]]; then
 		# cannot use _bashy_source_absolute function here since it is still not loaded
 		# shellcheck source=/dev/null
 		source "${bashy_config}"
@@ -214,18 +214,19 @@ function _bashy_run_plugins() {
 }
 
 function bashy_status_core() {
-	local i name res
+	local i name res table
 	((i = 0))
-	for name in "${bashy_core_names[@]}"; do
+	table=$(for name in "${bashy_core_names[@]}"; do
 		_bashy_cecho gr "${name}" 1
 		res="${bashy_core_res[${i}]}"
-		if [ "${res}" = 0 ]; then
+		if [[ "${res}" = 0 ]]; then
 			_bashy_cecho g "\tOK" 0
 		else
 			_bashy_cecho r "\tERROR" 0
 		fi
 		((i++))
-	done | column -t
+	done)
+	column -t <<< "${table}"
 }
 
 # show status of plugins and their init success.
@@ -234,8 +235,8 @@ function bashy_status_core() {
 # handlers which may have succeeded in initializing
 # or not
 function bashy_status_plugins() {
-	local plugin
-	for plugin in "${bashy_array_plugin[@]}"; do
+	local plugin table
+	table=$(for plugin in "${bashy_array_plugin[@]}"; do
 		_bashy_cecho gr "${plugin}" 1
 		local enabled
 		assoc_get bashy_assoc_enabled enabled "${plugin}"
@@ -287,7 +288,8 @@ function bashy_status_plugins() {
 			_bashy_cecho y "\tNO_RESULT" 1
 			_bashy_cecho y "\tNO_TIME" 0
 		fi
-	done | column -t
+	done)
+	column -t <<< "${table}"
 }
 
 function bashy_errors() {
@@ -318,7 +320,7 @@ function bashy_internal_print() {
 }
 
 function bashy_off() {
-	if [ -f "${HOME}/.bashy.disable" ]; then
+	if [[ -f "${HOME}/.bashy.disable" ]]; then
 		echo "bashy is already off"
 	else
 		touch "${HOME}/.bashy.disable"
@@ -327,7 +329,7 @@ function bashy_off() {
 }
 
 function bashy_on() {
-	if [ -f "${HOME}/.bashy.disable" ]; then
+	if [[ -f "${HOME}/.bashy.disable" ]]; then
 		rm "${HOME}/.bashy.disable"
 		echo "turned bashy on"
 	else
@@ -340,12 +342,14 @@ function bashy_on() {
 # there is no stamp, so only the version is shown. --terse prints just the version.
 function bashy_version() {
 	: "${BASHY_VERSION_STR:?BASHY_VERSION_STR must be set, core/version.sh sets it}"
-	if [ "${1:-}" = "--terse" ] || [ -z "${_BASHY_STAMP}" ]
+	if [[ "${1:-}" = "--terse" ]] || [[ -z "${_BASHY_STAMP}" ]]
 	then
 		echo "${BASHY_VERSION_STR}"
 		return
 	fi
-	echo "installed: $(_bashy_stamp_describe "${_BASHY_STAMP}")"
+	local described
+	described=$(_bashy_stamp_describe "${_BASHY_STAMP}")
+	echo "installed: ${described}"
 }
 
 # bashy_check_deployment [source checkout]
@@ -357,19 +361,19 @@ function bashy_version() {
 # scripts/. Without one the usual places are tried.
 function bashy_check_deployment() {
 	local source_dir=${1:-}
-	if [ -z "${source_dir}" ]
+	if [[ -z "${source_dir}" ]]
 	then
 		local candidate
 		for candidate in "${REPOS_FOLDER:-${HOME}/git}/bash-bashy" "${REPOS_FOLDER:-${HOME}/git}/veltzer/bash-bashy" "${HOME}/bash-bashy"
 		do
-			if [ -r "${candidate}/src/bashy.sh" ]
+			if [[ -r "${candidate}/src/bashy.sh" ]]
 			then
 				source_dir="${candidate}"
 				break
 			fi
 		done
 	fi
-	if [ -z "${source_dir}" ] || [ ! -r "${source_dir}/src/bashy.sh" ]
+	if [[ -z "${source_dir}" ]] || [[ ! -r "${source_dir}/src/bashy.sh" ]]
 	then
 		echo "no bashy checkout found, pass one: bashy_check_deployment <checkout>"
 		return 1
@@ -378,7 +382,7 @@ function bashy_check_deployment() {
 	echo "comparing [${_BASHY_HOME}] against [${src}]"
 	local source_version
 	source_version=$(sed -n 's/^export BASHY_VERSION_STR="\(.*\)"/\1/p' "${src}/core/version.sh" 2>/dev/null)
-	if [ -n "${source_version}" ] && [ "${source_version}" != "${BASHY_VERSION_STR}" ]
+	if [[ -n "${source_version}" ]] && [[ "${source_version}" != "${BASHY_VERSION_STR}" ]]
 	then
 		echo "  version: running ${BASHY_VERSION_STR}, source ${source_version}"
 	fi
@@ -389,7 +393,7 @@ function bashy_check_deployment() {
 		diff --brief "${src}/bashy.sh" "${_BASHY_HOME}/bashy.sh" 2>&1
 		diff --brief "${src}/bashy.list" "${_BASHY_HOME}/bashy.list" 2>&1
 	)
-	if [ -z "${differing}" ]
+	if [[ -z "${differing}" ]]
 	then
 		echo "  up to date"
 		return 0
@@ -403,7 +407,7 @@ function bashy_check_deployment() {
 # Run the installer a plugin registered with register_install. Anything after
 # the plugin name goes to the installer, so --force reaches it.
 function bashy_install() {
-	if [ "$#" -eq 0 ]
+	if [[ "$#" -eq 0 ]]
 	then
 		echo "usage: bashy_install <plugin> [--force]" >&2
 		return 1
@@ -451,7 +455,7 @@ function bashy_upgrade() {
 	for plugin in "${bashy_array_plugin[@]}"
 	do
 		assoc_get bashy_assoc_enabled enabled "${plugin}"
-		if [ "${enabled}" = 0 ]
+		if [[ "${enabled}" = 0 ]]
 		then
 			continue
 		fi
@@ -460,7 +464,7 @@ function bashy_upgrade() {
 		then
 			continue
 		fi
-		if [ "${recheck}" -eq 0 ] && bashy_upgrade_fresh "${plugin}"
+		if [[ "${recheck}" -eq 0 ]] && bashy_upgrade_fresh "${plugin}"
 		then
 			(( skipped+=1 ))
 			continue
@@ -468,18 +472,18 @@ function bashy_upgrade() {
 		echo "=== ${plugin} ==="
 		rc=0
 		"${installer}" "$@" || rc=$?
-		if [ "${rc}" -eq 0 ]
+		if [[ "${rc}" -eq 0 ]]
 		then
 			bashy_upgrade_mark "${plugin}"
 		else
 			failed+=("${plugin} (exit ${rc})")
 		fi
 	done
-	if [ "${skipped}" -gt 0 ]
+	if [[ "${skipped}" -gt 0 ]]
 	then
 		echo "${skipped} plugins were checked in the last ${BASHY_LATEST_TTL}s and skipped, --refresh checks them again"
 	fi
-	if [ "${#failed[@]}" -gt 0 ]
+	if [[ "${#failed[@]}" -gt 0 ]]
 	then
 		# the reason scrolled past in that plugin's section; name the plugins here,
 		# where the run ends, since they are the ones the next run will try again
@@ -505,7 +509,7 @@ function bashy_deactivate() {
 
 function _bashy_init() {
 	_bashy_load_config
-	if [ -f "${HOME}/.bashy.disable" ]; then
+	if [[ -f "${HOME}/.bashy.disable" ]]; then
 		return
 	fi
 	declare -ga bashy_core_names

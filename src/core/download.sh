@@ -20,7 +20,7 @@
 # location of the cache, honoring XDG_CACHE_HOME, overridable via BASHY_DOWNLOAD_CACHE
 : "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
 
-if [ -z "${BASHY_DOWNLOAD_CACHE+x}" ]
+if [[ -z "${BASHY_DOWNLOAD_CACHE+x}" ]]
 then
 	export BASHY_DOWNLOAD_CACHE="${XDG_CACHE_HOME:-${HOME}/.cache}/bashy/downloads"
 fi
@@ -29,7 +29,7 @@ fi
 # Echo the origin's cache validator (etag, or last-modified when there is no etag).
 # Echoes nothing when the origin serves neither or cannot be reached.
 function _bashy_download_validator() {
-	curl --fail --silent --head --location "$1" 2>/dev/null \
+	{ curl --fail --silent --head --location "$1" 2>/dev/null || true; } \
 		| awk 'BEGIN{IGNORECASE=1}
 			/^etag:/{sub(/\r$/,""); tag=$0}
 			/^last-modified:/{sub(/\r$/,""); if(mod=="") mod=$0}
@@ -39,7 +39,7 @@ function _bashy_download_validator() {
 # _bashy_download_return <path> [out_var]
 # Hand <path> back to the caller, by name when out_var is given, otherwise on stdout.
 function _bashy_download_return() {
-	if [ -n "${2:-}" ]
+	if [[ -n "${2:-}" ]]
 	then
 		local -n __out=$2
 		__out="$1"
@@ -57,7 +57,7 @@ function _bashy_download_return() {
 function bashy_download() {
 	local url=$1
 	local basename="${url##*/}"
-	if [ -z "${basename}" ]
+	if [[ -z "${basename}" ]]
 	then
 		echo "bashy_download: cannot derive a filename from url [${url}]" >&2
 		return 1
@@ -68,22 +68,22 @@ function bashy_download() {
 	# buck2-x86_64-unknown-linux-gnu.zst) so a hit here would pin the first build we
 	# ever downloaded. Remember the origin validator next to the file and re-check it.
 	local etag_file="${target}.etag"
-	if [ -s "${target}" ]
+	if [[ -s "${target}" ]]
 	then
 		local cached_tag=""
-		if [ -f "${etag_file}" ]
+		if [[ -f "${etag_file}" ]]
 		then
 			cached_tag=$(cat "${etag_file}")
 		fi
 		local remote_tag
 		remote_tag=$(_bashy_download_validator "${url}")
-		if [ -n "${cached_tag}" ] && [ "${cached_tag}" = "${remote_tag}" ]
+		if [[ -n "${cached_tag}" ]] && [[ "${cached_tag}" = "${remote_tag}" ]]
 		then
 			bashy_log "core/download" "${BASHY_LOG_INFO}" "cache hit for [${basename}]"
 			_bashy_download_return "${target}" "${2-}"
 			return 0
 		fi
-		if [ -z "${remote_tag}" ]
+		if [[ -z "${remote_tag}" ]]
 		then
 			# offline, or the origin serves no validator - the cached copy is all we have
 			bashy_log "core/download" "${BASHY_LOG_INFO}" "cannot revalidate [${basename}], using cached copy"
@@ -99,13 +99,13 @@ function bashy_download() {
 	local tmp="${target}.part"
 	local rc=0
 	curl --fail --location --silent --show-error "${url}" --output "${tmp}" || rc=$?
-	if [ "${rc}" -ne 0 ]
+	if [[ "${rc}" -ne 0 ]]
 	then
 		# curl has already printed its own reason above; the exit code says which
 		# kind of failure it was (6 dns, 7 connect, 18 partial, 22 http error,
 		# 28 timeout, 56 receive error), and the byte count how far it got
 		local got=0
-		[ -f "${tmp}" ] && got=$(stat --format=%s "${tmp}")
+		[[ -f "${tmp}" ]] && got=$(stat --format=%s "${tmp}")
 		echo "bashy_download: failed to download [${url}]: curl exit ${rc}, ${got} bytes received" >&2
 		rm -f "${tmp}"
 		return 1
@@ -114,7 +114,7 @@ function bashy_download() {
 	# record what we just fetched so the next run can tell whether it is still current
 	local new_tag
 	new_tag=$(_bashy_download_validator "${url}")
-	if [ -n "${new_tag}" ]
+	if [[ -n "${new_tag}" ]]
 	then
 		echo "${new_tag}" > "${etag_file}"
 	else
@@ -136,7 +136,7 @@ function bashy_download() {
 function bashy_verify_sha256() {
 	local file=$1
 	local source=$2
-	if [ ! -s "${file}" ]
+	if [[ ! -s "${file}" ]]
 	then
 		echo "bashy_verify_sha256: no such file [${file}]" >&2
 		return 1
@@ -164,7 +164,7 @@ function bashy_verify_sha256() {
 			local want="${file##*/}"
 			expected=$(echo "${sums}" | awk -v want="${want}" \
 				'{name=$2; sub(/^\*/,"",name); sub(/.*\//,"",name); if(name==want){print $1; exit}}')
-			if [ -z "${expected}" ]
+			if [[ -z "${expected}" ]]
 			then
 				echo "bashy_verify_sha256: [${want}] not listed in [${source}]" >&2
 				return 1
@@ -172,8 +172,8 @@ function bashy_verify_sha256() {
 		fi
 	fi
 	local actual
-	actual=$(sha256sum "${file}" | awk '{print $1}')
-	if [ "${actual,,}" != "${expected,,}" ]
+	actual=$({ sha256sum "${file}" || true; } | awk '{print $1}')
+	if [[ "${actual,,}" != "${expected,,}" ]]
 	then
 		echo "bashy_verify_sha256: checksum mismatch for [${file}]" >&2
 		echo "expected [${expected}]" >&2
@@ -188,7 +188,7 @@ function bashy_verify_sha256() {
 # bashy_download_clean
 # Remove the entire download cache.
 function bashy_download_clean() {
-	if [ -d "${BASHY_DOWNLOAD_CACHE}" ]
+	if [[ -d "${BASHY_DOWNLOAD_CACHE}" ]]
 	then
 		echo "removing download cache [${BASHY_DOWNLOAD_CACHE}]"
 		rm -rf "${BASHY_DOWNLOAD_CACHE}"

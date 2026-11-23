@@ -3,15 +3,15 @@ source src/core/log.sh
 
 function testLogSilentByDefault() {
 	bashy_log_none
-	_bashy_assert_equal "$(bashy_log "test" "${BASHY_LOG_ERROR}" "hidden")" ""
+	_bashy_assert_equal "$(bashy_log "test" "${BASHY_LOG_ERROR}" "hidden" || true)" ""
 }
 
 function testLogPrintsAtOrBelowLevel() {
 	bashy_log_info
-	_bashy_assert_equal "$(bashy_log "test" "${BASHY_LOG_ERROR}" "shown")" "bashy: test: ${BASHY_LOG_ERROR} - shown"
-	_bashy_assert_equal "$(bashy_log "test" "${BASHY_LOG_INFO}" "shown")" "bashy: test: ${BASHY_LOG_INFO} - shown"
+	_bashy_assert_equal "$(bashy_log "test" "${BASHY_LOG_ERROR}" "shown" || true)" "bashy: test: ${BASHY_LOG_ERROR} - shown"
+	_bashy_assert_equal "$(bashy_log "test" "${BASHY_LOG_INFO}" "shown" || true)" "bashy: test: ${BASHY_LOG_INFO} - shown"
 	# debug is above info, so it stays quiet
-	_bashy_assert_equal "$(bashy_log "test" "${BASHY_LOG_DEBUG}" "hidden")" ""
+	_bashy_assert_equal "$(bashy_log "test" "${BASHY_LOG_DEBUG}" "hidden" || true)" ""
 	bashy_log_none
 }
 

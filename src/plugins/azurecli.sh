@@ -34,13 +34,13 @@ function _install_azurecli_apt() {
 	local key
 	bashy_download "https://packages.microsoft.com/keys/microsoft.asc" key || return 1
 	sudo mkdir -p /etc/apt/keyrings
-	gpg --dearmor < "${key}" | sudo tee "${keyring}" > /dev/null
+	{ gpg --dearmor < "${key}" || true; } | sudo tee "${keyring}" > /dev/null
 	sudo chmod go+r "${keyring}"
 	# microsoft does not publish a repository for every dist, and their script falls
 	# back to jammy on ubuntu, so do the same rather than failing on a new release
 	local repo
 	repo=$(lsb_release -cs)
-	if ! curl --fail --silent --location "https://packages.microsoft.com/repos/azure-cli/dists/" | grep -q "${repo}"
+	if ! { curl --fail --silent --location "https://packages.microsoft.com/repos/azure-cli/dists/" || true; } | grep -q "${repo}"
 	then
 		local dist
 		dist=$(lsb_release -is)
@@ -58,8 +58,8 @@ function _install_azurecli_apt() {
 	sudo rm -f /etc/apt/sources.list.d/azure-cli.list
 	local new_sources
 	new_sources=$(printf 'Types: deb\nURIs: https://packages.microsoft.com/repos/azure-cli/\nSuites: %s\nComponents: main\nArchitectures: %s\nSigned-by: %s\n' \
-		"${repo}" "$(dpkg --print-architecture)" "${keyring}")
-	if [ ! -f "${sources}" ] || [ "$(cat "${sources}" 2>/dev/null)" != "${new_sources}" ]; then
+		"${repo}" "$(dpkg --print-architecture || true)" "${keyring}")
+	if [[ ! -f "${sources}" ]] || [[ "$(cat "${sources}" 2>/dev/null || true)" != "${new_sources}" ]]; then
 		echo "${new_sources}" | sudo tee "${sources}" > /dev/null
 		unset _BASHY_APT_UPDATED
 	fi
@@ -100,10 +100,10 @@ function _bashy_azurecli_versions() {
 	# releases are tagged "azure-cli-2.90.0"
 	__latest=$(bashy_github_version "${release_json}" "azure-cli-")
 	__installed=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
 		# the first line of --version is "azure-cli   2.90.0"
-		__installed=$("${executable}" --version 2>/dev/null | awk '/^azure-cli /{print $2; exit}')
+		__installed=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^azure-cli /{print $2; exit}')
 	fi
 }
 
@@ -131,7 +131,7 @@ function _install_azurecli_tar() {
 	# the tarball unpacks into a single versioned directory
 	local extracted
 	extracted=$(find "${tmp_dir}" -mindepth 1 -maxdepth 1 -type d)
-	if [ -z "${extracted}" ]
+	if [[ -z "${extracted}" ]]
 	then
 		echo "azure-cli: the tarball did not unpack into a directory" >&2
 		rm -rf "${tmp_dir}"
@@ -168,13 +168,13 @@ function _activate_azurecli_manual() {
 	local bin_dir="${install_dir}/bin"
 	local completion_script="${install_dir}/az.completion"
 
-	if [ -d "${bin_dir}" ]; then
+	if [[ -d "${bin_dir}" ]]; then
 		_bashy_pathutils_add_head PATH "${bin_dir}"
 	fi
 
 	if ! checkInPath "az" __var __error; then return; fi
 
-	if [ -f "${completion_script}" ]; then
+	if [[ -f "${completion_script}" ]]; then
 		# shellcheck source=/dev/null
 		source "${completion_script}"
 	fi

@@ -16,19 +16,19 @@
 declare -gA _bashy_git_inside_cache=()
 
 function git_is_inside() {
-	if [ -n "${_bashy_git_inside_cache[${PWD}]+x}" ]
+	if [[ -n "${_bashy_git_inside_cache[${PWD}]+x}" ]]
 	then
 		return "${_bashy_git_inside_cache[${PWD}]}"
 	fi
 	local result err
 	result=$(git rev-parse --is-inside-work-tree 2> /dev/null)
 	err="${?}"
-	if [ "${err}" != 0 ]
+	if [[ "${err}" != 0 ]]
 	then
 		_bashy_git_inside_cache[${PWD}]="${err}"
 		return "${err}"
 	fi
-	[ "${result}" = "true" ]
+	[[ "${result}" = "true" ]]
 	local err2="${?}"
 	_bashy_git_inside_cache[${PWD}]="${err2}"
 	return "${err2}"
@@ -53,7 +53,7 @@ function git_is_inside_flush() {
 # and the inner assignment lands in the wrong place.
 function git_top_level() {
 	local -n __git_top_level_var=$1
-	if [ -n "${_bashy_git_top_cache[${PWD}]+x}" ]
+	if [[ -n "${_bashy_git_top_cache[${PWD}]+x}" ]]
 	then
 		__git_top_level_var="${_bashy_git_top_cache[${PWD}]}"
 		return 0
@@ -80,7 +80,7 @@ function git_root() {
 	# the "git rev-parse" will also print an error if not inside a git repo
 	local cd_arg
 	cd_arg="$(git rev-parse --show-cdup)" || return 1
-	if [ -n "${cd_arg}" ]
+	if [[ -n "${cd_arg}" ]]
 	then
 		cd "${cd_arg}" || return 1
 	fi
@@ -103,23 +103,23 @@ function git_prompt_repo_path() {
 	then
 		local root
 		git_top_level root
-		if [ -d "${root}/${subdir}" ]
+		if [[ -d "${root}/${subdir}" ]]
 		then
 			wanted="${root}/${subdir}"
 		fi
 	fi
 	local current="${!name-}"
-	if [ "${current}" = "${wanted}" ]
+	if [[ "${current}" = "${wanted}" ]]
 	then
 		return
 	fi
-	if [ -n "${current}" ]
+	if [[ -n "${current}" ]]
 	then
 		bashy_log "${tag}" "${BASHY_LOG_INFO}" "down"
 		_bashy_pathutils_remove PATH "${current}"
 		unset "${name}"
 	fi
-	if [ -n "${wanted}" ]
+	if [[ -n "${wanted}" ]]
 	then
 		bashy_log "${tag}" "${BASHY_LOG_INFO}" "up"
 		export "${name}=${wanted}"
@@ -151,21 +151,21 @@ function git_prompt_repo_conf() {
 	then
 		local root
 		git_top_level root
-		if [ -r "${root}/${file}" ]
+		if [[ -r "${root}/${file}" ]]
 		then
 			wanted="${root}/${file}"
 		fi
 	fi
 	local current="${!name-}"
-	if [ -n "${current}" ] && [ "${current}" != "${wanted}" ]
+	if [[ -n "${current}" ]] && [[ "${current}" != "${wanted}" ]]
 	then
 		bashy_log "${tag}" "${BASHY_LOG_INFO}" "down"
 		"${exit}" "${current}"
 		unset "${name}"
 	fi
-	if [ -n "${wanted}" ]
+	if [[ -n "${wanted}" ]]
 	then
-		if [ "${current}" != "${wanted}" ]
+		if [[ "${current}" != "${wanted}" ]]
 		then
 			bashy_log "${tag}" "${BASHY_LOG_INFO}" "up"
 			export "${name}=${wanted}"

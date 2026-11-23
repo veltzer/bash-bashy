@@ -45,7 +45,7 @@ function _install_cursor_deb() {
 	local latest_version download_file
 	latest_version=$(echo "${metadata}" | jq --raw-output '.version // empty') || return
 	download_file=$(echo "${metadata}" | jq --raw-output '.debUrl // empty') || return
-	if [ -z "${latest_version}" ] || [[ "${download_file}" != https://* ]]
+	if [[ -z "${latest_version}" ]] || [[ "${download_file}" != https://* ]]
 	then
 		echo "cursor: the release metadata has no version or deb url" >&2
 		return 1
@@ -86,9 +86,9 @@ function _install_cursor_agent_tar() {
 	local bin="${HOME}/.local/bin"
 	local executable="${bin}/cursor-agent"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | head -1)
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | head -1)
 	fi
 	if bashy_install_check "cursor-agent" "${installed_version}" "${latest_version}"
 	then
@@ -106,7 +106,7 @@ function _install_cursor_agent_tar() {
 	local tmp_dir
 	tmp_dir=$(mktemp --directory "${versions}/.tmp.XXXXXX") || return
 	if ! bashy_install_extract "${tar}" "${tmp_dir}" --strip-components=1 \
-		|| [ ! -x "${tmp_dir}/cursor-agent" ] || [ ! -x "${tmp_dir}/node" ] || [ ! -f "${tmp_dir}/index.js" ]
+		|| [[ ! -x "${tmp_dir}/cursor-agent" ]] || [[ ! -x "${tmp_dir}/node" ]] || [[ ! -f "${tmp_dir}/index.js" ]]
 	then
 		echo "cursor-agent: could not extract a complete agent package" >&2
 		rm -rf "${tmp_dir}"
@@ -129,7 +129,7 @@ function _uninstall_cursor_agent_tar() {
 	do
 		executable="${HOME}/.local/bin/${name}"
 		# Do not remove another tool called "agent", or leave our dangling links.
-		if [ -L "${executable}" ] && [[ "$(readlink "${executable}")" == "${folder}/versions/"*"/cursor-agent" ]]
+		if [[ -L "${executable}" ]] && [[ "$(readlink "${executable}" || true)" == "${folder}/versions/"*"/cursor-agent" ]]
 		then
 			echo "removing ${executable}"
 			rm -f "${executable}" || return

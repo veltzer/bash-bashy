@@ -54,9 +54,9 @@ function _install_uv_cargo() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/uv"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^uv /{print $2; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^uv /{print $2; exit}')
 	fi
 	if bashy_install_check "uv" "${installed_version}" "${latest_version}"
 	then
@@ -76,7 +76,7 @@ function _install_uv_cargo() {
 	rm -f "${executable}" "${folder}/uvx"
 	cp "${root}/bin/uv" "${folder}"
 	# the crate also builds the uvx companion binary, carry it along when there
-	if [ -x "${root}/bin/uvx" ]
+	if [[ -x "${root}/bin/uvx" ]]
 	then
 		cp "${root}/bin/uvx" "${folder}"
 	fi

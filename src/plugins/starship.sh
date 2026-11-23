@@ -4,7 +4,7 @@ function _activate_starship() {
 	local -n __var=$1
 	local -n __error=$2
 	if ! checkInPath "starship" __var __error; then return; fi
-	eval "$(starship init bash)"
+	eval "$(starship init bash || true)"
 	if ! bashy_completion starship starship completions bash
 	then
 		__var=$?
@@ -34,9 +34,9 @@ function _install_starship_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/starship"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^starship /{print $2; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^starship /{print $2; exit}')
 	fi
 	if bashy_install_check "starship" "${installed_version}" "${latest_version}"
 	then

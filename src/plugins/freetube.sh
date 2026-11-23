@@ -23,7 +23,8 @@ function _install_freetube_deb() {
 	local download_file
 	bashy_github_asset "${release_json}" "amd64\\.deb$" download_file || return
 	local latest_version
-	latest_version=$(echo "${download_file}" | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+	latest_version=$(grep -oP '[0-9]+\.[0-9]+\.[0-9]+' <<< "${download_file}" || true)
+	latest_version=${latest_version%%$'\n'*}
 	local installed_version
 	installed_version=$(dpkg-query -W -f='${Version}' freetube 2>/dev/null || true)
 	if bashy_install_check "freetube" "${installed_version}" "${latest_version}"

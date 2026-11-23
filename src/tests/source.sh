@@ -28,7 +28,7 @@ function testSourceAbsoluteRelativeSpellings() {
 	_test_source_count=0
 	# the same file as "./x", "x" and "/abs/x" is one file, without realpath(1)
 	( cd "${file%/*}" && _bashy_source_absolute "./counted.sh" && _bashy_source_absolute "counted.sh" \
-		&& _bashy_source_absolute "${file}" && [ "${_test_source_count}" = 1 ] ) || _bashy_assert_fail
+		&& _bashy_source_absolute "${file}" && [[ "${_test_source_count}" = 1 ]] ) || _bashy_assert_fail
 	rm -rf "${file%/*}"
 }
 

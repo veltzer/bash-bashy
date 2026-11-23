@@ -55,10 +55,10 @@ function _install_fzf_git() {
 	latest_version=$(bashy_github_version "${release_json}")
 	local executable="${folder}/bin/fzf"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
 		# prints "0.65.0 (d1b3b4a)"
-		installed_version=$("${executable}" --version 2>/dev/null | awk '{print $1; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '{print $1; exit}')
 	fi
 	if bashy_install_check "fzf" "${installed_version}" "${latest_version}"
 	then

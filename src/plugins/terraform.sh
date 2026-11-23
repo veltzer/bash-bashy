@@ -18,14 +18,14 @@ function _install_terraform_zip() {
 	bashy_install_args "$@" || return
 	# latest version: https://github.com/hashicorp/terraform/issues/9803
 	local latest_version
-	latest_version=$(bashy_fetch_latest "https://checkpoint-api.hashicorp.com/v1/check/terraform" | jq --raw-output --monochrome-output ".current_version")
+	latest_version=$({ bashy_fetch_latest "https://checkpoint-api.hashicorp.com/v1/check/terraform" || true; } | jq --raw-output --monochrome-output ".current_version")
 	local folder
 	folder=$(bashy_install_dir)
 	local executable="${folder}/terraform"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version 2>/dev/null | grep -oP '^Terraform v\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" version 2>/dev/null || true; } | grep -oP -m1 '^Terraform v\K[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "terraform" "${installed_version}" "${latest_version}"
 	then

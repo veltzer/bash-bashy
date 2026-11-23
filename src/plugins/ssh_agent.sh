@@ -10,12 +10,12 @@ function _activate_ssh_agent() {
 	local key
 	for key in ~/.keys/*.pem
 	do
-		if [ -e "${key}" ]
+		if [[ -e "${key}" ]]
 		then
 			keys+=("${key}")
 		fi
 	done
-	if [ "${#keys[@]}" -gt 0 ]
+	if [[ "${#keys[@]}" -gt 0 ]]
 	then
 		ssh-add "${keys[@]}" 2> /dev/null
 	fi

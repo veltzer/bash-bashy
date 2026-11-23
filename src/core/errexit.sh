@@ -21,7 +21,7 @@ function errexit_save_and_start() {
 	then
 		previous="on"
 	fi
-	if [ -n "${1:-}" ]
+	if [[ -n "${1:-}" ]]
 	then
 		local -n __out=$1
 		__out="${previous}"
@@ -40,7 +40,7 @@ function errexist_save_and_start() {
 # Put errexit back the way errexit_save_and_start found it.
 function errexit_restore() {
 	local previous=$1
-	if [ "${previous}" = "on" ]
+	if [[ "${previous}" = "on" ]]
 	then
 		set -e
 	else

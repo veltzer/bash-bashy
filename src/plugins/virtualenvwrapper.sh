@@ -6,17 +6,17 @@ function _activate_virtualenvwrapper() {
 	export WORKON_HOME="${HOME}/.virtualenvs"
 	export PROJECT_HOME="${REPOS_FOLDER:-}"
 	found=false
-	if [ -f "/usr/local/bin/virtualenvwrapper.sh" ] && [ "${found}" = false ]
+	if [[ -f "/usr/local/bin/virtualenvwrapper.sh" ]] && [[ "${found}" = false ]]
 	then
 		FOUND_IN="/usr/local/bin/virtualenvwrapper.sh"
 		found=true
 	fi
-	if [ -f "${HOME}/.local/bin/virtualenvwrapper.sh" ] && [ "${found}" = false ]
+	if [[ -f "${HOME}/.local/bin/virtualenvwrapper.sh" ]] && [[ "${found}" = false ]]
 	then
 		FOUND_IN="${HOME}/.local/bin/virtualenvwrapper.sh"
 		found=true
 	fi
-	if [ -f "/usr/share/virtualenvwrapper/virtualenvwrapper.sh" ] && [ "${found}" = false ]
+	if [[ -f "/usr/share/virtualenvwrapper/virtualenvwrapper.sh" ]] && [[ "${found}" = false ]]
 	then
 		FOUND_IN="/usr/share/virtualenvwrapper/virtualenvwrapper.sh"
 		found=true

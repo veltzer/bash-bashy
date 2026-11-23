@@ -18,14 +18,14 @@ function _install_packer_zip() {
 	bashy_install_args "$@" || return
 	# latest version: https://github.com/hashicorp/terraform/issues/9803
 	local latest_version
-	latest_version=$(bashy_fetch_latest "https://checkpoint-api.hashicorp.com/v1/check/packer" | jq --raw-output --monochrome-output ".current_version")
+	latest_version=$({ bashy_fetch_latest "https://checkpoint-api.hashicorp.com/v1/check/packer" || true; } | jq --raw-output --monochrome-output ".current_version")
 	local folder
 	folder=$(bashy_install_dir)
 	local executable="${folder}/packer"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | grep -oP -m1 '[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "packer" "${installed_version}" "${latest_version}"
 	then

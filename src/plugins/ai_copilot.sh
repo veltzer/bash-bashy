@@ -32,7 +32,7 @@ function _install_copilot_tar() {
 		x86_64|amd64) arch="x64" ;;
 		arm64|aarch64) arch="arm64" ;;
 		*)
-			echo "copilot: unsupported architecture [$(uname -m)]" >&2
+			echo "copilot: unsupported architecture [$(uname -m || true)]" >&2
 			return 1
 			;;
 	esac
@@ -43,10 +43,10 @@ function _install_copilot_tar() {
 	local executable
 	executable="$(bashy_install_dir)/copilot"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
 		# prints "GitHub Copilot CLI 1.0.88."
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^GitHub Copilot CLI/{sub(/\.$/, "", $4); print $4; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^GitHub Copilot CLI/{sub(/\.$/, "", $4); print $4; exit}')
 	fi
 	if bashy_install_check "copilot" "${installed_version}" "${latest_version}"
 	then
@@ -61,7 +61,9 @@ function _install_copilot_tar() {
 	bashy_github_asset "${release_json}" "/SHA256SUMS\\.txt$" checksums || return
 	bashy_verify_sha256 "${tar}" "${checksums}" || return
 	rm -f "${executable}"
-	bashy_install_extract "${tar}" "$(bashy_install_dir)" "copilot"
+	local install_dir
+	install_dir=$(bashy_install_dir)
+	bashy_install_extract "${tar}" "${install_dir}" "copilot"
 }
 
 function _uninstall_copilot_tar() {
@@ -81,9 +83,9 @@ function _install_copilot_script() {
 	latest_version=$(bashy_github_version "${release_json}")
 	local executable="${HOME}/.local/bin/copilot"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^GitHub Copilot CLI/{sub(/\.$/, "", $4); print $4; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^GitHub Copilot CLI/{sub(/\.$/, "", $4); print $4; exit}')
 	fi
 	if bashy_install_check "copilot" "${installed_version}" "${latest_version}"
 	then

@@ -13,7 +13,7 @@ function _test_cursor_load() {
 function testCursorDesktopUsesNativeReleaseAsset() {
 	_test_cursor_load
 	function uname() { echo "aarch64"; }
-	function _bashy_pathutils_is_in_path() { [ "$1" = "dpkg" ]; }
+	function _bashy_pathutils_is_in_path() { [[ "$1" = "dpkg" ]]; }
 	function _bashy_apt_installed() { return 0; }
 	function dpkg-query() { echo "1.2.2-100"; }
 	function bashy_fetch_latest() {
@@ -26,7 +26,7 @@ function testCursorDesktopUsesNativeReleaseAsset() {
 	out=$(_install_cursor_deb)
 	_bashy_assert_equal "${out}" $'cursor 1.2.2 is installed, upgrading to 1.2.3\ndeb cursor https://downloads.cursor.com/cursor_1.2.3_arm64.deb'
 	function dpkg-query() { echo "1.2.3-100"; }
-	_bashy_assert_equal "$(_install_cursor_deb)" "cursor 1.2.3 is already installed (latest)"
+	_bashy_assert_equal "$(_install_cursor_deb || true)" "cursor 1.2.3 is already installed (latest)"
 	out=$(_install_cursor_deb --force)
 	[[ "${out}" == *"reinstalling"* ]] || _bashy_assert_fail
 	[[ "${out}" == *"deb cursor https://downloads.cursor.com/cursor_1.2.3_arm64.deb"* ]] || _bashy_assert_fail
@@ -63,7 +63,7 @@ function testCursorCombinedInstallerForwardsFlagsAndFailures() {
 	_test_cursor_load
 	function _install_cursor_deb() { echo "desktop $1"; }
 	function _install_cursor_agent_tar() { echo "agent $1"; }
-	_bashy_assert_equal "$(_install_cursor --refresh)" $'using _install_cursor_deb\ndesktop --refresh\nusing _install_cursor_agent_tar\nagent --refresh'
+	_bashy_assert_equal "$(_install_cursor --refresh || true)" $'using _install_cursor_deb\ndesktop --refresh\nusing _install_cursor_agent_tar\nagent --refresh'
 	function _install_cursor_deb() { return 1; }
 	function _install_cursor_agent_tar() { _bashy_assert_fail; }
 	_install_cursor --force > /dev/null 2>&1 && _bashy_assert_fail
@@ -104,13 +104,13 @@ function testCursorAgentInstallsCompleteVersionedPackage() {
 	local HOME="${dir}"
 	_install_cursor_agent_tar > /dev/null || _bashy_assert_fail
 	local folder="${HOME}/.local/share/cursor-agent/versions/2099.01.01-abcdef0"
-	_bashy_assert_equal "$(readlink "${HOME}/.local/bin/agent")" "${folder}/cursor-agent"
-	_bashy_assert_equal "$(readlink "${HOME}/.local/bin/cursor-agent")" "${folder}/cursor-agent"
-	_bashy_assert_equal "$(cat "${folder}/index.js")" "agent code"
-	[ -x "${folder}/node" ] || _bashy_assert_fail
-	_bashy_assert_equal "$("${HOME}/.local/bin/cursor-agent" --version)" "2099.01.01-abcdef0"
+	_bashy_assert_equal "$(readlink "${HOME}/.local/bin/agent" || true)" "${folder}/cursor-agent"
+	_bashy_assert_equal "$(readlink "${HOME}/.local/bin/cursor-agent" || true)" "${folder}/cursor-agent"
+	_bashy_assert_equal "$(< "${folder}/index.js")" "agent code"
+	[[ -x "${folder}/node" ]] || _bashy_assert_fail
+	_bashy_assert_equal "$("${HOME}/.local/bin/cursor-agent" --version || true)" "2099.01.01-abcdef0"
 	function bashy_download() { _bashy_assert_fail; }
-	_bashy_assert_equal "$(_install_cursor_agent_tar)" "cursor-agent 2099.01.01-abcdef0 is already installed (latest)"
+	_bashy_assert_equal "$(_install_cursor_agent_tar || true)" "cursor-agent 2099.01.01-abcdef0 is already installed (latest)"
 	rm -rf "${dir}"
 }
 
@@ -121,7 +121,7 @@ function testCursorAgentFailedReinstallPreservesWorkingVersion() {
 	_install_cursor_agent_tar > /dev/null || _bashy_assert_fail
 	function bashy_install_extract() { return 1; }
 	_install_cursor_agent_tar --force > /dev/null 2>&1 && _bashy_assert_fail
-	_bashy_assert_equal "$("${HOME}/.local/bin/agent" --version)" "2099.01.01-abcdef0"
+	_bashy_assert_equal "$("${HOME}/.local/bin/agent" --version || true)" "2099.01.01-abcdef0"
 	local -a staged
 	shopt -s nullglob
 	staged=("${HOME}/.local/share/cursor-agent/versions/".tmp.*)
@@ -156,9 +156,9 @@ function testCursorAgentUninstallPreservesUnrelatedAgentAndSettings() {
 	echo "settings" > "${HOME}/.cursor/settings"
 	ln --symbolic --force "${HOME}/unrelated-agent" "${HOME}/.local/bin/agent"
 	_uninstall_cursor_agent_tar > /dev/null
-	[ ! -L "${HOME}/.local/bin/cursor-agent" ] || _bashy_assert_fail
-	[ ! -d "${HOME}/.local/share/cursor-agent" ] || _bashy_assert_fail
-	_bashy_assert_equal "$(readlink "${HOME}/.local/bin/agent")" "${HOME}/unrelated-agent"
-	_bashy_assert_equal "$(cat "${HOME}/.cursor/settings")" "settings"
+	[[ ! -L "${HOME}/.local/bin/cursor-agent" ]] || _bashy_assert_fail
+	[[ ! -d "${HOME}/.local/share/cursor-agent" ]] || _bashy_assert_fail
+	_bashy_assert_equal "$(readlink "${HOME}/.local/bin/agent" || true)" "${HOME}/unrelated-agent"
+	_bashy_assert_equal "$(< "${HOME}/.cursor/settings")" "settings"
 	rm -rf "${dir}"
 }

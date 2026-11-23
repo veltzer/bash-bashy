@@ -21,9 +21,9 @@ function testPromptK8sSetsAndClearsKubeconfig() {
 	unset KUBECONFIG PROMPT_K8S_CONF
 	cd "${repo}/sub" || _bashy_assert_fail
 	prompt_k8s
-	_bashy_assert_equal "${KUBECONFIG}" "$(realpath "${repo}")/.k8s.conf"
+	_bashy_assert_equal "${KUBECONFIG}" "$(realpath "${repo}" || true)/.k8s.conf"
 	prompt_k8s
-	_bashy_assert_equal "${KUBECONFIG}" "$(realpath "${repo}")/.k8s.conf"
+	_bashy_assert_equal "${KUBECONFIG}" "$(realpath "${repo}" || true)/.k8s.conf"
 	cd / || _bashy_assert_fail
 	prompt_k8s
 	if var_is_defined KUBECONFIG
@@ -59,7 +59,7 @@ function testPromptK8sDeactivateClearsAndDeregisters() {
 	_bashy_prompt_register prompt_k8s
 	cd "${repo}" || _bashy_assert_fail
 	prompt_k8s
-	_bashy_assert_equal "${KUBECONFIG}" "$(realpath "${repo}")/.k8s.conf"
+	_bashy_assert_equal "${KUBECONFIG}" "$(realpath "${repo}" || true)/.k8s.conf"
 	_deactivate_prompt_k8s
 	if var_is_defined KUBECONFIG || var_is_defined PROMPT_K8S_CONF
 	then

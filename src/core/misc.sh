@@ -12,7 +12,7 @@ function update_repo() {
 # check if I am on a certain host, expects hostname
 function is_hostname() {
 	local name=$1
-	[ "${HOSTNAME}" = "${name}" ]
+	[[ "${HOSTNAME}" = "${name}" ]]
 }
 
 # we check for interactivity using "$- == *i*"

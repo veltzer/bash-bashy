@@ -25,7 +25,7 @@ function _install_phantomjs_tar() {
 	local latest_version="2.1.1"
 	local toplevel="phantomjs-${latest_version}-linux-x86_64"
 	local installed_version=""
-	if [ -d "${HOME}/install/${toplevel}" ]
+	if [[ -d "${HOME}/install/${toplevel}" ]]
 	then
 		installed_version="${latest_version}"
 	fi
@@ -45,7 +45,7 @@ function _uninstall_phantomjs_tar() {
 	# the symlink points at the versioned directory and may be relative, so
 	# resolve it before handing it over to be removed
 	local target=""
-	if [ -L "${HOME}/install/phantomjs" ]
+	if [[ -L "${HOME}/install/phantomjs" ]]
 	then
 		target=$(readlink --canonicalize "${HOME}/install/phantomjs")
 	fi

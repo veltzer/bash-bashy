@@ -12,7 +12,7 @@ function _activate_bash_completions_userdir() {
 		# source the files
 		for x in "${FOLDER}"/*
 		do
-			if [ -f "${x}" ] && [ -r "${x}" ]
+			if [[ -f "${x}" ]] && [[ -r "${x}" ]]
 			then
 				# shellcheck source=/dev/null
 				source "${x}"

@@ -36,7 +36,7 @@ function _install_telegram_tar() {
 	case "$(uname -m)" in
 		x86_64|amd64) ;;
 		*)
-			echo "telegram: the binary distribution is x86_64 only, not [$(uname -m)]" >&2
+			echo "telegram: the binary distribution is x86_64 only, not [$(uname -m || true)]" >&2
 			return 1
 			;;
 	esac
@@ -68,7 +68,7 @@ function _install_telegram_tar() {
 	digest=$(echo "${release_json}" | jq --raw-output --arg url "${download_file}" \
 		'.assets[] | select(.browser_download_url == $url) | .digest // empty')
 	digest="${digest#sha256:}"
-	if [ -z "${digest}" ]
+	if [[ -z "${digest}" ]]
 	then
 		echo "telegram: the release json has no sha256 digest for [${download_file}]" >&2
 		return 1
@@ -80,7 +80,7 @@ function _install_telegram_tar() {
 	tmp_dir=$(mktemp --directory "${parent}/.telegram.XXXXXX") || return
 	# the tarball's single top level folder is "Telegram"
 	if ! bashy_install_extract "${tar}" "${tmp_dir}" --strip-components=1 \
-		|| [ ! -x "${tmp_dir}/Telegram" ] || [ ! -x "${tmp_dir}/Updater" ]
+		|| [[ ! -x "${tmp_dir}/Telegram" ]] || [[ ! -x "${tmp_dir}/Updater" ]]
 	then
 		echo "telegram: could not extract a complete Telegram folder" >&2
 		rm -rf "${tmp_dir}"
@@ -93,8 +93,12 @@ function _install_telegram_tar() {
 		return 1
 	fi
 	bashy_install_marker "${folder}" "telegram" "${latest_version}" > /dev/null
-	ln --symbolic --force --no-dereference "${executable}" "$(bashy_install_dir)/telegram"
-	_telegram_desktop "${executable}" "$(echo "${release_json}" | jq --raw-output '.tag_name')"
+	local install_dir
+	install_dir=$(bashy_install_dir)
+	ln --symbolic --force --no-dereference "${executable}" "${install_dir}/telegram"
+	local tag_name
+	tag_name=$(jq --raw-output '.tag_name' <<< "${release_json}")
+	_telegram_desktop "${executable}" "${tag_name}"
 }
 
 # _telegram_desktop <executable> <release tag>
@@ -154,7 +158,7 @@ EOF
 function _uninstall_telegram_tar() {
 	local link="${BASHY_INSTALL_DIR}/telegram"
 	# only remove the link if it is ours
-	if [ -L "${link}" ] && [ "$(readlink "${link}")" = "${TELEGRAM_FOLDER}/Telegram" ]
+	if [[ -L "${link}" ]] && [[ "$(readlink "${link}" || true)" = "${TELEGRAM_FOLDER}/Telegram" ]]
 	then
 		echo "removing ${link}"
 		rm -f "${link}"
@@ -167,7 +171,7 @@ function _uninstall_telegram_tar() {
 	local entry
 	for entry in "${applications}/telegram.desktop" "${applications}"/org.telegram.desktop._*.desktop
 	do
-		if [ -f "${entry}" ] && grep --quiet --fixed-strings "${TELEGRAM_FOLDER}/Telegram" "${entry}"
+		if [[ -f "${entry}" ]] && grep --quiet --fixed-strings "${TELEGRAM_FOLDER}/Telegram" "${entry}"
 		then
 			echo "removing ${entry}"
 			rm -f "${entry}"

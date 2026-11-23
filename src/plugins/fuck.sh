@@ -2,7 +2,7 @@ function _activate_fuck() {
 	local -n __var=$1
 	local -n __error=$2
 	if ! checkInPath "thefuck" __var __error; then return; fi
-	eval "$(thefuck --alias)"
+	eval "$(thefuck --alias || true)"
 	__var=0
 }
 

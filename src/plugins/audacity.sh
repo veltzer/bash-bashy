@@ -44,20 +44,20 @@ function _install_audacity_appimage() {
 	local sums expected
 	if bashy_github_asset "${release_json}" "CHECKSUMS\\.txt$" sums 2>/dev/null
 	then
-		expected=$(curl --fail --location --silent "${sums}" | awk -v want="${download_file##*/}" '$1==want{print $3; exit}')
-		if [ -n "${expected}" ]
+		expected=$({ curl --fail --location --silent "${sums}" || true; } | awk -v want="${download_file##*/}" '$1==want{print $3; exit}')
+		if [[ -n "${expected}" ]]
 		then
 			bashy_verify_sha256 "${appimage}" "${expected}" || return
 		fi
 	fi
-	rm -f "$(bashy_install_marker "${folder}" "audacity")"
+	rm -f "$(bashy_install_marker "${folder}" "audacity" || true)"
 	bashy_install_binary "audacity" "${download_file}" "${executable}" || return
 	bashy_install_marker "${folder}" "audacity" "${latest_version}" > /dev/null
 }
 
 function _uninstall_audacity_appimage() {
 	bashy_uninstall_binary "audacity"
-	rm -f "$(bashy_install_marker "$(bashy_install_dir)" "audacity")"
+	rm -f "$(bashy_install_marker "$(bashy_install_dir || true)" "audacity" || true)"
 }
 
 register _activate_audacity

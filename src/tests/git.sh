@@ -28,7 +28,7 @@ function testGitIsInsideNotRepo() {
 	# a fresh temp dir is not inside a repository (unless /tmp is one)
 	if ( cd "${dir}" && git_is_inside )
 	then
-		[ -e "${dir}/../.git" ] || _bashy_assert_fail
+		[[ -e "${dir}/../.git" ]] || _bashy_assert_fail
 	fi
 	rm -rf "${dir}"
 }
@@ -52,7 +52,7 @@ function testGitTopLevel() {
 	_test_git_repo repo
 	cd "${repo}/sub" || _bashy_assert_fail
 	git_top_level top
-	_bashy_assert_equal "${top}" "$(realpath "${repo}")"
+	_bashy_assert_equal "${top}" "$(realpath "${repo}" || true)"
 	cd / || _bashy_assert_fail
 	rm -rf "${repo}"
 }
@@ -71,7 +71,7 @@ function testGitTopLevelRemembers() {
 	git_is_inside_flush
 	_bashy_assert_equal "${#_bashy_git_top_cache[@]}" 0
 	git_top_level top
-	_bashy_assert_equal "${top}" "$(realpath "${repo}")"
+	_bashy_assert_equal "${top}" "$(realpath "${repo}" || true)"
 	cd / || _bashy_assert_fail
 	rm -rf "${repo}"
 }
@@ -92,7 +92,7 @@ function testGitRootGoesToTop() {
 	_test_git_repo repo
 	cd "${repo}/sub" || _bashy_assert_fail
 	git_root
-	_bashy_assert_equal "$(realpath "${PWD}")" "$(realpath "${repo}")"
+	_bashy_assert_equal "$(realpath "${PWD}" || true)" "$(realpath "${repo}" || true)"
 	cd / || _bashy_assert_fail
 	rm -rf "${repo}"
 }
@@ -104,7 +104,7 @@ function testGitRootOutsideRepoReturns() {
 	# in a subshell that echoes afterwards: the echo is only reached on a return.
 	local after
 	after=$(cd "${dir}" && git_root 2>/dev/null; echo "still here")
-	if [[ "${after}" != *"still here"* ]] && [ ! -e "${dir}/../.git" ]
+	if [[ "${after}" != *"still here"* ]] && [[ ! -e "${dir}/../.git" ]]
 	then
 		_bashy_assert_fail
 	fi
@@ -119,11 +119,11 @@ function testGitPromptRepoPathAddsAndRemoves() {
 	unset TEST_REPO_PATH_ADDED
 	cd "${repo}/sub" || _bashy_assert_fail
 	git_prompt_repo_path "test" TEST_REPO_PATH_ADDED "gems/bin"
-	_bashy_assert_equal "${TEST_REPO_PATH_ADDED:-}" "$(realpath "${repo}")/gems/bin"
-	_bashy_assert_equal "${PATH%%:*}" "$(realpath "${repo}")/gems/bin"
+	_bashy_assert_equal "${TEST_REPO_PATH_ADDED:-}" "$(realpath "${repo}" || true)/gems/bin"
+	_bashy_assert_equal "${PATH%%:*}" "$(realpath "${repo}" || true)/gems/bin"
 	# a second prompt in the same repo changes nothing
 	git_prompt_repo_path "test" TEST_REPO_PATH_ADDED "gems/bin"
-	_bashy_assert_equal "${PATH%%:*}" "$(realpath "${repo}")/gems/bin"
+	_bashy_assert_equal "${PATH%%:*}" "$(realpath "${repo}" || true)/gems/bin"
 	# leaving the repo takes it off again
 	cd / || _bashy_assert_fail
 	git_prompt_repo_path "test" TEST_REPO_PATH_ADDED "gems/bin"
@@ -180,7 +180,7 @@ function testGitPromptRepoConfEntersExits() {
 	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
 	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
 	_bashy_assert_equal "${_test_conf_log}" "enter:.t.conf;enter:.t.conf;"
-	_bashy_assert_equal "${TEST_CONF_ACTIVE:-}" "$(realpath "${repo}")/.t.conf"
+	_bashy_assert_equal "${TEST_CONF_ACTIVE:-}" "$(realpath "${repo}" || true)/.t.conf"
 	# leaving runs exit exactly once, with the file that was active
 	cd / || _bashy_assert_fail
 	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit

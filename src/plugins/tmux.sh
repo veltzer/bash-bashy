@@ -37,8 +37,8 @@ function _activate_tmux() {
 		# "tmux ls" complains on stderr when no server is running, which is
 		# exactly the case that leads to a new session below
 		local -a sessions=()
-		readarray -t sessions < <(tmux ls -F '#{session_name}' 2> /dev/null)
-		if [ "${#sessions[@]}" -gt 0 ]
+		readarray -t sessions < <(tmux ls -F '#{session_name}' 2> /dev/null || true)
+		if [[ "${#sessions[@]}" -gt 0 ]]
 		then
 			# one menu entry per session. This used to pass the list as one
 			# quoted word, so the menu had a single entry holding every name.
@@ -47,7 +47,7 @@ function _activate_tmux() {
 			do
 				break
 			done
-			if [ "${sel}" = "new" ]
+			if [[ "${sel}" = "new" ]]
 			then
 				exec tmux new-session
 			else

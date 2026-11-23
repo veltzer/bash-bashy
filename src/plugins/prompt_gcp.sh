@@ -24,7 +24,7 @@ _PROMPT_GCP_KEY_TMPFILE=""
 # (if any) and unset GOOGLE_APPLICATION_CREDENTIALS. This is the "run as the
 # default (personal) account" state.
 function _prompt_gcp_unset_gac() {
-	if [ -n "${_PROMPT_GCP_KEY_TMPFILE}" ]
+	if [[ -n "${_PROMPT_GCP_KEY_TMPFILE}" ]]
 	then
 		shred -u "${_PROMPT_GCP_KEY_TMPFILE}" 2>/dev/null
 		_PROMPT_GCP_KEY_TMPFILE=""
@@ -51,7 +51,7 @@ function _prompt_gcp_apply_identity() {
 	local gcp_identity=""
 	assoc_get gcp_conf gcp_identity "gcp_identity"
 
-	if _bashy_null_is_null "${gcp_identity}" || [ "${gcp_identity}" = "default" ]
+	if _bashy_null_is_null "${gcp_identity}" || [[ "${gcp_identity}" = "default" ]]
 	then
 		_prompt_gcp_unset_gac
 		return
@@ -73,9 +73,9 @@ function _prompt_gcp_apply_identity() {
 	# Already active for this identity: nothing to do (avoid re-decrypting on
 	# every prompt). We tag the live temp file's identity via a sibling marker
 	# in the variable name's value space using the pass path as the key.
-	if [ -n "${_PROMPT_GCP_KEY_TMPFILE}" ] && \
-		[ "${GOOGLE_APPLICATION_CREDENTIALS}" = "${_PROMPT_GCP_KEY_TMPFILE}" ] && \
-		[ "${_PROMPT_GCP_KEY_PASS_PATH}" = "${pass_path}" ]
+	if [[ -n "${_PROMPT_GCP_KEY_TMPFILE}" ]] && \
+		[[ "${GOOGLE_APPLICATION_CREDENTIALS}" = "${_PROMPT_GCP_KEY_TMPFILE}" ]] && \
+		[[ "${_PROMPT_GCP_KEY_PASS_PATH}" = "${pass_path}" ]]
 	then
 		return
 	fi
@@ -91,7 +91,7 @@ function _prompt_gcp_apply_identity() {
 	fi
 
 	# Shred any previously-active temp key before creating a new one.
-	if [ -n "${_PROMPT_GCP_KEY_TMPFILE}" ]
+	if [[ -n "${_PROMPT_GCP_KEY_TMPFILE}" ]]
 	then
 		shred -u "${_PROMPT_GCP_KEY_TMPFILE}" 2>/dev/null
 		_PROMPT_GCP_KEY_TMPFILE=""
@@ -124,19 +124,19 @@ function _prompt_gcp_project_id() {
 	local -n __prompt_gcp_project=$2
 	__prompt_gcp_project=""
 	local config="${CLOUDSDK_CONFIG:-${HOME}/.config/gcloud}/configurations/config_${name}"
-	if [ ! -r "${config}" ]
+	if [[ ! -r "${config}" ]]
 	then
 		return 1
 	fi
 	local line section=""
-	while read -r line || [ -n "${line}" ]
+	while read -r line || [[ -n "${line}" ]]
 	do
 		if [[ "${line}" =~ ^\[([^]]+)\] ]]
 		then
 			section="${BASH_REMATCH[1]}"
 			continue
 		fi
-		if [ "${section}" = "core" ] && [[ "${line}" =~ ^project[[:space:]]*=[[:space:]]*(.*[^[:space:]])[[:space:]]*$ ]]
+		if [[ "${section}" = "core" ]] && [[ "${line}" =~ ^project[[:space:]]*=[[:space:]]*(.*[^[:space:]])[[:space:]]*$ ]]
 		then
 			__prompt_gcp_project="${BASH_REMATCH[1]}"
 			return 0
@@ -155,7 +155,7 @@ function _prompt_gcp_enter() {
 	local -A gcp_conf=()
 	# ~/.gcp.conf supplies defaults, the repo file overrides them
 	local home_conf="${HOME}/${gcp_conf_file_name}"
-	if [ -r "${home_conf}" ]
+	if [[ -r "${home_conf}" ]]
 	then
 		assoc_config_read gcp_conf "${home_conf}"
 	fi
@@ -181,7 +181,7 @@ function _prompt_gcp_enter() {
 	# selected by gcp_identity in .gcp.conf.
 	_prompt_gcp_apply_identity
 
-	if [ "${CLOUDSDK_ACTIVE_CONFIG_NAME-}" != "${conf_name}" ]
+	if [[ "${CLOUDSDK_ACTIVE_CONFIG_NAME-}" != "${conf_name}" ]]
 	then
 		if var_is_defined CLOUDSDK_ACTIVE_CONFIG_NAME
 		then
@@ -222,7 +222,7 @@ function _activate_prompt_gcp() {
 # Undo the activation in the running shell, for bashy_deactivate.
 function _deactivate_prompt_gcp() {
 	_bashy_prompt_deregister prompt_gcp
-	if [ -n "${PROMPT_GCP_CONF-}" ]
+	if [[ -n "${PROMPT_GCP_CONF-}" ]]
 	then
 		_prompt_gcp_exit "${PROMPT_GCP_CONF}"
 		unset PROMPT_GCP_CONF

@@ -27,7 +27,7 @@ function _install_node_apt() {
 	else
 		bashy_install_apt "node" "npm" || return
 	fi
-	if [ ! -f "${HOME}/.bash_completion.d/npm" ] || bashy_install_forced
+	if [[ ! -f "${HOME}/.bash_completion.d/npm" ]] || bashy_install_forced
 	then
 		echo "Installing node npm completions"
 		mkdir -p "${HOME}/.bash_completion.d"
@@ -35,7 +35,7 @@ function _install_node_apt() {
 	else
 		echo "node npm completions are already installed (latest)"
 	fi
-	if [ ! -d "${HOME}/install/node/node_modules/.bin" ] || bashy_install_forced
+	if [[ ! -d "${HOME}/install/node/node_modules/.bin" ]] || bashy_install_forced
 	then
 		echo "Installing node node_modules folder"
 		mkdir -p "${HOME}/install/node/node_modules/.bin"

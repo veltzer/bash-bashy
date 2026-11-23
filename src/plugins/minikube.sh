@@ -33,9 +33,9 @@ function _install_minikube_binary() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/minikube"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version 2>/dev/null | grep -oP 'minikube version: v\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" version 2>/dev/null || true; } | grep -oP -m1 'minikube version: v\K[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "minikube" "${installed_version}" "${latest_version}"
 	then

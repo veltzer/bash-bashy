@@ -32,9 +32,9 @@ function _install_gh_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/gh"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^gh version/{print $3; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^gh version/{print $3; exit}')
 	fi
 	if bashy_install_check "gh" "${installed_version}" "${latest_version}"
 	then

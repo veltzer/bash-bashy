@@ -50,10 +50,10 @@ function _install_vnu_tar() {
 	local jar="${folder}/vnu.jar"
 	local launcher="${folder}/vnu"
 	local installed_version=""
-	if [ -f "${jar}" ]
+	if [[ -f "${jar}" ]]
 	then
 		# vnu --version prints "26.11.14 (7a9e046)"
-		installed_version=$(java -jar "${jar}" --version 2>/dev/null | awk '{print $1; exit}')
+		installed_version=$({ java -jar "${jar}" --version 2>/dev/null || true; } | awk '{print $1; exit}')
 	fi
 	if bashy_install_check "vnu" "${installed_version}" "${latest_version}"
 	then
@@ -69,8 +69,8 @@ function _install_vnu_tar() {
 	local expected
 	expected=$(echo "${package_json}" | jq --raw-output '.dist.integrity')
 	local actual
-	actual="sha512-$(openssl dgst -sha512 -binary "${tar}" | base64 --wrap=0)"
-	if [ "${expected}" != "${actual}" ]
+	actual="sha512-$({ openssl dgst -sha512 -binary "${tar}" || true; } | base64 --wrap=0)"
+	if [[ "${expected}" != "${actual}" ]]
 	then
 		echo "vnu: the download does not match the digest the registry published" >&2
 		echo "vnu: expected [${expected}], got [${actual}]" >&2

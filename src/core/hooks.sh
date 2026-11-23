@@ -14,7 +14,7 @@ function register_core() {
 	assoc_assert_key_not_exists _bashy_assoc_function "${_function}"
 	_bashy_array_push _bashy_array_function "${_function}"
 	assoc_set _bashy_assoc_function "${_function}" "${_name}"
-	if [ -n "${_deactivate}" ]
+	if [[ -n "${_deactivate}" ]]
 	then
 		assoc_set _bashy_assoc_deactivate "${_name}" "${_deactivate}"
 	fi
@@ -30,14 +30,18 @@ function _bashy_hooks_caller_name() {
 function register() {
 	local _function=$1
 	local _deactivate=${2:-}
-	register_core "${_function}" "$(_bashy_hooks_caller_name)" "${_deactivate}"
+	local _caller
+	_caller=$(_bashy_hooks_caller_name)
+	register_core "${_function}" "${_caller}" "${_deactivate}"
 }
 
 # register_install <install function>
 # Remember the installer of the calling plugin, for bashy_install.
 function register_install() {
 	local _function=$1
-	assoc_set _bashy_assoc_install "$(_bashy_hooks_caller_name)" "${_function}"
+	local _caller
+	_caller=$(_bashy_hooks_caller_name)
+	assoc_set _bashy_assoc_install "${_caller}" "${_function}"
 }
 
 # register_interactive <activate function> [deactivate function]
@@ -47,6 +51,8 @@ function register_interactive() {
 	local _deactivate=${2:-}
 	if is_interactive
 	then
-		register_core "${_function}" "$(_bashy_hooks_caller_name)" "${_deactivate}"
+		local _caller
+		_caller=$(_bashy_hooks_caller_name)
+		register_core "${_function}" "${_caller}" "${_deactivate}"
 	fi
 }

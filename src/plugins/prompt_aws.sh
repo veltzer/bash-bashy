@@ -17,7 +17,7 @@ function _prompt_aws_enter() {
 	local -A aws_conf=()
 	# ~/.aws.conf supplies defaults, the repo file overrides them
 	local home_conf="${HOME}/${aws_conf_file_name}"
-	if [ -r "${home_conf}" ]
+	if [[ -r "${home_conf}" ]]
 	then
 		assoc_config_read aws_conf "${home_conf}"
 	fi
@@ -29,7 +29,7 @@ function _prompt_aws_enter() {
 		unset AWS_PROFILE
 		return
 	fi
-	if [ "${AWS_PROFILE-}" != "${profile}" ]
+	if [[ "${AWS_PROFILE-}" != "${profile}" ]]
 	then
 		export AWS_PROFILE="${profile}"
 	fi
@@ -53,7 +53,7 @@ function _activate_prompt_aws() {
 # Undo the activation in the running shell, for bashy_deactivate.
 function _deactivate_prompt_aws() {
 	_bashy_prompt_deregister prompt_aws
-	if [ -n "${PROMPT_AWS_CONF-}" ]
+	if [[ -n "${PROMPT_AWS_CONF-}" ]]
 	then
 		_prompt_aws_exit "${PROMPT_AWS_CONF}"
 		unset PROMPT_AWS_CONF

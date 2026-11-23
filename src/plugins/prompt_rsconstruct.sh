@@ -17,7 +17,7 @@ function _activate_prompt_rsconstruct() {
 # Undo the activation in the running shell, for bashy_deactivate.
 function _deactivate_prompt_rsconstruct() {
 	_bashy_prompt_deregister prompt_rsconstruct
-	if [ -n "${PROMPT_RSCONSTRUCT_ADDED-}" ]
+	if [[ -n "${PROMPT_RSCONSTRUCT_ADDED-}" ]]
 	then
 		_bashy_pathutils_remove PATH "${PROMPT_RSCONSTRUCT_ADDED}"
 		unset PROMPT_RSCONSTRUCT_ADDED

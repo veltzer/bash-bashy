@@ -2,7 +2,7 @@ function _activate_pureline() {
 	local -n __var=$1
 	local -n __error=$2
 	PURELINE="${HOME}/install/pureline/pureline"
-	if [ ! -r "${PURELINE}" ]
+	if [[ ! -r "${PURELINE}" ]]
 	then
 		__error="[${PURELINE}] doesnt exist"
 		__var=1

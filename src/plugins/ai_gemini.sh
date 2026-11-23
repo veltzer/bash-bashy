@@ -35,7 +35,7 @@ function _install_gemini_npm() {
 	# --parseable --long prints "<path>:<package>@<version>", or nothing when
 	# the package is not installed globally
 	local installed_version
-	installed_version=$(npm ls --global --depth=0 --parseable --long "${package}" 2>/dev/null | sed -n "s|^.*:${package}@||p")
+	installed_version=$({ npm ls --global --depth=0 --parseable --long "${package}" 2>/dev/null || true; } | sed -n "s|^.*:${package}@||p")
 	if bashy_install_check "gemini" "${installed_version}" "${latest_version}"
 	then
 		return

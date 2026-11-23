@@ -41,13 +41,13 @@ function _install_google_cloud_sdk_script() {
 	local latest_version
 	# the component manifest of the rapid channel is what gcloud itself consults
 	# to find out whether it is current, so ask the same source
-	latest_version=$(bashy_fetch_latest \
-		"https://dl.google.com/dl/cloudsdk/channels/rapid/components-2.json" \
+	latest_version=$({ bashy_fetch_latest \
+		"https://dl.google.com/dl/cloudsdk/channels/rapid/components-2.json" || true; } \
 		| jq --raw-output '.version')
 	local installed_version=""
 	# the sdk records its version in a plain file, which is cheaper than starting
 	# a python interpreter to ask gcloud
-	if [ -f "${folder}/VERSION" ]
+	if [[ -f "${folder}/VERSION" ]]
 	then
 		installed_version=$(tr -d '[:space:]' < "${folder}/VERSION")
 	fi
@@ -55,7 +55,7 @@ function _install_google_cloud_sdk_script() {
 	then
 		return
 	fi
-	if [ -n "${installed_version}" ] && ! bashy_install_forced
+	if [[ -n "${installed_version}" ]] && ! bashy_install_forced
 	then
 		"${folder}/bin/gcloud" components update
 		return

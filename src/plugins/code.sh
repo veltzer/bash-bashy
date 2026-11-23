@@ -7,10 +7,10 @@ PACKAGE_NAME="code"
 
 function _install_code_apt() {
 	bashy_install_args "$@" || return
-	if [ ! -f "${MSAPT}" ]
+	if [[ ! -f "${MSAPT}" ]]
 	then
 		sudo gpg --keyserver "keyserver.ubuntu.com" --recv-keys "${MSKEYID}"
-		sudo gpg --export --armor "${MSKEYID}" | sudo gpg --dearmor -o "${MSRING}"
+		{ sudo gpg --export --armor "${MSKEYID}" || true; } | sudo gpg --dearmor -o "${MSRING}"
 		sudo tee "${MSAPT}" > /dev/null << EOF
 Types: deb
 URIs: https://packages.microsoft.com/repos/code
@@ -36,11 +36,11 @@ function _install_code_deb() {
 	bashy_install_args "$@" || return
 	# Get the latest version available from the VS Code update API
 	local latest_version
-	latest_version=$(bashy_fetch_latest "https://update.code.visualstudio.com/api/update/linux-deb-x64/stable/latest" | jq --raw-output '.productVersion')
+	latest_version=$({ bashy_fetch_latest "https://update.code.visualstudio.com/api/update/linux-deb-x64/stable/latest" || true; } | jq --raw-output '.productVersion')
 	local installed_version=""
 	if _bashy_pathutils_is_in_path "code"
 	then
-		installed_version=$(code --version 2>/dev/null | head -1)
+		installed_version=$({ code --version 2>/dev/null || true; } | head -1)
 	fi
 	if bashy_install_check "code" "${installed_version}" "${latest_version}"
 	then
@@ -63,7 +63,7 @@ function _uninstall_code() {
 	local file
 	for file in "${MSAPT}" "${MSRING}"
 	do
-		if [ -f "${file}" ]
+		if [[ -f "${file}" ]]
 		then
 			echo "removing ${file}"
 			sudo rm -f "${file}"

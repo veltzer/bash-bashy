@@ -7,9 +7,9 @@ function prompt_error() {
 	local ret="${BASHY_PROMPT_STATUS}"
 	local sig reason
 	bashy_log "prompt_error" "${BASHY_LOG_DEBUG}" "got ret [${ret}]"
-	if [ "${ret}" -ne 0 ]
+	if [[ "${ret}" -ne 0 ]]
 	then
-		if [ "${ret}" -gt 128 ] && [ "${ret}" -lt 193 ]
+		if [[ "${ret}" -gt 128 ]] && [[ "${ret}" -lt 193 ]]
 		then
 			sig=$((ret - 128))
 			reason=$(kill -l "${sig}")

@@ -15,18 +15,18 @@ _BASHY_STALE_REPORTED=""
 function prompt_stale() {
 	local current
 	_bashy_stamp_read current
-	if [ "${current}" = "${_BASHY_STAMP}" ] || [ "${current}" = "${_BASHY_STALE_REPORTED}" ]
+	if [[ "${current}" = "${_BASHY_STAMP}" ]] || [[ "${current}" = "${_BASHY_STALE_REPORTED}" ]]
 	then
 		return
 	fi
 	_BASHY_STALE_REPORTED="${current}"
 	local running="not stamped"
-	if [ -n "${_BASHY_STAMP}" ]
+	if [[ -n "${_BASHY_STAMP}" ]]
 	then
 		running=$(_bashy_stamp_describe "${_BASHY_STAMP}")
 	fi
 	local installed="removed"
-	if [ -n "${current}" ]
+	if [[ -n "${current}" ]]
 	then
 		installed=$(_bashy_stamp_describe "${current}")
 	fi

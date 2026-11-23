@@ -26,13 +26,13 @@ function _install_spark_tar() {
 	# https://medium.com/@patilmailbox4/install-apache-spark-on-ubuntu-ffa151e12e30
 	# the download mirror lists a directory per release, take the highest one
 	local latest_version
-	latest_version=$(bashy_fetch_latest "https://dlcdn.apache.org/spark/" | grep -oP 'href="spark-\K[0-9]+\.[0-9]+\.[0-9]+(?=/")' | sort --version-sort --unique | tail -1)
+	latest_version=$({ bashy_fetch_latest "https://dlcdn.apache.org/spark/" || true; } | { grep -oP 'href="spark-\K[0-9]+\.[0-9]+\.[0-9]+(?=/")' || true; } | { sort --version-sort --unique || true; } | tail -1)
 	local toplevel="spark-${latest_version}-bin-hadoop3"
 	# ~/install/spark is a symlink into the versioned directory, so it names what is installed
 	local installed_version=""
-	if [ -L "${HOME}/install/spark" ]
+	if [[ -L "${HOME}/install/spark" ]]
 	then
-		installed_version=$(readlink "${HOME}/install/spark" | grep -oP 'spark-\K[0-9]+\.[0-9]+\.[0-9]+')
+		installed_version=$({ readlink "${HOME}/install/spark" || true; } | grep -oP 'spark-\K[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "spark" "${installed_version}" "${latest_version}"
 	then
@@ -45,7 +45,7 @@ function _install_spark_tar() {
 	# apache publishes a sha512 rather than a sha256 next to the archive, and
 	# bashy_verify_sha256 only speaks sha256, so there is nothing to verify here
 	# drop the previous install, otherwise every upgrade leaves the old tree behind
-	if [ -n "${installed_version}" ]
+	if [[ -n "${installed_version}" ]]
 	then
 		rm -rf "${HOME}/install/spark-${installed_version}-bin-hadoop3"
 	fi
@@ -58,7 +58,7 @@ function _uninstall_spark_tar() {
 	# the symlink points at the versioned directory and may be relative, so
 	# resolve it before handing it over to be removed
 	local target=""
-	if [ -L "${HOME}/install/spark" ]
+	if [[ -L "${HOME}/install/spark" ]]
 	then
 		target=$(readlink --canonicalize "${HOME}/install/spark")
 	fi

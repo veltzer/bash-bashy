@@ -32,9 +32,9 @@ function _install_k8s_binary() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/kubectl"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version --client 2>/dev/null | grep -oP 'Client Version: \K[^\s]+' | head -1)
+		installed_version=$({ "${executable}" version --client 2>/dev/null || true; } | grep -oP -m1 'Client Version: \K[^\s]+')
 	fi
 	if bashy_install_check "kubectl" "${installed_version}" "${latest_version}"
 	then

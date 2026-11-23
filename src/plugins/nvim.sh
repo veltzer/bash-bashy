@@ -41,9 +41,9 @@ function _install_nvim_appimage() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/nvim"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^NVIM v/{print substr($2,2); exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^NVIM v/{print substr($2,2); exit}')
 	fi
 	if bashy_install_check "nvim" "${installed_version}" "${latest_version}"
 	then
@@ -65,9 +65,9 @@ function _install_nvim_latest_tar() {
 	local folder="${HOME}/install/nvim-linux-x86_64"
 	local executable="${folder}/bin/nvim"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^NVIM v/{print substr($2,2); exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^NVIM v/{print substr($2,2); exit}')
 	fi
 	if bashy_install_check "nvim" "${installed_version}" "${latest_version}"
 	then
@@ -94,8 +94,8 @@ function _install_nvim_nightly_tar() {
 	local executable="${folder}/bin/nvim"
 	local latest_version
 	# a prerelease never shows up under releases/latest, so ask for the tag itself
-	latest_version=$(bashy_fetch_latest \
-		"https://api.github.com/repos/neovim/neovim-releases/releases/tags/nightly" \
+	latest_version=$({ bashy_fetch_latest \
+		"https://api.github.com/repos/neovim/neovim-releases/releases/tags/nightly" || true; } \
 		| jq --raw-output '.published_at')
 	local installed_version
 	installed_version=$(bashy_install_marker_version "${HOME}/install" "nvim-nightly" "${executable}")
@@ -129,11 +129,11 @@ function _install_nvim_lazy_git() {
 	latest_version=$(bashy_github_version "${release}")
 	local lazyvim="${HOME}/.local/share/nvim/lazy/LazyVim"
 	local installed_version=""
-	if [ -d "${lazyvim}/.git" ]
+	if [[ -d "${lazyvim}/.git" ]]
 	then
 		# --points-at lists every tag on HEAD, which includes the moving
 		# "stable" tag, so keep only the version one
-		installed_version=$(git -C "${lazyvim}" tag --points-at HEAD 2>/dev/null | sed --quiet 's/^v//; /^[0-9]/p' | head -1)
+		installed_version=$({ git -C "${lazyvim}" tag --points-at HEAD 2>/dev/null || true; } | sed --quiet 's/^v//; /^[0-9]/{p;q}')
 	fi
 	if bashy_install_check "nvim-lazy" "${installed_version}" "${latest_version}"
 	then
@@ -147,10 +147,10 @@ function _install_nvim_lazy_git() {
 	# user's own and is not touched. Updating LazyVim itself is the "Lazy! sync"
 	# below. _config_clean_nvim is the deliberate way to start over.
 	local config="${HOME}/.config/nvim"
-	if [ ! -e "${config}" ]
+	if [[ ! -e "${config}" ]]
 	then
 		bashy_install_git "nvim-lazy" "https://github.com/LazyVim/starter" "${config}" --depth 1 --single-branch || return
-	elif [ -d "${config}/.git" ]
+	elif [[ -d "${config}/.git" ]]
 	then
 		echo "Updating nvim-lazy starter in [${config}], keeping local files"
 		if ! git -C "${config}" pull --ff-only --quiet

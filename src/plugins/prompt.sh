@@ -14,7 +14,7 @@ function bashy_prompt() {
 	# starship runs us from inside starship_precmd, and the "if" it wraps that
 	# call in has already reset "$?" by the time we run. It keeps the real status
 	# in STARSHIP_CMD_STATUS, so take it from there when starship is the caller.
-	if [[ "${PROMPT_COMMAND-}" == *starship_precmd* ]] && [ -n "${STARSHIP_CMD_STATUS-}" ]
+	if [[ "${PROMPT_COMMAND-}" == *starship_precmd* ]] && [[ -n "${STARSHIP_CMD_STATUS-}" ]]
 	then
 		BASHY_PROMPT_STATUS="${STARSHIP_CMD_STATUS}"
 	fi

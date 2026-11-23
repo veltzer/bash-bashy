@@ -70,7 +70,7 @@ function assoc_config_read() {
 function assoc_key_exists() {
 	local -n __assoc_key_exists=$1
 	local key=$2
-	[ -n "${__assoc_key_exists[${key}]+muhaha}" ]
+	[[ -n "${__assoc_key_exists[${key}]+muhaha}" ]]
 }
 
 function assoc_assert_key_exists() {

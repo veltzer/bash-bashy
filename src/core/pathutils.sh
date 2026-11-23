@@ -6,7 +6,7 @@ function _bashy_pathutils_add_head() {
 	local -A map=()
 	for DIR in ${__var}
 	do
-		if [ "${DIR}" != "${add}" ] && [ -z "${map[${DIR}]+muhaha}" ]
+		if [[ "${DIR}" != "${add}" ]] && [[ -z "${map[${DIR}]+muhaha}" ]]
 		then
 			path+=("${DIR}")
 			map[${DIR}]="yes"
@@ -23,7 +23,7 @@ function _bashy_pathutils_add_tail() {
 	local -A map=()
 	for DIR in ${__var}
 	do
-		if [ "${DIR}" != "${add}" ] && [ -z "${map[${DIR}]+muhaha}" ]
+		if [[ "${DIR}" != "${add}" ]] && [[ -z "${map[${DIR}]+muhaha}" ]]
 		then
 			path+=("${DIR}")
 			map[${DIR}]="yes"
@@ -41,7 +41,7 @@ function _bashy_pathutils_remove() {
 	local -A map=()
 	for DIR in ${__var}
 	do
-		if [ "${DIR}" != "${remove}" ] && [ -z "${map[${DIR}]+muhaha}" ]
+		if [[ "${DIR}" != "${remove}" ]] && [[ -z "${map[${DIR}]+muhaha}" ]]
 		then
 			path+=("${DIR}")
 			map[${DIR}]="yes"
@@ -70,7 +70,7 @@ function _bashy_pathutils_reduce() {
 	local -A map=()
 	for DIR in ${__var}
 	do
-		if [ -z "${map[${DIR}]+muhaha}" ]
+		if [[ -z "${map[${DIR}]+muhaha}" ]]
 		then
 			path+=("${DIR}")
 			map[${DIR}]="yes"

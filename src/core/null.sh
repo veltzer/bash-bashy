@@ -4,17 +4,17 @@
 
 function _bashy_null_is_null() {
 	local value=$1
-	[ "${value}" = "NULL" ]
+	[[ "${value}" = "NULL" ]]
 }
 
 function _bashy_null_var_is_null() {
 	local -n value=$1
-	[ "${value}" = "NULL" ]
+	[[ "${value}" = "NULL" ]]
 }
 
 function _bashy_null_isnt_null() {
 	local value=$1
-	[ "${value}" != "NULL" ]
+	[[ "${value}" != "NULL" ]]
 }
 
 function _bashy_null_set_value() {

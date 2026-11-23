@@ -34,7 +34,7 @@ function testWithSecretDoesNotLeakIntoShell() {
 	unset THING_TOKEN
 	PATH="${dir}/bin:${PATH}" bashy_with_secret THING_TOKEN "keys/thing" true
 	# the variable is for the command only, never for the shell that ran it
-	if [ -n "${THING_TOKEN+x}" ]
+	if [[ -n "${THING_TOKEN+x}" ]]
 	then
 		_bashy_assert_fail
 	fi
@@ -49,7 +49,7 @@ function testWithSecretMissingEntryRunsNothing() {
 	then
 		_bashy_assert_fail
 	fi
-	if [ -e "${marker}" ]
+	if [[ -e "${marker}" ]]
 	then
 		_bashy_assert_fail
 	fi

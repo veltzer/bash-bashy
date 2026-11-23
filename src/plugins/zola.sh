@@ -31,9 +31,9 @@ function _install_zola_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/zola"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^zola /{print $2; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^zola /{print $2; exit}')
 	fi
 	if bashy_install_check "zola" "${installed_version}" "${latest_version}"
 	then

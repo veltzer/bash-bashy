@@ -2,7 +2,7 @@ function _activate_powerline() {
 	local -n __var=$1
 	local -n __error=$2
 	EXECUTABLE="/usr/bin/powerline-daemon"
-	if [ ! -x "${EXECUTABLE}" ]
+	if [[ ! -x "${EXECUTABLE}" ]]
 	then
 		__error="[${EXECUTABLE}] doesnt exist"
 		__var=1

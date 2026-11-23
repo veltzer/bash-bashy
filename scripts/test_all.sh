@@ -25,7 +25,7 @@ do
 		res=0
 		(( count+=1 ))
 		("${name}") || res=${?}
-		if [ "${res}" == "0" ]
+		if [[ "${res}" == "0" ]]
 		then
 			_bashy_cecho g "OK" 0
 			(( count_ok+=1 ))
@@ -40,7 +40,7 @@ echo "number of tests run --> ${count}"
 echo -n "number of tests ok --> "
 _bashy_cecho g "${count_ok}" 0
 echo -n "number of tests failed --> "
-if [ "${count_er}" -eq 0 ]
+if [[ "${count_er}" -eq 0 ]]
 then
 	_bashy_cecho g "${count_er}" 0
 	exit 0

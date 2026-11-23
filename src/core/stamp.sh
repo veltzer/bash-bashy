@@ -18,7 +18,7 @@ function _bashy_stamp_read() {
 	local -n __stamp=$1
 	local __file=${2:-${_BASHY_HOME}/.stamp}
 	__stamp=""
-	if [ -r "${__file}" ]
+	if [[ -r "${__file}" ]]
 	then
 		read -r __stamp < "${__file}" || true
 	fi

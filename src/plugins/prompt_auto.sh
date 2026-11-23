@@ -38,7 +38,7 @@ function _prompt_auto_source() {
 function _prompt_auto_enter() {
 	local enter_file=$1
 	local root="${enter_file%/*}"
-	if [ "${AUTO_ACTIVE-}" = "${root}" ]
+	if [[ "${AUTO_ACTIVE-}" = "${root}" ]]
 	then
 		return
 	fi
@@ -52,7 +52,7 @@ function _prompt_auto_enter() {
 function _prompt_auto_exit() {
 	local enter_file=$1
 	local exit_file="${enter_file%/*}/${auto_file_exit}"
-	if [ -f "${exit_file}" ]
+	if [[ -f "${exit_file}" ]]
 	then
 		bashy_log "prompt_auto" "${BASHY_LOG_INFO}" "sourcing [${exit_file}]"
 		_prompt_auto_source "${exit_file}"
@@ -74,7 +74,7 @@ function _activate_prompt_auto() {
 # Undo the activation in the running shell, for bashy_deactivate.
 function _deactivate_prompt_auto() {
 	_bashy_prompt_deregister prompt_auto
-	if [ -n "${PROMPT_AUTO_CONF-}" ]
+	if [[ -n "${PROMPT_AUTO_CONF-}" ]]
 	then
 		_prompt_auto_exit "${PROMPT_AUTO_CONF}"
 		unset PROMPT_AUTO_CONF

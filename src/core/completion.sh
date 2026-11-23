@@ -32,7 +32,7 @@
 #	fi
 
 # location of the cache, honoring XDG_CACHE_HOME, overridable via BASHY_COMPLETION_CACHE
-if [ -z "${BASHY_COMPLETION_CACHE+x}" ]
+if [[ -z "${BASHY_COMPLETION_CACHE+x}" ]]
 then
 	export BASHY_COMPLETION_CACHE="${XDG_CACHE_HOME:-${HOME}/.cache}/bashy/completions"
 fi
@@ -49,7 +49,7 @@ function bashy_completion() {
 	# function's name, and a name that is not a file is "older" than any stamp,
 	# so the cache would regenerate on every shell.
 	local path
-	if ! path=$(type -P "${tool}" 2>/dev/null) || [ -z "${path}" ]
+	if ! path=$(type -P "${tool}" 2>/dev/null) || [[ -z "${path}" ]]
 	then
 		return 1
 	fi
@@ -59,13 +59,13 @@ function bashy_completion() {
 	# the one the stamp carries, in either direction: a package manager can put a
 	# binary in place with a build date older than the stamp, and a plain "newer
 	# than" test would keep serving the old completion for it.
-	if [ ! -s "${cache}" ] || [ ! -e "${stamp_file}" ] \
-		|| [ "${path}" -nt "${stamp_file}" ] || [ "${path}" -ot "${stamp_file}" ]
+	if [[ ! -s "${cache}" ]] || [[ ! -e "${stamp_file}" ]] \
+		|| [[ "${path}" -nt "${stamp_file}" ]] || [[ "${path}" -ot "${stamp_file}" ]]
 	then
 		mkdir -p "${BASHY_COMPLETION_CACHE}"
 		local tmp="${cache}.$$"
 		# "command" runs the binary, not a function or alias wrapped around it
-		if ! command "$@" > "${tmp}" 2>/dev/null || [ ! -s "${tmp}" ]
+		if ! command "$@" > "${tmp}" 2>/dev/null || [[ ! -s "${tmp}" ]]
 		then
 			rm -f "${tmp}"
 			return 1
@@ -80,7 +80,7 @@ function bashy_completion() {
 # bashy_completion_clean
 # Drop the completion cache, so every tool regenerates on the next shell.
 function bashy_completion_clean() {
-	if [ -d "${BASHY_COMPLETION_CACHE}" ]
+	if [[ -d "${BASHY_COMPLETION_CACHE}" ]]
 	then
 		echo "removing completion cache [${BASHY_COMPLETION_CACHE}]"
 		rm -rf "${BASHY_COMPLETION_CACHE}"

@@ -39,9 +39,9 @@ function _install_codex_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/codex"
 	local installed_version=""
-	if [ -x "${executable}" ] && [ -f "${package}/codex-package.json" ] && [ -x "${package}/bin/codex-code-mode-host" ]
+	if [[ -x "${executable}" ]] && [[ -f "${package}/codex-package.json" ]] && [[ -x "${package}/bin/codex-code-mode-host" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^codex-cli/{print $2; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^codex-cli/{print $2; exit}')
 	fi
 	if bashy_install_check "codex" "${installed_version}" "${latest_version}"
 	then

@@ -29,10 +29,10 @@ function _install_biome_binary() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/biome"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
 		# biome --version prints "Version: 2.5.15"
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^Version: /{print $2; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^Version: /{print $2; exit}')
 	fi
 	if bashy_install_check "biome" "${installed_version}" "${latest_version}"
 	then

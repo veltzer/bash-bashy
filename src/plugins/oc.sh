@@ -33,11 +33,11 @@ function _install_oc_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/oc"
 	local latest_version
-	latest_version=$(bashy_fetch_latest "${base}/release.txt" | grep -oP 'Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+	latest_version=$({ bashy_fetch_latest "${base}/release.txt" || true; } | grep -oP -m1 'Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+')
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version --client 2>/dev/null | grep -oP 'Client Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" version --client 2>/dev/null || true; } | grep -oP -m1 'Client Version:\s+\K[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "oc" "${installed_version}" "${latest_version}"
 	then

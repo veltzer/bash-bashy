@@ -33,12 +33,12 @@ function _prompt_uv_find_root() {
 	local dir="${PWD}"
 	while true
 	do
-		if [ -f "${dir}/pyproject.toml" ]
+		if [[ -f "${dir}/pyproject.toml" ]]
 		then
 			__root="${dir}"
 			return 0
 		fi
-		if [ "${dir}" == "/" ]
+		if [[ "${dir}" == "/" ]]
 		then
 			return 1
 		fi
@@ -56,24 +56,24 @@ function _prompt_uv_sync() {
 	local current
 	current=$(md5sum < "${project_root}/pyproject.toml")
 	local stored=""
-	if [ -r "${checksum_file}" ]
+	if [[ -r "${checksum_file}" ]]
 	then
 		stored=$(cat "${checksum_file}")
 	fi
-	if [ "${current}" == "${stored}" ]
+	if [[ "${current}" == "${stored}" ]]
 	then
 		bashy_log "prompt_uv" "${BASHY_LOG_DEBUG}" "checksum is up to date"
 		# the venv is in sync, so a sentinel left by an earlier failure is stale
-		if [ -f "${error_file}" ]
+		if [[ -f "${error_file}" ]]
 		then
 			bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "venv is in sync, removing stale error file [${error_file}]"
 			rm -f "${error_file}"
 		fi
 		return 0
 	fi
-	if [ -f "${error_file}" ]
+	if [[ -f "${error_file}" ]]
 	then
-		if [ -d "${venv}" ]
+		if [[ -d "${venv}" ]]
 		then
 			bashy_log "prompt_uv" "${BASHY_LOG_ERROR}" "found error file [${error_file}], not syncing"
 			return 1
@@ -101,14 +101,14 @@ function _prompt_uv_sync() {
 # while it was active. Shared by the prompt (on leaving the project) and the
 # deactivate function.
 function _prompt_uv_leave() {
-	if [ -z "${_BASHY_UV_ACTIVE}" ]
+	if [[ -z "${_BASHY_UV_ACTIVE}" ]]
 	then
 		return
 	fi
 	bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "left project, deactivating [${_BASHY_UV_ACTIVE}]"
 	python_deactivate
 	_BASHY_UV_ACTIVE=""
-	if [ -n "${_BASHY_UV_HELD}" ]
+	if [[ -n "${_BASHY_UV_HELD}" ]]
 	then
 		bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "restoring held env [${_BASHY_UV_HELD}]"
 		python_activate "${_BASHY_UV_HELD}"
@@ -124,7 +124,7 @@ function prompt_uv() {
 		return
 	fi
 	local venv="${project_root}/.venv"
-	if [ -n "${_BASHY_UV_ACTIVE}" ] && [ "${_BASHY_UV_ACTIVE}" != "${venv}" ]
+	if [[ -n "${_BASHY_UV_ACTIVE}" ]] && [[ "${_BASHY_UV_ACTIVE}" != "${venv}" ]]
 	then
 		# moved straight into another project - the held env stays held
 		bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "switching from [${_BASHY_UV_ACTIVE}] to [${venv}]"
@@ -135,7 +135,7 @@ function prompt_uv() {
 	then
 		return
 	fi
-	if [ -z "${_BASHY_UV_ACTIVE}" ]
+	if [[ -z "${_BASHY_UV_ACTIVE}" ]]
 	then
 		if var_is_defined PYTHON_VENV_ACTIVE
 		then

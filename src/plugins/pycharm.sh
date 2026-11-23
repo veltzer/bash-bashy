@@ -7,9 +7,9 @@ function _activate_pycharm() {
 	# Only a directory that actually holds a bin/ counts as a build, otherwise leftovers
 	# such as the toolbox .history directory would win the sort and break activation.
 	local toolbox="${HOME}/.local/share/JetBrains/Toolbox/apps"
-	PYCHARM_HOME=$(find "${toolbox}" -maxdepth 4 -mindepth 2 -type d -name bin -path "*/PyCharm*" \
-		-not -path "*/.history/*" 2>/dev/null | sed 's|/bin$||' | sort --version-sort | tail -1)
-	if [ -z "${PYCHARM_HOME}" ]
+	PYCHARM_HOME=$({ find "${toolbox}" -maxdepth 4 -mindepth 2 -type d -name bin -path "*/PyCharm*" \
+		-not -path "*/.history/*" 2>/dev/null || true; } | { sed 's|/bin$||' || true; } | { sort --version-sort || true; } | tail -1)
+	if [[ -z "${PYCHARM_HOME}" ]]
 	then
 		__error="no pycharm build found under [${toolbox}]"
 		__var=1

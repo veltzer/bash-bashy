@@ -59,7 +59,7 @@ function _bashy_array_find() {
 	__array_location=0
 	for item in "${__array_find[@]}"
 	do
-		if [ "${item}" = "${value}" ]
+		if [[ "${item}" = "${value}" ]]
 		then
 			return
 		fi
@@ -73,7 +73,7 @@ function _bashy_array_contains() {
 	local value=$2
 	for item in "${__array_contains[@]}"
 	do
-		[ "${item}" = "${value}" ] && return 0
+		[[ "${item}" = "${value}" ]] && return 0
 	done
 	return 1
 }

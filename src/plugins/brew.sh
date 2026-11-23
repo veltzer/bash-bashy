@@ -35,9 +35,9 @@ function _install_brew_git() {
 	local latest_version
 	latest_version=$(bashy_github_version "${release_json}" "")
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^Homebrew/{print $2; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^Homebrew/{print $2; exit}')
 	fi
 	bashy_install_check "brew" "${installed_version}" "${latest_version}" && return
 	bashy_install_git "brew" "https://github.com/Homebrew/brew" "${folder}" --depth 1 --single-branch || return

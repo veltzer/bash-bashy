@@ -31,9 +31,9 @@ function _install_buck2_zst() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/buck2"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^buck2 /{print $2; exit}' | grep -oP '[0-9a-f]{40}$' || true)
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^buck2 /{print $2; exit}' | grep -oP '[0-9a-f]{40}$' || true)
 	fi
 	if bashy_install_check "buck2" "${installed_version}" "${latest_version}"
 	then
@@ -69,7 +69,7 @@ function _install_buck2_zst() {
 function _uninstall_buck2_zst() {
 	bashy_uninstall_binary "buck2"
 	# left over from the old published_at based version check
-	rm -f "$(bashy_install_dir)/.buck2_published_at"
+	rm -f "$(bashy_install_dir || true)/.buck2_published_at"
 }
 
 function _activate_buck2() {

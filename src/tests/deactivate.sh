@@ -12,7 +12,7 @@ function testRegisteredDeactivatesAreDefined() {
 	do
 		# the register lines first, then the lookups, so the file is not read
 		# twice at once
-		readarray -t lines < <(grep -E '^register' "${file}")
+		readarray -t lines < <(grep -E '^register' "${file}" || true)
 		for line in "${lines[@]}"
 		do
 			[[ "${line}" =~ ^register(_interactive)?\ +[^\ ]+\ +([^\ ]+) ]] || continue
@@ -35,7 +35,7 @@ function testDefinedDeactivatesAreRegistered() {
 	local -a defined
 	for file in src/plugins/*.sh
 	do
-		readarray -t defined < <(sed -n 's/^function \(_deactivate_[a-z0-9_]*\)().*/\1/p' "${file}")
+		readarray -t defined < <(sed -n 's/^function \(_deactivate_[a-z0-9_]*\)().*/\1/p' "${file}" || true)
 		for deactivate in "${defined[@]}"
 		do
 			if ! grep -qE "^register(_interactive)? +[^ ]+ +${deactivate}$" "${file}"

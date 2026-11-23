@@ -17,7 +17,7 @@ function _activate_prompt_node() {
 # Undo the activation in the running shell, for bashy_deactivate.
 function _deactivate_prompt_node() {
 	_bashy_prompt_deregister prompt_node
-	if [ -n "${PROMPT_NODE_ADDED-}" ]
+	if [[ -n "${PROMPT_NODE_ADDED-}" ]]
 	then
 		_bashy_pathutils_remove PATH "${PROMPT_NODE_ADDED}"
 		unset PROMPT_NODE_ADDED

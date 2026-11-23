@@ -31,9 +31,9 @@ function _install_helm_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/helm"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version --short 2>/dev/null | grep -oP '^v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" version --short 2>/dev/null || true; } | grep -oP -m1 '^v[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "helm" "${installed_version}" "${latest_version}"
 	then

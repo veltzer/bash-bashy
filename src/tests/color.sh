@@ -10,8 +10,11 @@ function testCechoWrapsTextInColor() {
 
 function testCechoNewlineFlag() {
 	# 0 means "end with a newline", anything else means "no newline"
-	_bashy_assert_equal "$(_bashy_cecho g "x" 0 | wc -l)" 1
-	_bashy_assert_equal "$(_bashy_cecho g "x" 1 | wc -l)" 0
+	local lines
+	lines=$({ _bashy_cecho g "x" 0 || true; } | wc -l)
+	_bashy_assert_equal "${lines}" 1
+	lines=$({ _bashy_cecho g "x" 1 || true; } | wc -l)
+	_bashy_assert_equal "${lines}" 0
 }
 
 function testCechoUnknownColorIsPlain() {

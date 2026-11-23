@@ -27,9 +27,9 @@ function _install_bazel_binary() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/bazel"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^bazel /{print $2; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^bazel /{print $2; exit}')
 	fi
 	if bashy_install_check "bazel" "${installed_version}" "${latest_version}"
 	then

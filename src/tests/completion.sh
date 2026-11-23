@@ -19,12 +19,12 @@ function testCompletionCachesAndReuses() {
 	export BASHY_COMPLETION_CACHE="${dir}/cache"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null || _bashy_assert_fail
 	# the cache file has to exist afterwards, that is the whole point
-	if [ ! -s "${dir}/cache/faketool.bash" ]
+	if [[ ! -s "${dir}/cache/faketool.bash" ]]
 	then
 		rm -rf "${dir}"
 		_bashy_assert_fail
 	fi
-	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v1 faketool"
+	_bashy_assert_equal "$(< "${dir}/cache/faketool.bash")" "complete -W v1 faketool"
 	rm -rf "${dir}"
 }
 
@@ -39,7 +39,7 @@ function testCompletionServesFromCache() {
 	printf '#!/bin/bash\nexit 1\n' > "${dir}/bin/faketool"
 	touch -r "${dir}/cache/faketool.bash.stamp" "${dir}/bin/faketool"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null || _bashy_assert_fail
-	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v1 faketool"
+	_bashy_assert_equal "$(< "${dir}/cache/faketool.bash")" "complete -W v1 faketool"
 	rm -rf "${dir}"
 }
 
@@ -54,7 +54,7 @@ function testCompletionInvalidatesWhenToolIsOlder() {
 	_test_completion_tool "${dir}" "complete -W v2 faketool"
 	touch -d '2000-01-01' "${dir}/bin/faketool"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null
-	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v2 faketool"
+	_bashy_assert_equal "$(< "${dir}/cache/faketool.bash")" "complete -W v2 faketool"
 	rm -rf "${dir}"
 }
 
@@ -68,7 +68,7 @@ function testCompletionInvalidatesWhenToolChanges() {
 	# exactly the case a whole second stamp used to miss
 	_test_completion_tool "${dir}" "complete -W v2 faketool"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null
-	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v2 faketool"
+	_bashy_assert_equal "$(< "${dir}/cache/faketool.bash")" "complete -W v2 faketool"
 	rm -rf "${dir}"
 }
 
@@ -82,11 +82,11 @@ function testCompletionFindsBinaryBehindFunction() {
 	# regenerates.
 	function faketool() { echo "the function, not the binary"; }
 	# a direct call first, so the function has a visible call site
-	_bashy_assert_equal "$(faketool)" "the function, not the binary"
+	_bashy_assert_equal "$(faketool || true)" "the function, not the binary"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null || _bashy_assert_fail
-	_bashy_assert_equal "$(cat "${dir}/cache/faketool.bash")" "complete -W v1 faketool"
-	if [ "${dir}/bin/faketool" -nt "${dir}/cache/faketool.bash.stamp" ] \
-		|| [ "${dir}/bin/faketool" -ot "${dir}/cache/faketool.bash.stamp" ]
+	_bashy_assert_equal "$(< "${dir}/cache/faketool.bash")" "complete -W v1 faketool"
+	if [[ "${dir}/bin/faketool" -nt "${dir}/cache/faketool.bash.stamp" ]] \
+		|| [[ "${dir}/bin/faketool" -ot "${dir}/cache/faketool.bash.stamp" ]]
 	then
 		_bashy_assert_fail
 	fi
@@ -115,7 +115,7 @@ function testCompletionFailingCommandLeavesNoCache() {
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null 2>&1 \
 		&& { rm -rf "${dir}"; _bashy_assert_fail; }
 	# a failed run must not leave a cache file, or the failure becomes permanent
-	if [ -e "${dir}/cache/faketool.bash" ]
+	if [[ -e "${dir}/cache/faketool.bash" ]]
 	then
 		rm -rf "${dir}"
 		_bashy_assert_fail
@@ -131,7 +131,7 @@ function testCompletionCleanRemovesCache() {
 	export BASHY_COMPLETION_CACHE="${dir}/cache"
 	PATH="${dir}/bin:${PATH}" bashy_completion faketool faketool > /dev/null
 	bashy_completion_clean > /dev/null
-	if [ -d "${dir}/cache" ]
+	if [[ -d "${dir}/cache" ]]
 	then
 		rm -rf "${dir}"
 		_bashy_assert_fail

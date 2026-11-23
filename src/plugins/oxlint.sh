@@ -30,7 +30,7 @@ function _install_oxlint_tar() {
 	fi
 	local release_json
 	release_json=$(echo "${releases_json}" | jq --raw-output '[.[] | select(.tag_name | startswith("oxlint_v"))][0] // empty')
-	if [ -z "${release_json}" ]
+	if [[ -z "${release_json}" ]]
 	then
 		echo "oxlint: no oxlint_v* release among the latest releases" >&2
 		return 1
@@ -41,10 +41,10 @@ function _install_oxlint_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/oxlint"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
 		# oxlint --version prints "Version: 1.86.0"
-		installed_version=$("${executable}" --version 2>/dev/null | awk '/^Version: /{print $2; exit}')
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | awk '/^Version: /{print $2; exit}')
 	fi
 	if bashy_install_check "oxlint" "${installed_version}" "${latest_version}"
 	then

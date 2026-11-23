@@ -56,18 +56,22 @@ function write_stamp() {
 	local commit
 	commit=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 	# only the installed part counts as dirty, an edited README is not
-	if [ -n "$(git status --porcelain -- "${src}" 2>/dev/null)" ]; then
+	local dirty
+	dirty=$(git status --porcelain -- "${src}" 2>/dev/null || true)
+	if [[ -n "${dirty}" ]]; then
 		commit="${commit}+dirty"
 	fi
 	local version
 	version=$(sed -n 's/^export BASHY_VERSION_STR="\(.*\)"/\1/p' "${src}core/version.sh")
-	echo "${commit} ${version:-unknown} $(date +%s)" > "${stamp}"
+	local now
+	now=$(date +%s)
+	echo "${commit} ${version:-unknown} ${now}" > "${stamp}"
 }
 
-if [ -z "${changes}" ]; then
+if [[ -z "${changes}" ]]; then
 	echo "${target} is up to date"
 	# an install from before stamping gets its stamp without waiting for a change
-	if [ ! -f "${stamp}" ]; then
+	if [[ ! -f "${stamp}" ]]; then
 		write_stamp
 	fi
 	exit 0

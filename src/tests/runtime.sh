@@ -143,7 +143,7 @@ function testBashyListEntriesAllExist() {
 		[[ "${line}" =~ ^#.* ]] && continue
 		[[ "${line}" =~ ^[[:space:]]*$ ]] && continue
 		plugin="${line#-}"
-		if [ ! -r "src/plugins/${plugin}.sh" ]
+		if [[ ! -r "src/plugins/${plugin}.sh" ]]
 		then
 			echo "no plugin file for [${plugin}]"
 			missing=1

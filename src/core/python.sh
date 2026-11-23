@@ -21,7 +21,7 @@ function python_version_short() {
 function old_python_activate() {
 	local folder=$1
 	local activate="${folder}/bin/activate"
-	if [ -r "${activate}" ]
+	if [[ -r "${activate}" ]]
 	then
 		bashy_log "core/python" "${BASHY_LOG_INFO}" "activating virtual env [${folder}]"
 		# shellcheck source=/dev/null
@@ -40,7 +40,7 @@ function python_activate() {
 	local folder=$1
 	# first deactivate an environment
 	local activate="${folder}/bin/activate"
-	if [ -r "${activate}" ]
+	if [[ -r "${activate}" ]]
 	then
 		python_deactivate
 		bashy_log "core/python" "${BASHY_LOG_DEBUG}" "activating venv"

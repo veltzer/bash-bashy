@@ -11,7 +11,7 @@ function _activate_pyenv() {
 	export PYENV_ROOT
 	export PYENV_BIN
 	_bashy_pathutils_add_head PATH "${PYENV_BIN}"
-	eval "$(pyenv init -)"
+	eval "$(pyenv init - || true)"
 	__var=0
 }
 

@@ -35,14 +35,14 @@
 # location of the cache, honoring XDG_CACHE_HOME, overridable via BASHY_LATEST_CACHE
 : "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
 
-if [ -z "${BASHY_LATEST_CACHE+x}" ]
+if [[ -z "${BASHY_LATEST_CACHE+x}" ]]
 then
 	export BASHY_LATEST_CACHE="${XDG_CACHE_HOME:-${HOME}/.cache}/bashy/latest"
 fi
 
 # how long an answer stays fresh, in seconds, overridable via BASHY_LATEST_TTL;
 # this is the one place the default is set, everything else refers to the variable
-if [ -z "${BASHY_LATEST_TTL+x}" ]
+if [[ -z "${BASHY_LATEST_TTL+x}" ]]
 then
 	export BASHY_LATEST_TTL=$(( 24 * 60 * 60 ))
 fi
@@ -71,10 +71,10 @@ function _bashy_latest_age() {
 # put its age into <age_var>.
 function _bashy_latest_fresh() {
 	local -n __fresh_age=$2
-	[ -f "$1" ] || return 1
+	[[ -f "$1" ]] || return 1
 	_bashy_latest_age "$1" __fresh_age
 	# a negative age is a clock that went backwards, not a fresh answer
-	[ "${__fresh_age}" -ge 0 ] && [ "${__fresh_age}" -lt "${BASHY_LATEST_TTL}" ]
+	[[ "${__fresh_age}" -ge 0 ]] && [[ "${__fresh_age}" -lt "${BASHY_LATEST_TTL}" ]]
 }
 
 # bashy_fetch_latest <url> [out_var]
@@ -88,13 +88,13 @@ function bashy_fetch_latest() {
 	_bashy_latest_file "${__latest_url}" __latest_file
 	local __latest_body __latest_age
 	local __latest_hit=0
-	if [ "${BASHY_INSTALL_REFRESH:-0}" -ne 1 ] && _bashy_latest_fresh "${__latest_file}" __latest_age
+	if [[ "${BASHY_INSTALL_REFRESH:-0}" -ne 1 ]] && _bashy_latest_fresh "${__latest_file}" __latest_age
 	then
 		bashy_log "core/latest" "${BASHY_LOG_INFO}" "cache hit for [${__latest_url}], ${__latest_age}s old"
 		__latest_body=$(< "${__latest_file}")
 		__latest_hit=1
 	fi
-	if [ "${__latest_hit}" -eq 0 ]
+	if [[ "${__latest_hit}" -eq 0 ]]
 	then
 		if ! __latest_body=$(curl --fail --silent --show-error --location "${__latest_url}")
 		then
@@ -109,7 +109,7 @@ function bashy_fetch_latest() {
 		mv --force "${__latest_tmp}" "${__latest_file}"
 		printf '%s\n' "${__latest_url}" > "${__latest_file}.url"
 	fi
-	if [ -n "${2:-}" ]
+	if [[ -n "${2:-}" ]]
 	then
 		local -n __out=$2
 		__out="${__latest_body}"
@@ -139,8 +139,8 @@ function bashy_latest_list() {
 	local url_file age
 	for url_file in "${BASHY_LATEST_CACHE}"/*.url
 	do
-		[ -f "${url_file}" ] || continue
-		[ -f "${url_file%.url}" ] || continue
+		[[ -f "${url_file}" ]] || continue
+		[[ -f "${url_file%.url}" ]] || continue
 		_bashy_latest_age "${url_file%.url}" age
 		printf '%8ss  %s\n' "${age}" "$(< "${url_file}")"
 	done
@@ -150,7 +150,7 @@ function bashy_latest_list() {
 # Remove the entire cache, so the next installer asks again and the next
 # bashy_upgrade runs every installer.
 function bashy_latest_clean() {
-	if [ -d "${BASHY_LATEST_CACHE}" ]
+	if [[ -d "${BASHY_LATEST_CACHE}" ]]
 	then
 		echo "removing latest version cache [${BASHY_LATEST_CACHE}]"
 		rm -rf "${BASHY_LATEST_CACHE}"

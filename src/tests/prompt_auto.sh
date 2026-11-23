@@ -34,12 +34,19 @@ function testPromptAutoEntersOnceAndExitsOnce() {
 	# the enter script runs once, however many prompts happen inside
 	_bashy_assert_equal "${_test_auto_enters}" 1
 	_bashy_assert_equal "${_TEST_AUTO_IN:-}" "yes"
-	_bashy_assert_equal "${AUTO_ACTIVE}" "$(realpath "${repo}")"
+	_bashy_assert_equal "${AUTO_ACTIVE}" "$(realpath "${repo}" || true)"
 	cd / || _bashy_assert_fail
 	prompt_auto
 	prompt_auto
 	_bashy_assert_equal "${_test_auto_exits}" 1
-	if var_is_defined AUTO_ACTIVE || var_is_defined _TEST_AUTO_IN
+	local active_rc in_rc
+	set +e
+	var_is_defined AUTO_ACTIVE
+	active_rc=$?
+	var_is_defined _TEST_AUTO_IN
+	in_rc=$?
+	set -e
+	if [[ "${active_rc}" -eq 0 ]] || [[ "${in_rc}" -eq 0 ]]
 	then
 		_bashy_assert_fail
 	fi
@@ -57,7 +64,12 @@ function testPromptAutoDeactivateLeavesEnvironment() {
 	# deactivating while inside runs the exit script and drops the prompt hook
 	_bashy_assert_equal "${_test_auto_exits}" 1
 	_bashy_assert_equal "${#_BASHY_PROMPT_FUNCTIONS[@]}" 0
-	if var_is_defined AUTO_ACTIVE
+	local active_rc
+	set +e
+	var_is_defined AUTO_ACTIVE
+	active_rc=$?
+	set -e
+	if [[ "${active_rc}" -eq 0 ]]
 	then
 		_bashy_assert_fail
 	fi

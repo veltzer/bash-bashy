@@ -10,7 +10,7 @@ function testVerifySha256LiteralDigest() {
 	dir=$(mktemp --directory)
 	echo "hello bashy" > "${dir}/file"
 	local sum
-	sum=$(sha256sum "${dir}/file" | awk '{print $1}')
+	sum=$({ sha256sum "${dir}/file" || true; } | awk '{print $1}')
 	bashy_verify_sha256 "${dir}/file" "${sum}" > /dev/null || _bashy_assert_fail
 	rm -rf "${dir}"
 }
@@ -48,7 +48,7 @@ function testVerifySha256BareDigestFile() {
 	dir=$(mktemp --directory)
 	echo "hello bashy" > "${dir}/tool"
 	# minikube and friends publish just the digest, with no filename column
-	sha256sum "${dir}/tool" | awk '{print $1}' > "${dir}/tool.sha256"
+	{ sha256sum "${dir}/tool" || true; } | awk '{print $1}' > "${dir}/tool.sha256"
 	bashy_verify_sha256 "${dir}/tool" "file://${dir}/tool.sha256" > /dev/null \
 		|| _bashy_assert_fail
 	rm -rf "${dir}"
@@ -61,7 +61,7 @@ function testVerifySha256PathAndBinaryMarker() {
 	# rustup publishes "<digest> *./rustup-init": a binary marker and a path, not a
 	# bare filename, and both have to be stripped before the name can be matched
 	local sum
-	sum=$(sha256sum "${dir}/rustup-init" | awk '{print $1}')
+	sum=$({ sha256sum "${dir}/rustup-init" || true; } | awk '{print $1}')
 	printf '%s *./rustup-init\n' "${sum}" > "${dir}/sums.txt"
 	bashy_verify_sha256 "${dir}/rustup-init" "file://${dir}/sums.txt" > /dev/null \
 		|| _bashy_assert_fail
@@ -89,7 +89,7 @@ function testDownloadReusesCacheWhenValidatorMatches() {
 	function _bashy_download_validator() { echo 'etag: "same"'; }
 	local out=""
 	bashy_download "https://example.invalid/thing.tar.gz" out || _bashy_assert_fail
-	_bashy_assert_equal "$(cat "${out}")" "cached bytes"
+	_bashy_assert_equal "$(< "${out}")" "cached bytes"
 	unset -f _bashy_download_validator
 	rm -rf "${dir}"
 }
@@ -123,7 +123,7 @@ function testDownloadKeepsCacheWhenOffline() {
 	function _bashy_download_validator() { echo ""; }
 	local out=""
 	bashy_download "https://example.invalid/thing.tar.gz" out || _bashy_assert_fail
-	_bashy_assert_equal "$(cat "${out}")" "cached bytes"
+	_bashy_assert_equal "$(< "${out}")" "cached bytes"
 	unset -f _bashy_download_validator
 	rm -rf "${dir}"
 }
@@ -137,6 +137,6 @@ function testDownloadFailureReportsCurlExit() {
 	# has to carry curl's exit code, and no partial file may stay behind
 	err=$(bashy_download "file://${dir}/missing.tar.gz" out 2>&1 >/dev/null) && _bashy_assert_fail
 	[[ "${err}" == *"curl exit 37, 0 bytes received"* ]] || _bashy_assert_fail
-	[ -e "${dir}/cache/missing.tar.gz.part" ] && _bashy_assert_fail
+	[[ -e "${dir}/cache/missing.tar.gz.part" ]] && _bashy_assert_fail
 	rm -rf "${dir}"
 }

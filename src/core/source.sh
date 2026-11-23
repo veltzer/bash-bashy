@@ -5,7 +5,7 @@
 # - a protection against double inclusion.
 
 # protect against double inclusion
-if [ -n "${SOURCE-}" ]
+if [[ -n "${SOURCE-}" ]]
 then
 	return
 fi
@@ -17,7 +17,7 @@ declare -gA sourced=()
 function _bashy_source_relative() {
 	local file=$1
 	local path="${BASH_SOURCE%/*}/${file}"
-	if [ -z "${sourced[${path}]+muahaha}" ]
+	if [[ -z "${sourced[${path}]+muahaha}" ]]
 	then
 		sourced[${path}]=1
 		# shellcheck source=/dev/null
@@ -38,7 +38,7 @@ function _bashy_source_absolute() {
 	then
 		path="${PWD}/${path}"
 	fi
-	if [ -z "${sourced[${path}]+muahaha}" ]
+	if [[ -z "${sourced[${path}]+muahaha}" ]]
 	then
 		sourced[${path}]=1
 		# shellcheck source=/dev/null

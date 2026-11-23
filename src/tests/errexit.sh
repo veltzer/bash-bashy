@@ -52,8 +52,14 @@ function testErrexitRestoreToOn() {
 
 function testErrexitSaveEchoesWhenNoOutVar() {
 	set +e
-	local out
-	out=$(errexit_save_and_start)
+	# written to a file rather than captured with $(...), which would run the
+	# function in a subshell where "set -e" does not count
+	local tmp out
+	tmp=$(mktemp)
+	errexit_save_and_start > "${tmp}"
+	set +e
+	out=$(< "${tmp}")
+	rm -f "${tmp}"
 	_bashy_assert_equal "${out}" "off"
 	set +e
 }

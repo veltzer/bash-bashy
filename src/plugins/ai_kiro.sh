@@ -34,7 +34,7 @@ function _kiro_arch() {
 		x86_64|amd64) echo "x64" ;;
 		arm64|aarch64) echo "arm64" ;;
 		*)
-			echo "kiro: unsupported architecture [$(uname -m)]" >&2
+			echo "kiro: unsupported architecture [$(uname -m || true)]" >&2
 			return 1
 			;;
 	esac
@@ -49,7 +49,7 @@ function _kiro_metadata() {
 	local arch
 	arch=$(_kiro_arch) || return
 	local name="metadata-linux-${arch}-stable.json"
-	if [ "${package}" = "deb" ]
+	if [[ "${package}" = "deb" ]]
 	then
 		name="metadata-linux-${arch}-deb-stable.json"
 	fi
@@ -72,10 +72,10 @@ function _kiro_download() {
 	urls=$(echo "${metadata}" | jq --raw-output --arg v "${version}" \
 		'.releases[] | select(.version == $v) | .updateTo.url')
 	local download_file certificate_url signature_url
-	download_file=$(echo "${urls}" | grep "${pattern}" | head -1)
-	certificate_url=$(echo "${urls}" | grep '/certificate\.pem$' | head -1)
-	signature_url=$(echo "${urls}" | grep '/signature\.bin$' | head -1)
-	if [ -z "${download_file}" ] || [ -z "${certificate_url}" ] || [ -z "${signature_url}" ]
+	download_file=$(grep -m1 "${pattern}" <<< "${urls}" || true)
+	certificate_url=$(grep -m1 '/certificate\.pem$' <<< "${urls}" || true)
+	signature_url=$(grep -m1 '/signature\.bin$' <<< "${urls}" || true)
+	if [[ -z "${download_file}" ]] || [[ -z "${certificate_url}" ]] || [[ -z "${signature_url}" ]]
 	then
 		echo "kiro: the release metadata has no package, certificate or signature" >&2
 		return 1
@@ -120,7 +120,7 @@ function _kiro_verify() {
 		echo "kiro: the signing certificate is not Amazon's [${subject}]" >&2
 		return 1
 	fi
-	if ! openssl dgst -sha256 -verify <(openssl x509 -in "${certificate}" -noout -pubkey) \
+	if ! openssl dgst -sha256 -verify <(openssl x509 -in "${certificate}" -noout -pubkey || true) \
 		-signature "${signature}" "${package}" &> /dev/null
 	then
 		echo "kiro: signature mismatch for [${package}]" >&2
@@ -198,7 +198,7 @@ function _install_kiro_tar() {
 	latest_version=$(echo "${metadata}" | jq --raw-output '.currentRelease // empty')
 	local folder="${KIRO_TAR_FOLDER}"
 	local installed_version=""
-	if [ -x "${folder}/kiro" ] && [ -f "${folder}/resources/app/product.json" ]
+	if [[ -x "${folder}/kiro" ]] && [[ -f "${folder}/resources/app/product.json" ]]
 	then
 		installed_version=$(jq --raw-output '.version // empty' "${folder}/resources/app/product.json")
 	fi
@@ -279,7 +279,7 @@ EOF
 function _kiro_tar_apparmor() {
 	local folder=$1
 	local restrict="/proc/sys/kernel/apparmor_restrict_unprivileged_userns"
-	if [ ! -f "${restrict}" ] || [ "$(cat "${restrict}")" != "1" ]
+	if [[ ! -f "${restrict}" ]] || [[ "$(< "${restrict}")" != "1" ]]
 	then
 		return 0
 	fi
@@ -301,7 +301,7 @@ EOF
 
 function _uninstall_kiro_tar() {
 	local executable="${BASHY_INSTALL_DIR}/kiro"
-	if [ -L "${executable}" ]
+	if [[ -L "${executable}" ]]
 	then
 		echo "removing ${executable}"
 		rm -f "${executable}"
@@ -310,7 +310,7 @@ function _uninstall_kiro_tar() {
 	local applications="${HOME}/.local/share/applications"
 	bashy_uninstall_binary "kiro.desktop" "${applications}/kiro.desktop"
 	bashy_uninstall_binary "kiro-url-handler.desktop" "${applications}/kiro-url-handler.desktop"
-	if [ -f "${KIRO_TAR_APPARMOR}" ]
+	if [[ -f "${KIRO_TAR_APPARMOR}" ]]
 	then
 		echo "removing ${KIRO_TAR_APPARMOR}"
 		sudo apparmor_parser --remove "${KIRO_TAR_APPARMOR}"

@@ -49,7 +49,7 @@ function testPromptUvFindsNoRootAtTop() {
 	dir=$(mktemp -d)
 	cd "${dir}" || _bashy_assert_fail
 	local root=""
-	if [ ! -e /pyproject.toml ] && [ ! -e /tmp/pyproject.toml ] && _prompt_uv_find_root root
+	if [[ ! -e /pyproject.toml ]] && [[ ! -e /tmp/pyproject.toml ]] && _prompt_uv_find_root root
 	then
 		_bashy_assert_fail
 	fi
@@ -62,22 +62,22 @@ function testPromptUvRecreatesDeletedVenv() {
 	_test_prompt_uv_setup
 	prompt_uv
 	_bashy_assert_equal "${_BASHY_UV_ACTIVE}" "${_test_prompt_uv_dir}/.venv"
-	if [ ! -f .venv/pyproject.toml.checksum ]
+	if [[ ! -f .venv/pyproject.toml.checksum ]]
 	then
 		_bashy_assert_fail
 	fi
 	# a 'git clean' takes the venv, checksum file included
 	rm -rf .venv
 	prompt_uv
-	if [ ! -d .venv/bin ]
+	if [[ ! -d .venv/bin ]]
 	then
 		_bashy_assert_fail
 	fi
-	if [ ! -f .venv/pyproject.toml.checksum ]
+	if [[ ! -f .venv/pyproject.toml.checksum ]]
 	then
 		_bashy_assert_fail
 	fi
-	if [ -f .uv.sync.errors ]
+	if [[ -f .uv.sync.errors ]]
 	then
 		_bashy_assert_fail
 	fi
@@ -90,11 +90,11 @@ function testPromptUvStaleErrorFileDoesNotBlockCreation() {
 	# stop the venv from being created
 	echo "old failure" > .uv.sync.errors
 	prompt_uv
-	if [ ! -d .venv/bin ]
+	if [[ ! -d .venv/bin ]]
 	then
 		_bashy_assert_fail
 	fi
-	if [ -f .uv.sync.errors ]
+	if [[ -f .uv.sync.errors ]]
 	then
 		_bashy_assert_fail
 	fi
@@ -108,6 +108,6 @@ function testPromptUvErrorFileStillBlocksWhenVenvExists() {
 	echo 'changed' >> pyproject.toml
 	echo "boom" > .uv.sync.errors
 	prompt_uv
-	_bashy_assert_equal "$(cat .uv.sync.errors)" "boom"
+	_bashy_assert_equal "$(< .uv.sync.errors)" "boom"
 	_test_prompt_uv_teardown
 }

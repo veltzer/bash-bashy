@@ -38,16 +38,16 @@ function _install_eksctl_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/eksctl"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version 2>/dev/null | head -1)
+		installed_version=$({ "${executable}" version 2>/dev/null || true; } | head -1)
 	fi
 	if bashy_install_check "eksctl" "${installed_version}" "${latest_version}"
 	then
 		return
 	fi
 	local download_file
-	bashy_github_asset "${release_json}" "eksctl_$(uname -s)_amd64\\.tar\\.gz$" download_file || return
+	bashy_github_asset "${release_json}" "eksctl_$(uname -s || true)_amd64\\.tar\\.gz$" download_file || return
 	bashy_install_download "${download_file}"
 	local tar
 	bashy_download "${download_file}" tar || return

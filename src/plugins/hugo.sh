@@ -39,9 +39,9 @@ function _install_hugo_tar() {
 	folder=$(bashy_install_dir)
 	local executable="${folder}/hugo"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version 2>/dev/null | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" version 2>/dev/null || true; } | grep -oP -m1 'v\K[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "hugo" "${installed_version}" "${latest_version}"
 	then

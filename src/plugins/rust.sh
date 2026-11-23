@@ -74,15 +74,15 @@ function _install_rust_rustup() {
 	# that RUSTUP_HOME holds
 	local rustc="${CARGO_HOME}/bin/rustc"
 	local installed_version=""
-	if [ -x "${rustc}" ]
+	if [[ -x "${rustc}" ]]
 	then
-		installed_version=$("${rustc}" --version 2>/dev/null | grep -oP '^rustc \K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${rustc}" --version 2>/dev/null || true; } | grep -oP -m1 '^rustc \K[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "rust" "${installed_version}" "${latest_version}"
 	then
 		return
 	fi
-	if [ -n "${installed_version}" ] && ! bashy_install_forced
+	if [[ -n "${installed_version}" ]] && ! bashy_install_forced
 	then
 		# rustup is already in place, so an upgrade is its job: it moves the stable
 		# toolchain forward and keeps the cargo subcommands in CARGO_HOME/bin intact;

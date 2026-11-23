@@ -14,7 +14,7 @@ function claude() {
 	local -a cap=()
 	# the user manager's socket, not "systemctl --user is-system-running", which
 	# fails on a merely "degraded" session that runs scopes perfectly well
-	if command -v systemd-run > /dev/null && [ -S "${XDG_RUNTIME_DIR:-}/systemd/private" ]
+	if command -v systemd-run > /dev/null && [[ -S "${XDG_RUNTIME_DIR:-}/systemd/private" ]]
 	then
 		cap=(systemd-run --user --scope --quiet
 			-p "MemoryHigh=${BASHY_CLAUDE_MEMORY_HIGH}"
@@ -53,12 +53,12 @@ function _install_claude_script() {
 	local latest_version
 	# the "latest" endpoint is where the vendor installer itself reads the version
 	# to fetch, so ask the same source before deciding whether to run it
-	latest_version=$(bashy_fetch_latest "https://downloads.claude.ai/claude-code-releases/latest" \
-		| grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+	latest_version=$({ bashy_fetch_latest "https://downloads.claude.ai/claude-code-releases/latest" || true; } \
+		| grep -oP -m1 '^[0-9]+\.[0-9]+\.[0-9]+')
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | grep -oP -m1 '^[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "claude" "${installed_version}" "${latest_version}"
 	then
@@ -122,15 +122,15 @@ function _install_claude_desktop_apt() {
 	local key
 	bashy_download "https://downloads.claude.ai/claude-desktop/key.asc" key || return 1
 	local fingerprint
-	fingerprint=$(gpg --show-keys --with-colons "${key}" 2>/dev/null | awk -F: '/^fpr:/{print $10; exit}')
-	if [ "${fingerprint}" != "${CLAUDE_DESKTOP_FINGERPRINT}" ]
+	fingerprint=$({ gpg --show-keys --with-colons "${key}" 2>/dev/null || true; } | awk -F: '/^fpr:/{print $10; exit}')
+	if [[ "${fingerprint}" != "${CLAUDE_DESKTOP_FINGERPRINT}" ]]
 	then
 		echo "claude-desktop: signing key fingerprint is [${fingerprint}], expected [${CLAUDE_DESKTOP_FINGERPRINT}]" >&2
 		return 1
 	fi
 	sudo install --mode=644 "${key}" "${CLAUDE_DESKTOP_KEYRING}"
 	local new_sources="deb [arch=amd64,arm64 signed-by=${CLAUDE_DESKTOP_KEYRING}] ${CLAUDE_DESKTOP_REPO} stable main"
-	if [ ! -f "${CLAUDE_DESKTOP_SOURCES}" ] || [ "$(cat "${CLAUDE_DESKTOP_SOURCES}" 2>/dev/null)" != "${new_sources}" ]; then
+	if [[ ! -f "${CLAUDE_DESKTOP_SOURCES}" ]] || [[ "$(cat "${CLAUDE_DESKTOP_SOURCES}" 2>/dev/null || true)" != "${new_sources}" ]]; then
 		echo "${new_sources}" | sudo tee "${CLAUDE_DESKTOP_SOURCES}" > /dev/null
 		unset _BASHY_APT_UPDATED
 	fi
@@ -148,9 +148,9 @@ function _install_claude_desktop_deb() {
 	local index="${CLAUDE_DESKTOP_REPO}/dists/stable/main/binary-${arch}/Packages"
 	# one line per package stanza: version, pool path, digest, newest last
 	local newest
-	newest=$(bashy_fetch_latest "${index}" \
-		| awk '/^Version:/{v=$2} /^Filename:/{f=$2} /^SHA256:/{s=$2} /^$/{if(v!="")print v, f, s; v=""} END{if(v!="")print v, f, s}' \
-		| sort --version-sort | tail -n 1)
+	newest=$({ bashy_fetch_latest "${index}" || true; } \
+		| { awk '/^Version:/{v=$2} /^Filename:/{f=$2} /^SHA256:/{s=$2} /^$/{if(v!="")print v, f, s; v=""} END{if(v!="")print v, f, s}' || true; } \
+		| { sort --version-sort || true; } | tail -n 1)
 	local latest_version filename sha256
 	read -r latest_version filename sha256 <<< "${newest}"
 	local installed_version
@@ -173,7 +173,7 @@ function _uninstall_claude_desktop() {
 	local file
 	for file in "${CLAUDE_DESKTOP_SOURCES}" "${CLAUDE_DESKTOP_KEYRING}"
 	do
-		if [ -f "${file}" ]
+		if [[ -f "${file}" ]]
 		then
 			echo "removing ${file}"
 			sudo rm -f "${file}"

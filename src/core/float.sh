@@ -9,37 +9,49 @@
 function float_gt() {
 	local a=$1
 	local b=$2
-	(( $(echo "${a} > ${b}" |bc -l) ))
+	local result
+	result=$(bc -l <<< "${a} > ${b}")
+	(( result ))
 }
 
 function float_ge() {
 	local a=$1
 	local b=$2
-	(( $(echo "${a} >= ${b}" |bc -l) ))
+	local result
+	result=$(bc -l <<< "${a} >= ${b}")
+	(( result ))
 }
 
 function float_eq() {
 	local a=$1
 	local b=$2
-	(( $(echo "${a} == ${b}" |bc -l) ))
+	local result
+	result=$(bc -l <<< "${a} == ${b}")
+	(( result ))
 }
 
 function float_ne() {
 	local a=$1
 	local b=$2
-	(( $(echo "${a} != ${b}" |bc -l) ))
+	local result
+	result=$(bc -l <<< "${a} != ${b}")
+	(( result ))
 }
 
 function float_lt() {
 	local a=$1
 	local b=$2
-	(( $(echo "${a} < ${b}" |bc -l) ))
+	local result
+	result=$(bc -l <<< "${a} < ${b}")
+	(( result ))
 }
 
 function float_le() {
 	local a=$1
 	local b=$2
-	(( $(echo "${a} <= ${b}" |bc -l) ))
+	local result
+	result=$(bc -l <<< "${a} <= ${b}")
+	(( result ))
 }
 
 function float_add() {

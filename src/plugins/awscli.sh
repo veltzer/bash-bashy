@@ -51,11 +51,11 @@ function _install_awscli_zip() {
 	local folder="${HOME}/install/aws"
 	local executable="${folder}/bin/aws"
 	local latest_version
-	latest_version=$(bashy_fetch_latest "https://api.github.com/repos/aws/aws-cli/tags?per_page=20" | jq --raw-output '[.[] | select(.name | startswith("2."))][0].name')
+	latest_version=$({ bashy_fetch_latest "https://api.github.com/repos/aws/aws-cli/tags?per_page=20" || true; } | jq --raw-output '[.[] | select(.name | startswith("2."))][0].name')
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | grep -oP 'aws-cli/\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | grep -oP -m1 'aws-cli/\K[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "awscli" "${installed_version}" "${latest_version}"
 	then
@@ -92,9 +92,9 @@ function _install_aws_iam_authenticator_binary() {
 	latest_version=$(bashy_github_version "${release_json}")
 	local executable="${HOME}/install/aws/bin/aws-iam-authenticator"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version 2>/dev/null | grep -oP '"Version":"v?\K[^"]+' | head -1)
+		installed_version=$({ "${executable}" version 2>/dev/null || true; } | grep -oP -m1 '"Version":"v?\K[^"]+')
 	fi
 	if bashy_install_check "aws-iam-authenticator" "${installed_version}" "${latest_version}"
 	then
@@ -117,7 +117,7 @@ function _uninstall_awscli_zip() {
 }
 
 function awscli_select_profile() {
-	readarray -t profiles < <(sed -nr 's/^\[(.*)\]$/\1/p' "${HOME}/.aws/credentials")
+	readarray -t profiles < <(sed -nr 's/^\[(.*)\]$/\1/p' "${HOME}/.aws/credentials" || true)
 	echo "Please select a profile:"
 	select profile in "${profiles[@]}"; do
 		[[ -n "${profile}" ]] || { echo "Invalid choice. Please try again." >&2; continue; }

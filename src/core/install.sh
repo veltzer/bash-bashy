@@ -41,7 +41,7 @@
 # _bashy_pathutils_is_in_path is available throughout.
 
 # Where plugins put the single binaries they install. Override in ~/.bashy.config.
-if [ -z "${BASHY_INSTALL_DIR+x}" ]
+if [[ -z "${BASHY_INSTALL_DIR+x}" ]]
 then
 	export BASHY_INSTALL_DIR="${HOME}/install/binaries"
 fi
@@ -50,7 +50,7 @@ fi
 # Echo the install directory, creating it if it is not there yet. Installers used
 # to just assume it existed and failed obscurely on a fresh machine when it did not.
 function bashy_install_dir() {
-	if [ ! -d "${BASHY_INSTALL_DIR}" ]
+	if [[ ! -d "${BASHY_INSTALL_DIR}" ]]
 	then
 		mkdir -p "${BASHY_INSTALL_DIR}"
 	fi
@@ -111,7 +111,7 @@ function bashy_install_via() {
 # Succeed when the running installer was given --force. For the plugins whose
 # "is it there already" check is not a version comparison.
 function bashy_install_forced() {
-	[ "${BASHY_INSTALL_FORCE:-0}" -eq 1 ]
+	[[ "${BASHY_INSTALL_FORCE:-0}" -eq 1 ]]
 }
 
 # bashy_install_check <name> <installed_version> <latest_version>
@@ -124,17 +124,17 @@ function bashy_install_check() {
 	local name=$1
 	local installed=$2
 	local latest=$3
-	if [ -z "${latest}" ]
+	if [[ -z "${latest}" ]]
 	then
 		echo "${name}: could not determine the latest version" >&2
 		return 1
 	fi
-	if [ -z "${installed}" ]
+	if [[ -z "${installed}" ]]
 	then
 		echo "Installing ${name} ${latest}"
 		return 1
 	fi
-	if [ "${installed}" = "${latest}" ]
+	if [[ "${installed}" = "${latest}" ]]
 	then
 		if bashy_install_forced
 		then
@@ -160,7 +160,7 @@ function bashy_install_download() {
 function bashy_uninstall_binary() {
 	local name=$1
 	local executable=${2:-${BASHY_INSTALL_DIR}/$1}
-	if [ -f "${executable}" ]
+	if [[ -f "${executable}" ]]
 	then
 		echo "removing ${executable}"
 		rm -f "${executable}"
@@ -181,14 +181,14 @@ function bashy_uninstall_directory() {
 	for directory in "$@"
 	do
 		# a plugin may leave both a versioned directory and a symlink to it
-		if [ -d "${directory}" ] || [ -L "${directory}" ]
+		if [[ -d "${directory}" ]] || [[ -L "${directory}" ]]
 		then
 			echo "removing ${directory}"
 			rm -rf "${directory}"
 			found=0
 		fi
 	done
-	if [ "${found}" -ne 0 ]
+	if [[ "${found}" -ne 0 ]]
 	then
 		echo "no ${name} detected"
 	fi
@@ -207,7 +207,7 @@ function bashy_github_release() {
 		echo "bashy_github_release: could not fetch the latest release of [${repo}]" >&2
 		return 1
 	fi
-	if [ -n "${2:-}" ]
+	if [[ -n "${2:-}" ]]
 	then
 		local -n __out=$2
 		__out="${json}"
@@ -241,18 +241,18 @@ function bashy_github_asset() {
 		'.assets[].browser_download_url | select(test($re))')
 	local count
 	count=$(echo "${urls}" | grep --count . || true)
-	if [ "${count}" -eq 0 ]
+	if [[ "${count}" -eq 0 ]]
 	then
 		echo "bashy_github_asset: no asset matches [${pattern}]" >&2
 		return 1
 	fi
-	if [ "${count}" -gt 1 ]
+	if [[ "${count}" -gt 1 ]]
 	then
 		echo "bashy_github_asset: [${pattern}] matches ${count} assets, expected one:" >&2
 		echo "${urls}" >&2
 		return 1
 	fi
-	if [ -n "${3:-}" ]
+	if [[ -n "${3:-}" ]]
 	then
 		local -n __out=$3
 		__out="${urls}"
@@ -326,7 +326,7 @@ function bashy_install_marker() {
 	local folder=$1
 	local name=$2
 	local marker="${folder}/.${name}_version"
-	if [ -n "${3:-}" ]
+	if [[ -n "${3:-}" ]]
 	then
 		echo "$3" > "${marker}"
 	fi
@@ -342,7 +342,7 @@ function bashy_install_marker_version() {
 	local name=$2
 	local executable=$3
 	local marker="${folder}/.${name}_version"
-	if [ -x "${executable}" ] && [ -f "${marker}" ]
+	if [[ -x "${executable}" ]] && [[ -f "${marker}" ]]
 	then
 		cat "${marker}"
 	fi
@@ -353,7 +353,7 @@ function bashy_install_marker_version() {
 # during a bashy_upgrade. Plugins that modify apt sources should unset
 # _BASHY_APT_UPDATED to force a fresh update.
 function _bashy_apt_update() {
-	if [ -z "${_BASHY_APT_UPDATED:-}" ]
+	if [[ -z "${_BASHY_APT_UPDATED:-}" ]]
 	then
 		sudo apt-get update
 		export _BASHY_APT_UPDATED=1
@@ -363,7 +363,7 @@ function _bashy_apt_update() {
 # _bashy_apt_installed <package>
 # Succeed when dpkg has <package> fully installed.
 function _bashy_apt_installed() {
-	dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
+	{ dpkg-query -W -f='${Status}' "$1" 2>/dev/null || true; } | grep -q "install ok installed"
 }
 
 # bashy_install_apt <name> <package...>
@@ -389,7 +389,7 @@ function bashy_install_apt() {
 		fi
 	done
 	local options=()
-	if [ "${#missing[@]}" -eq 0 ]
+	if [[ "${#missing[@]}" -eq 0 ]]
 	then
 		if ! bashy_install_forced
 		then
@@ -419,7 +419,7 @@ function bashy_uninstall_apt() {
 			found=0
 		fi
 	done
-	if [ "${found}" -ne 0 ]
+	if [[ "${found}" -ne 0 ]]
 	then
 		echo "no ${name} detected"
 		return 0

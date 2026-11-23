@@ -36,12 +36,12 @@ function _install_go_tar() {
 	local folder="${HOME}/install"
 	local full_folder="${folder}/go"
 	local latest_version
-	latest_version=$(bashy_fetch_latest "https://go.dev/VERSION?m=text" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
+	latest_version=$({ bashy_fetch_latest "https://go.dev/VERSION?m=text" || true; } | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
 	local executable="${full_folder}/bin/go"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" version 2>/dev/null | grep -oP 'go\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		installed_version=$({ "${executable}" version 2>/dev/null || true; } | grep -oP -m1 'go\K[0-9]+\.[0-9]+\.[0-9]+')
 	fi
 	if bashy_install_check "go" "${installed_version}" "${latest_version}"
 	then
@@ -53,10 +53,10 @@ function _install_go_tar() {
 	bashy_download "${download_file}" tar || return
 	# go publishes the sha256 of each archive on its download page
 	local expected
-	expected=$(curl --fail --silent --location "https://go.dev/dl/?mode=json&include=all" \
-		| jq --raw-output --arg f "go${latest_version}.linux-amd64.tar.gz" \
-			'.[].files[] | select(.filename==$f) | .sha256' | head -1)
-	if [ -n "${expected}" ]
+	expected=$({ curl --fail --silent --location "https://go.dev/dl/?mode=json&include=all" || true; } \
+		| { jq --raw-output --arg f "go${latest_version}.linux-amd64.tar.gz" \
+			'.[].files[] | select(.filename==$f) | .sha256' || true; } | head -1)
+	if [[ -n "${expected}" ]]
 	then
 		bashy_verify_sha256 "${tar}" "${expected}" || return
 	fi
@@ -64,12 +64,12 @@ function _install_go_tar() {
 	bashy_install_extract "${tar}" "${folder}"
 	# `go mod download` strips write bits from ${GOPATH}/pkg/mod, so plain
 	# `rm -rf` hits Permission denied. Restore u+w first.
-	[ -e "${HOME}/install/gopath" ] && chmod -R u+w "${HOME}/install/gopath" 2>/dev/null
+	[[ -e "${HOME}/install/gopath" ]] && chmod -R u+w "${HOME}/install/gopath" 2>/dev/null
 	rm -rf "${HOME}/.cache/go-build" "${HOME}/install/gopath"
 	mkdir -p "${HOME}/install/gopath/bin"
 }
 function _uninstall_go_tar() {
-	[ -e "${HOME}/install/gopath" ] && chmod -R u+w "${HOME}/install/gopath" 2>/dev/null
+	[[ -e "${HOME}/install/gopath" ]] && chmod -R u+w "${HOME}/install/gopath" 2>/dev/null
 	bashy_uninstall_directory "go" "${HOME}/install/go" "${HOME}/install/gopath"
 }
 

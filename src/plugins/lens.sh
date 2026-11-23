@@ -24,21 +24,21 @@ function _install_lens_appimage() {
 	# Lens has no version endpoint and the AppImage cannot report its own version,
 	# so the origin's ETag stands in for one and is recorded in the marker file.
 	local latest_version
-	latest_version=$(curl --fail --silent --head --location "${download_file}" | awk 'BEGIN{IGNORECASE=1} /^(etag|last-modified):/{sub(/\r$/,""); print; exit}')
+	latest_version=$({ curl --fail --silent --head --location "${download_file}" || true; } | awk 'BEGIN{IGNORECASE=1} /^(etag|last-modified):/{sub(/\r$/,""); print; exit}')
 	local installed_version
 	installed_version=$(bashy_install_marker_version "${folder}" "lens" "${executable}")
 	if bashy_install_check "lens" "${installed_version}" "${latest_version}"
 	then
 		return
 	fi
-	rm -f "$(bashy_install_marker "${folder}" "lens")"
+	rm -f "$(bashy_install_marker "${folder}" "lens" || true)"
 	bashy_install_binary "lens" "${download_file}" "${executable}" || return
 	bashy_install_marker "${folder}" "lens" "${latest_version}" > /dev/null
 }
 
 function _uninstall_lens_appimage() {
 	bashy_uninstall_binary "lens"
-	rm -f "$(bashy_install_marker "$(bashy_install_dir)" "lens")"
+	rm -f "$(bashy_install_marker "$(bashy_install_dir || true)" "lens" || true)"
 }
 
 register _activate_lens

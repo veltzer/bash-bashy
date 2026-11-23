@@ -28,8 +28,8 @@ function testInstallCheckUpToDateForced() {
 	_bashy_assert_equal "${out}" "gh 2.96.0 is already installed (latest), reinstalling"
 	bashy_install_check "gh" "2.96.0" "2.96.0" > /dev/null && _bashy_assert_fail
 	# the other two cases read the same with or without the flag
-	_bashy_assert_equal "$(bashy_install_check "gh" "" "2.96.0")" "Installing gh 2.96.0"
-	_bashy_assert_equal "$(bashy_install_check "gh" "2.95.0" "2.96.0")" "gh 2.95.0 is installed, upgrading to 2.96.0"
+	_bashy_assert_equal "$(bashy_install_check "gh" "" "2.96.0" || true)" "Installing gh 2.96.0"
+	_bashy_assert_equal "$(bashy_install_check "gh" "2.95.0" "2.96.0" || true)" "gh 2.95.0 is installed, upgrading to 2.96.0"
 	bashy_install_args
 	return 0
 }
@@ -51,7 +51,7 @@ function testInstallViaNamesTheMethod() {
 	out=$(bashy_install_via _install_thing_tar --force)
 	_bashy_assert_equal "${out}" $'using _install_thing_tar\ntar 1'
 	# called directly, a method runs without the line
-	_bashy_assert_equal "$(_install_thing_tar --force)" "tar 1"
+	_bashy_assert_equal "$(_install_thing_tar --force || true)" "tar 1"
 	# the method's own status comes back
 	bashy_install_via _install_thing_tar --froce > /dev/null 2>&1 && _bashy_assert_fail
 	unset -f _install_thing_tar
@@ -68,7 +68,7 @@ function testInstallArgsRejectsUnknown() {
 	_bashy_assert_equal "${out}" ""
 	err=$(_install_thing --froce 2>&1 > /dev/null)
 	_bashy_assert_equal "${err}" "_install_thing: unknown argument [--froce], the options are --force and --refresh"
-	_bashy_assert_equal "$(_install_thing --force)" "installed"
+	_bashy_assert_equal "$(_install_thing --force || true)" "installed"
 	unset -f _install_thing
 	bashy_install_args
 	return 0
@@ -99,19 +99,19 @@ function testInstallDownloadFormat() {
 
 function testGithubVersionStripsPrefix() {
 	local json='{"tag_name": "v1.2.3"}'
-	_bashy_assert_equal "$(bashy_github_version "${json}")" "1.2.3"
+	_bashy_assert_equal "$(bashy_github_version "${json}" || true)" "1.2.3"
 	# some projects tag with something else entirely
 	local audacity='{"tag_name": "Audacity-3.7.8"}'
-	_bashy_assert_equal "$(bashy_github_version "${audacity}" "Audacity-")" "3.7.8"
+	_bashy_assert_equal "$(bashy_github_version "${audacity}" "Audacity-" || true)" "3.7.8"
 	# bazel tags without any prefix, an empty prefix must leave it alone
 	local bazel='{"tag_name": "9.2.0"}'
-	_bashy_assert_equal "$(bashy_github_version "${bazel}" "")" "9.2.0"
+	_bashy_assert_equal "$(bashy_github_version "${bazel}" "" || true)" "9.2.0"
 	# biome tags with an npm package name, so the prefix holds a slash and
 	# a dot - both must be taken literally
 	local biome='{"tag_name": "@biomejs/biome@2.5.15"}'
-	_bashy_assert_equal "$(bashy_github_version "${biome}" "@biomejs/biome@")" "2.5.15"
+	_bashy_assert_equal "$(bashy_github_version "${biome}" "@biomejs/biome@" || true)" "2.5.15"
 	# a prefix that is not there must leave the tag alone, not strip part of it
-	_bashy_assert_equal "$(bashy_github_version "${json}" "x")" "v1.2.3"
+	_bashy_assert_equal "$(bashy_github_version "${json}" "x" || true)" "v1.2.3"
 }
 
 function _test_install_assets_json() {
@@ -156,7 +156,7 @@ function testInstallExtractStampsMtime() {
 	bashy_install_extract "${dir}/a.tar" "${dir}"
 	local year
 	year=$(date --reference="${dir}/thing" +%Y)
-	_bashy_assert_equal "${year}" "$(date +%Y)"
+	_bashy_assert_equal "${year}" "$(date +%Y || true)"
 	rm -rf "${dir}"
 }
 
@@ -171,7 +171,7 @@ function testUninstallBinaryReports() {
 	touch "${dir}/thing"
 	out=$(bashy_uninstall_binary "thing" "${dir}/thing")
 	_bashy_assert_equal "${out}" "removing ${dir}/thing"
-	[ -f "${dir}/thing" ] && _bashy_assert_fail
+	[[ -f "${dir}/thing" ]] && _bashy_assert_fail
 	rm -rf "${dir}"
 	return 0
 }
@@ -185,7 +185,7 @@ function testUninstallDirectoryReports() {
 	mkdir -p "${dir}/tree"
 	out=$(bashy_uninstall_directory "thing" "${dir}/tree")
 	_bashy_assert_equal "${out}" "removing ${dir}/tree"
-	[ -d "${dir}/tree" ] && _bashy_assert_fail
+	[[ -d "${dir}/tree" ]] && _bashy_assert_fail
 	rm -rf "${dir}"
 	return 0
 }
@@ -198,12 +198,12 @@ function testInstallMarkerRoundTrip() {
 	_bashy_assert_equal "${marker}" "${dir}/.thing_version"
 	# writing one and reading it back needs the executable to be there too
 	bashy_install_marker "${dir}" "thing" "1.2.3" > /dev/null
-	_bashy_assert_equal "$(cat "${marker}")" "1.2.3"
+	_bashy_assert_equal "$(< "${marker}")" "1.2.3"
 	# a marker with no executable next to it must not read as installed
-	_bashy_assert_equal "$(bashy_install_marker_version "${dir}" "thing" "${dir}/thing")" ""
+	_bashy_assert_equal "$(bashy_install_marker_version "${dir}" "thing" "${dir}/thing" || true)" ""
 	touch "${dir}/thing"
 	chmod +x "${dir}/thing"
-	_bashy_assert_equal "$(bashy_install_marker_version "${dir}" "thing" "${dir}/thing")" "1.2.3"
+	_bashy_assert_equal "$(bashy_install_marker_version "${dir}" "thing" "${dir}/thing" || true)" "1.2.3"
 	rm -rf "${dir}"
 }
 
@@ -215,7 +215,7 @@ function testInstallExtractZipStripsNothing() {
 	echo hello > "${dir}/src/thing"
 	(cd "${dir}/src" && zip --quiet "${dir}/a.zip" thing)
 	bashy_install_extract "${dir}/a.zip" "${dir}" thing
-	_bashy_assert_equal "$(cat "${dir}/thing")" "hello"
+	_bashy_assert_equal "$(< "${dir}/thing")" "hello"
 	rm -rf "${dir}"
 }
 

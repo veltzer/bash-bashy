@@ -31,7 +31,7 @@ function _install_agy_tar() {
 		x86_64|amd64) arch="amd64" ;;
 		arm64|aarch64) arch="arm64" ;;
 		*)
-			echo "agy: unsupported architecture [$(uname -m)]" >&2
+			echo "agy: unsupported architecture [$(uname -m || true)]" >&2
 			return 1
 			;;
 	esac
@@ -46,9 +46,9 @@ function _install_agy_tar() {
 	local folder="${HOME}/.local/bin"
 	local executable="${folder}/agy"
 	local installed_version=""
-	if [ -x "${executable}" ]
+	if [[ -x "${executable}" ]]
 	then
-		installed_version=$("${executable}" --version 2>/dev/null | head -1)
+		installed_version=$({ "${executable}" --version 2>/dev/null || true; } | head -1)
 	fi
 	if bashy_install_check "agy" "${installed_version}" "${latest_version}"
 	then
@@ -58,7 +58,7 @@ function _install_agy_tar() {
 	download_file=$(echo "${manifest}" | jq --raw-output '.url // empty')
 	local expected
 	expected=$(echo "${manifest}" | jq --raw-output '.sha512 // empty')
-	if [ -z "${download_file}" ] || [ -z "${expected}" ]
+	if [[ -z "${download_file}" ]] || [[ -z "${expected}" ]]
 	then
 		echo "agy: the release manifest has no url or sha512" >&2
 		return 1
@@ -68,8 +68,8 @@ function _install_agy_tar() {
 	bashy_download "${download_file}" tar || return
 	# the manifest publishes a sha512, which bashy_verify_sha256 does not speak
 	local actual
-	actual=$(sha512sum "${tar}" | awk '{print $1}')
-	if [ "${actual,,}" != "${expected,,}" ]
+	actual=$({ sha512sum "${tar}" || true; } | awk '{print $1}')
+	if [[ "${actual,,}" != "${expected,,}" ]]
 	then
 		echo "agy: checksum mismatch for [${tar}]" >&2
 		echo "expected [${expected}]" >&2
