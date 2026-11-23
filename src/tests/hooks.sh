@@ -64,6 +64,59 @@ function testRegisterInstallRemembersByPlugin() {
 	_bashy_assert_equal "${_bashy_assoc_install[hooks]}" "_install_thing"
 }
 
+function testRegisterInstallDirectCallFailsWhenLatestIsEmpty() {
+	_test_hooks_reset
+	# an installer as plugins write it: a failed lookup makes it return quietly
+	function _install_direct_thing() {
+		bashy_install_args "$@" || return
+		local latest_version=""
+		if bashy_install_check "thing" "1.0" "${latest_version}"
+		then
+			return
+		fi
+		echo "downloading"
+	}
+	register_install "_install_direct_thing"
+	# called directly, not through bashy_install, it must still fail and not install
+	local out rc=0
+	out=$(_install_direct_thing 2>/dev/null) || rc=$?
+	_bashy_assert_equal "${rc}" 1
+	_bashy_assert_equal "${out}" ""
+	# registering again (a plugin sourced twice) must not wrap the wrapper
+	register_install "_install_direct_thing"
+	rc=0
+	out=$(_install_direct_thing 2>/dev/null) || rc=$?
+	_bashy_assert_equal "${rc}" 1
+	# argument errors still name the installer, not its moved copy
+	local err
+	err=$(_install_direct_thing --froce 2>&1 >/dev/null || true)
+	_bashy_assert_equal "${err}" "_install_direct_thing: unknown argument [--froce], the options are --force and --refresh"
+	unset -f _install_direct_thing _bashy_orig_install_direct_thing
+	bashy_install_args
+	return 0
+}
+
+function testRegisterInstallDirectCallKeepsASuccessfulRun() {
+	_test_hooks_reset
+	function _install_ok_thing() {
+		bashy_install_args "$@" || return
+		if bashy_install_check "thing" "1.0" "2.0"
+		then
+			return
+		fi
+		echo "downloading"
+	}
+	register_install "_install_ok_thing"
+	local out rc=0
+	# a stale failure from an earlier run must not leak into this one
+	bashy_install_check "stale" "" "" 2>/dev/null
+	out=$(_install_ok_thing --refresh 2>/dev/null) || rc=$?
+	_bashy_assert_equal "${rc}" 0
+	_bashy_assert_equal "${out}" $'thing 1.0 is installed, upgrading to 2.0\ndownloading'
+	unset -f _install_ok_thing _bashy_orig_install_ok_thing
+	return 0
+}
+
 function testRegisterCoreRemembersDeactivate() {
 	_test_hooks_reset
 	register_core "_activate_thing" "thing" "_deactivate_thing"

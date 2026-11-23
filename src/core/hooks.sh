@@ -42,6 +42,30 @@ function register_install() {
 	local _caller
 	_caller=$(_bashy_hooks_caller_name)
 	assoc_set _bashy_assoc_install "${_caller}" "${_function}"
+	_bashy_hooks_guard_installer "${_function}"
+}
+
+# _bashy_hooks_guard_installer <install function>
+# Make a direct call of a registered installer (say "_install_gh" typed at the
+# prompt) fail like a run through bashy_install does when the latest version
+# cannot be determined. The installer itself cannot report that: its
+# "if bashy_install_check ...; then return; fi" returns 0, so the failure is
+# only recorded in BASHY_INSTALL_FAILED and read back by bashy_install_run.
+# So the installer is moved to _bashy_orig<name> and <name> becomes a thin
+# wrapper that runs it through bashy_install_run. This is the one place every
+# plugin passes through, so no plugin needs to know. A function that does not
+# exist (yet) is left alone, and a function that is already the wrapper (the
+# plugin was sourced twice) is not wrapped again. Never exits.
+function _bashy_hooks_guard_installer() {
+	local _function=$1
+	local _body
+	_body=$(declare -f "${_function}") || return 0
+	if [[ "${_body}" == *"bashy_install_run _bashy_orig${_function} "* ]]
+	then
+		return 0
+	fi
+	eval "_bashy_orig${_body}"
+	eval "${_function}() { bashy_install_run _bashy_orig${_function} \"\$@\"; }"
 }
 
 # register_interactive <activate function> [deactivate function]

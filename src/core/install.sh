@@ -83,7 +83,8 @@ function bashy_install_args() {
 				BASHY_INSTALL_REFRESH=1
 				;;
 			*)
-				echo "${FUNCNAME[1]}: unknown argument [${arg}], the options are --force and --refresh" >&2
+				# a registered installer runs as _bashy_orig<name> (see register_install)
+				echo "${FUNCNAME[1]#_bashy_orig}: unknown argument [${arg}], the options are --force and --refresh" >&2
 				return 1
 				;;
 		esac
