@@ -17,7 +17,7 @@ declare -gA sourced=()
 function _bashy_source_relative() {
 	local file=$1
 	local path="${BASH_SOURCE%/*}/${file}"
-	if ! [ "${sourced[${path}]+muahaha}" ]
+	if [ -z "${sourced[${path}]+muahaha}" ]
 	then
 		sourced[${path}]=1
 		# shellcheck source=/dev/null
@@ -38,7 +38,7 @@ function _bashy_source_absolute() {
 	then
 		path="${PWD}/${path}"
 	fi
-	if ! [ "${sourced[${path}]+muahaha}" ]
+	if [ -z "${sourced[${path}]+muahaha}" ]
 	then
 		sourced[${path}]=1
 		# shellcheck source=/dev/null

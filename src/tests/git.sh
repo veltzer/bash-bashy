@@ -119,7 +119,7 @@ function testGitPromptRepoPathAddsAndRemoves() {
 	unset TEST_REPO_PATH_ADDED
 	cd "${repo}/sub" || _bashy_assert_fail
 	git_prompt_repo_path "test" TEST_REPO_PATH_ADDED "gems/bin"
-	_bashy_assert_equal "${TEST_REPO_PATH_ADDED}" "$(realpath "${repo}")/gems/bin"
+	_bashy_assert_equal "${TEST_REPO_PATH_ADDED:-}" "$(realpath "${repo}")/gems/bin"
 	_bashy_assert_equal "${PATH%%:*}" "$(realpath "${repo}")/gems/bin"
 	# a second prompt in the same repo changes nothing
 	git_prompt_repo_path "test" TEST_REPO_PATH_ADDED "gems/bin"
@@ -180,7 +180,7 @@ function testGitPromptRepoConfEntersExits() {
 	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
 	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit
 	_bashy_assert_equal "${_test_conf_log}" "enter:.t.conf;enter:.t.conf;"
-	_bashy_assert_equal "${TEST_CONF_ACTIVE}" "$(realpath "${repo}")/.t.conf"
+	_bashy_assert_equal "${TEST_CONF_ACTIVE:-}" "$(realpath "${repo}")/.t.conf"
 	# leaving runs exit exactly once, with the file that was active
 	cd / || _bashy_assert_fail
 	git_prompt_repo_conf "test" TEST_CONF_ACTIVE ".t.conf" _test_conf_enter _test_conf_exit

@@ -4,7 +4,7 @@ function _activate_virtualenvwrapper() {
 	# you can install virtualenvwrapper with
 	# $ apt install virtualenvwrapper
 	export WORKON_HOME="${HOME}/.virtualenvs"
-	export PROJECT_HOME="${REPOS_FOLDER}"
+	export PROJECT_HOME="${REPOS_FOLDER:-}"
 	found=false
 	if [ -f "/usr/local/bin/virtualenvwrapper.sh" ] && [ "${found}" = false ]
 	then

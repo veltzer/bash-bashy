@@ -147,6 +147,7 @@ function _bashy_read_plugins() {
 }
 
 function _bashy_load_plugins() {
+	: "${BASHY_LOG_DEBUG:?BASHY_LOG_DEBUG must be set, core/log.sh must be loaded first}"
 	local plugin current_filename
 	for plugin in "${bashy_array_plugin[@]}"; do
 		current_filename="${_BASHY_HOME}/plugins/${plugin}.sh"
@@ -338,6 +339,7 @@ function bashy_on() {
 # What was installed and when, from the install stamp. Running from a checkout
 # there is no stamp, so only the version is shown. --terse prints just the version.
 function bashy_version() {
+	: "${BASHY_VERSION_STR:?BASHY_VERSION_STR must be set, core/version.sh sets it}"
 	if [ "${1:-}" = "--terse" ] || [ -z "${_BASHY_STAMP}" ]
 	then
 		echo "${BASHY_VERSION_STR}"
@@ -432,12 +434,14 @@ function bashy_install() {
 # is not marked, so the next run tries it again; the run ends by listing those
 # plugins with their exit codes and returns 1.
 function bashy_upgrade() {
+	: "${BASHY_LATEST_TTL:?BASHY_LATEST_TTL must be set, core/latest.sh sets it}"
 	local recheck=0
 	local arg
 	for arg in "$@"
 	do
 		case "${arg}" in
 			--force|--refresh) recheck=1 ;;
+			*) ;; # the other arguments are for the installers
 		esac
 	done
 	local plugin installer enabled

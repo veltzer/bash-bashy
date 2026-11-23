@@ -1,6 +1,7 @@
 function _activate_homedir_install() {
 	local -n __var=$1
 	local -n __error=$2
+	: "${BASHY_INSTALL_DIR:?BASHY_INSTALL_DIR must be set, core/install.sh must be loaded first}"
 	LOCAL_INSTALL_BIN="${HOME}/install/bin"
 	LOCAL_INSTALL_LIB="${HOME}/install/lib"
 	LOCAL_INSTALL_BINARIES="${BASHY_INSTALL_DIR}"

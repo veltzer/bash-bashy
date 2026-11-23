@@ -10,10 +10,10 @@ function _activate_encfs() {
 		__var=1
 		return
 	fi
-	if ! checkDirectoryExists "${ENCFS_FOLDER_CLEAR}" __var __error; then return; fi
-	if ! checkDirectoryExists "${ENCFS_FOLDER_ENCRYPTED}" __var __error; then return; fi
+	if ! checkDirectoryExists "${ENCFS_FOLDER_CLEAR:-}" __var __error; then return; fi
+	if ! checkDirectoryExists "${ENCFS_FOLDER_ENCRYPTED:-}" __var __error; then return; fi
 	# mountpoint checks if the mount is already there and ensures we only mount once
-	if mountpoint -q "${ENCFS_FOLDER_CLEAR}"
+	if mountpoint -q "${ENCFS_FOLDER_CLEAR:-}"
 	then
 		# __error="folder $ENCFS_FOLDER_CLEAR already mounted"
 		__var=0
@@ -22,18 +22,18 @@ function _activate_encfs() {
 	# the password lives in pass(1) only; fetch it at mount time and hand it over
 	# on stdin so it never touches a config file or the process argument list
 	local password
-	if ! password=$(pass show "${ENCFS_PASS_PATH}" 2>/dev/null)
+	if ! password=$(pass show "${ENCFS_PASS_PATH:-}" 2>/dev/null)
 	then
-		__error="could not read encfs password from pass entry ${ENCFS_PASS_PATH}"
+		__error="could not read encfs password from pass entry ${ENCFS_PASS_PATH:-}"
 		__var=1
 		return
 	fi
-	echo "${password}" | encfs --stdinpass "${ENCFS_FOLDER_ENCRYPTED}" "${ENCFS_FOLDER_CLEAR}"
+	echo "${password}" | encfs --stdinpass "${ENCFS_FOLDER_ENCRYPTED:-}" "${ENCFS_FOLDER_CLEAR:-}"
 	__var=$?
 }
 
 function encfs_umount() {
-	fusermount -u "${ENCFS_FOLDER_CLEAR}"
+	fusermount -u "${ENCFS_FOLDER_CLEAR:-}"
 }
 
 function _install_encfs() {
@@ -57,7 +57,7 @@ function _uninstall_encfs_apt() {
 function _deactivate_encfs() {
 	if mountpoint -q "${ENCFS_FOLDER_CLEAR:-/nonexistent}"
 	then
-		fusermount -u "${ENCFS_FOLDER_CLEAR}"
+		fusermount -u "${ENCFS_FOLDER_CLEAR:-}"
 	fi
 }
 

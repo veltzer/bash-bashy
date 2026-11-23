@@ -2,6 +2,10 @@
 # language
 
 # A function that returns the short version of the python interpreter
+: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+: "${BASHY_LOG_ERROR:?BASHY_LOG_ERROR must be set, core/log.sh must be loaded first}"
+: "${BASHY_LOG_DEBUG:?BASHY_LOG_DEBUG must be set, core/log.sh must be loaded first}"
+
 function python_version_short() {
 	local __user_var=$1
 	local python=$2

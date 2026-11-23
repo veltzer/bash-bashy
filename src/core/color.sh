@@ -14,6 +14,7 @@ function _bashy_cecho() {
 		purple | p) color="${code}1;35m";;
 		cyan | c) color="${code}1;36m";;
 		gray | gr) color="${code}0;37m";;
+		*) ;; # any other name is used as given
 	esac
 	local text="${color}${text}${code}0m"
 	if [[ "${newline}" = 0 ]]

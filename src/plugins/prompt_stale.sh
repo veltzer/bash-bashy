@@ -8,6 +8,8 @@
 #
 # The check is two builtins (a test and a read), so it costs nothing per prompt.
 
+: "${_BASHY_HOME:?_BASHY_HOME must be set, bashy.sh sets it}"
+
 _BASHY_STALE_REPORTED=""
 
 function prompt_stale() {

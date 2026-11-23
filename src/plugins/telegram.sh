@@ -13,6 +13,8 @@
 # stand in entry, see _telegram_desktop.
 
 # Where _install_telegram_tar unpacks to.
+: "${BASHY_INSTALL_DIR:?BASHY_INSTALL_DIR must be set, core/install.sh must be loaded first}"
+
 TELEGRAM_FOLDER="${HOME}/install/telegram"
 
 function _activate_telegram() {

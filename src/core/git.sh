@@ -11,6 +11,8 @@
 # The memo is keyed on PWD alone. Creating or removing a repository under a
 # directory you are already sitting in is rare enough, and "git_is_inside_flush"
 # is there for when it happens.
+: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+
 declare -gA _bashy_git_inside_cache=()
 
 function git_is_inside() {

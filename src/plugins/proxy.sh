@@ -1,7 +1,7 @@
 function _activate_proxy() {
 	local -n __var=$1
 	local -n __error=$2
-	if "${PROXY_ENABLED}"
+	if "${PROXY_ENABLED:-false}"
 	then
 		proxy_enable
 	fi
@@ -15,9 +15,9 @@ function proxy_disable() {
 }
 
 function proxy_enable() {
-	export http_proxy="${PROXY_HTTP}"
-	export https_proxy="${PROXY_HTTPS}"
-	export no_proxy="${PROXY_NO}"
+	export http_proxy="${PROXY_HTTP:?PROXY_HTTP must be set}"
+	export https_proxy="${PROXY_HTTPS:?PROXY_HTTPS must be set}"
+	export no_proxy="${PROXY_NO:?PROXY_NO must be set}"
 }
 
 # Undo the activation in the running shell, for bashy_deactivate.

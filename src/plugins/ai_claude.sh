@@ -14,7 +14,7 @@ function claude() {
 	local -a cap=()
 	# the user manager's socket, not "systemctl --user is-system-running", which
 	# fails on a merely "degraded" session that runs scopes perfectly well
-	if command -v systemd-run > /dev/null && [ -S "${XDG_RUNTIME_DIR}/systemd/private" ]
+	if command -v systemd-run > /dev/null && [ -S "${XDG_RUNTIME_DIR:-}/systemd/private" ]
 	then
 		cap=(systemd-run --user --scope --quiet
 			-p "MemoryHigh=${BASHY_CLAUDE_MEMORY_HIGH}"

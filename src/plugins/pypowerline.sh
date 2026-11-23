@@ -13,7 +13,7 @@ function _activate_pypowerline() {
 	local -n __var=$1
 	local -n __error=$2
 	if ! checkInPath "pypowerline" __var __error; then return; fi
-	PYPOWERLINE=$(which "pypowerline")
+	PYPOWERLINE=$(command -v "pypowerline")
 	export PYPOWERLINE
 	# PROMPT_COMMAND="_prompt_pypowerline; ${PROMPT_COMMAND}"
 	PROMPT_COMMAND="${PROMPT_COMMAND} _prompt_pypowerline"

@@ -33,7 +33,7 @@ function testPromptAutoEntersOnceAndExitsOnce() {
 	prompt_auto
 	# the enter script runs once, however many prompts happen inside
 	_bashy_assert_equal "${_test_auto_enters}" 1
-	_bashy_assert_equal "${_TEST_AUTO_IN}" "yes"
+	_bashy_assert_equal "${_TEST_AUTO_IN:-}" "yes"
 	_bashy_assert_equal "${AUTO_ACTIVE}" "$(realpath "${repo}")"
 	cd / || _bashy_assert_fail
 	prompt_auto

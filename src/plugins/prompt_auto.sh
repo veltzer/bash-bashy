@@ -1,6 +1,8 @@
 # This plugin sources .auto.enter.sh whenever it sees it and
 # .auto.exit.sh when it leaves that folder.
 
+: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+
 auto_file_enter=".auto.enter.sh"
 auto_file_exit=".auto.exit.sh"
 

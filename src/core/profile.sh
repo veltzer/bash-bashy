@@ -19,7 +19,7 @@ function is_profile() {
 	then
 		return 1
 	fi
-	return "${BASHY_PROFILE}"
+	return "${BASHY_PROFILE:-1}"
 }
 
 # is_step
@@ -29,5 +29,5 @@ function is_step() {
 	then
 		return 1
 	fi
-	return "${BASHY_STEP}"
+	return "${BASHY_STEP:-1}"
 }

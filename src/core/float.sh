@@ -4,6 +4,8 @@
 # The assert helpers at the bottom use ASSERT_FAILED_CODE from assert.sh, which
 # is loaded before this module.
 
+: "${ASSERT_FAILED_CODE:?ASSERT_FAILED_CODE must be set, core/assert.sh must be loaded first}"
+
 function float_gt() {
 	local a=$1
 	local b=$2

@@ -19,6 +19,10 @@
 # sync again (a later sync succeeds, or pyproject.toml is reverted to
 # what the venv was built from).
 
+: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+: "${BASHY_LOG_ERROR:?BASHY_LOG_ERROR must be set, core/log.sh must be loaded first}"
+: "${BASHY_LOG_DEBUG:?BASHY_LOG_DEBUG must be set, core/log.sh must be loaded first}"
+
 export _BASHY_UV_ACTIVE=""
 export _BASHY_UV_HELD=""
 export _BASHY_UV_BIN=""
@@ -135,8 +139,8 @@ function prompt_uv() {
 	then
 		if var_is_defined PYTHON_VENV_ACTIVE
 		then
-			bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "holding env [${PYTHON_VENV_ACTIVE}]"
-			_BASHY_UV_HELD="${PYTHON_VENV_ACTIVE}"
+			bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "holding env [${PYTHON_VENV_ACTIVE:-}]"
+			_BASHY_UV_HELD="${PYTHON_VENV_ACTIVE:-}"
 			python_deactivate
 		elif var_is_defined VIRTUAL_ENV
 		then
@@ -145,9 +149,9 @@ function prompt_uv() {
 			# snapshot taken at activation time, wiping every entry added
 			# since (the node plugin's bin folder among them). take the
 			# venv off the PATH ourselves instead.
-			bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "holding env [${VIRTUAL_ENV}]"
-			_BASHY_UV_HELD="${VIRTUAL_ENV}"
-			_bashy_pathutils_remove PATH "${VIRTUAL_ENV}/bin"
+			bashy_log "prompt_uv" "${BASHY_LOG_INFO}" "holding env [${VIRTUAL_ENV:-}]"
+			_BASHY_UV_HELD="${VIRTUAL_ENV:-}"
+			_bashy_pathutils_remove PATH "${VIRTUAL_ENV:-}/bin"
 			unset VIRTUAL_ENV VIRTUAL_ENV_PROMPT _OLD_VIRTUAL_PATH _OLD_VIRTUAL_PS1
 			unset -f deactivate
 		fi

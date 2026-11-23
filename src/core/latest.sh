@@ -33,6 +33,8 @@
 # from the cache anyway. --refresh and --force run every installer again.
 
 # location of the cache, honoring XDG_CACHE_HOME, overridable via BASHY_LATEST_CACHE
+: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+
 if [ -z "${BASHY_LATEST_CACHE+x}" ]
 then
 	export BASHY_LATEST_CACHE="${XDG_CACHE_HOME:-${HOME}/.cache}/bashy/latest"

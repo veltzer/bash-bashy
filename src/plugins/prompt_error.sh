@@ -1,6 +1,9 @@
 # This is an error prompt which prints a message if $? is not 0
 
 function prompt_error() {
+	: "${BASHY_PROMPT_STATUS:?BASHY_PROMPT_STATUS must be set, plugins/prompt.sh sets it}"
+	: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+	: "${BASHY_LOG_DEBUG:?BASHY_LOG_DEBUG must be set, core/log.sh must be loaded first}"
 	local ret="${BASHY_PROMPT_STATUS}"
 	local sig reason
 	bashy_log "prompt_error" "${BASHY_LOG_DEBUG}" "got ret [${ret}]"

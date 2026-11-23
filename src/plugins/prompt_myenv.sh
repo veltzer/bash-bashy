@@ -37,6 +37,10 @@
 # venv or not. This way we can enable to keep the venv active when we
 # are within the .myenv directory to any depth.
 
+: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+: "${BASHY_LOG_ERROR:?BASHY_LOG_ERROR must be set, core/log.sh must be loaded first}"
+: "${BASHY_LOG_DEBUG:?BASHY_LOG_DEBUG must be set, core/log.sh must be loaded first}"
+
 myenv_conf_file_name=".myenv"
 myenv_md5_file_name="md5sum"
 
@@ -95,7 +99,7 @@ function myenv_create_virtualenv() {
 	# do not create virtualenv if there are error files
 	if [ -f .myenv.virtualenv.errors ]
 	then
-		bashy_log "prompt_myenv" "${BASHY_LEVEL_ERROR}" "not creating virtual env because error file [.myenv.virtualenv.errors] exits"
+		bashy_log "prompt_myenv" "${BASHY_LOG_ERROR}" "not creating virtual env because error file [.myenv.virtualenv.errors] exits"
 		return 1
 	fi
 
@@ -191,7 +195,7 @@ function myenv_recreate() {
 }
 
 function myenv_in_virtual_env() {
-	[ -n "${VIRTUAL_ENV}" ]
+	[ -n "${VIRTUAL_ENV:-}" ]
 }
 
 function myenv_deactivate_real() {
@@ -201,7 +205,7 @@ function myenv_deactivate_real() {
 }
 
 function myenv_deactivate() {
-	if [ -z "${VIRTUAL_ENV}" ]
+	if [ -z "${VIRTUAL_ENV:-}" ]
 	then
 		bashy_log "prompt_myenv" "${BASHY_LOG_ERROR}" "not in virtual env"
 		return
@@ -220,7 +224,7 @@ function myenv_deactivate_soft() {
 }
 
 function myenv_activate_soft() {
-	if [ -z "${VIRTUAL_ENV}" ]
+	if [ -z "${VIRTUAL_ENV:-}" ]
 	then
 		bashy_log "prompt_myenv" "${BASHY_LOG_INFO}" "activating virtual env"
 		if [ -r "${myenv_virtual_env_folder}/bin/activate" ]
@@ -235,7 +239,7 @@ function myenv_activate_soft() {
 }
 
 function myenv_activate() {
-	if [ -n "${VIRTUAL_ENV}" ]
+	if [ -n "${VIRTUAL_ENV:-}" ]
 	then
 		bashy_log "prompt_myenv" "${BASHY_LOG_DEBUG}" "in virtual env"
 		return
@@ -255,7 +259,7 @@ function prompt_myenv_inner() {
 	myenv_getconf
 
 	# if we are in a virtual env which is not myenv related
-	if [ -n "${VIRTUAL_ENV}" ] && [ -z "${MYENV_ENV}" ]
+	if [ -n "${VIRTUAL_ENV:-}" ] && [ -z "${MYENV_ENV}" ]
 	then
 		bashy_log "prompt_myenv" "${BASHY_LOG_DEBUG}" "in virtual env which is not myenv related. not doing anything."
 		return
@@ -282,7 +286,7 @@ function prompt_myenv_inner() {
 	# if we are in the wrong virtual env, deactivate
 	if myenv_in_virtual_env
 	then
-		if [ "$(readlink -f "${myenv_virtual_env_folder}")" != "${VIRTUAL_ENV}" ]
+		if [ "$(readlink -f "${myenv_virtual_env_folder}")" != "${VIRTUAL_ENV:-}" ]
 		then
 			myenv_deactivate
 		fi
@@ -299,7 +303,7 @@ function prompt_myenv_inner() {
 
 function prompt_myenv() {
 	prompt_myenv_inner
-	if [ "${VIRTUAL_ENV}" ]
+	if [ -n "${VIRTUAL_ENV:-}" ]
 	then
 		export myenv_powerline_virtual_env_python_version="${myenv_virtual_env_python_version}"
 	else

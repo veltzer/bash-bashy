@@ -18,6 +18,8 @@
 #	bashy_verify_sha256 "${archive}" "${checksums_url}" || return 1
 
 # location of the cache, honoring XDG_CACHE_HOME, overridable via BASHY_DOWNLOAD_CACHE
+: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+
 if [ -z "${BASHY_DOWNLOAD_CACHE+x}" ]
 then
 	export BASHY_DOWNLOAD_CACHE="${XDG_CACHE_HOME:-${HOME}/.cache}/bashy/downloads"

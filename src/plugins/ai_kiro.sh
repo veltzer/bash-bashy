@@ -1,6 +1,8 @@
 # This is integration of kiro, the AWS agentic IDE built on Code OSS
 # https://kiro.dev
 
+: "${BASHY_INSTALL_DIR:?BASHY_INSTALL_DIR must be set, core/install.sh must be loaded first}"
+
 function _activate_ai_kiro() {
 	local -n __var=$1
 	local -n __error=$2

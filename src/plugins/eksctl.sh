@@ -3,6 +3,8 @@
 # References:
 # - https://eksctl.io/introduction/#installation
 
+: "${BASHY_INSTALL_DIR:?BASHY_INSTALL_DIR must be set, core/install.sh must be loaded first}"
+
 function _activate_eksctl() {
 	local -n __var=$1
 	local -n __error=$2

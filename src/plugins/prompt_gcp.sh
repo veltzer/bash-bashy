@@ -2,6 +2,9 @@
 # Whenever you 'cd' into a git folder that has .gcp.conf in it
 # it will activate the right google cloud project for you.
 
+: "${BASHY_LOG_INFO:?BASHY_LOG_INFO must be set, core/log.sh must be loaded first}"
+: "${BASHY_LOG_ERROR:?BASHY_LOG_ERROR must be set, core/log.sh must be loaded first}"
+
 gcp_conf_file_name=".gcp.conf"
 
 # Unset PROJECT_ID if it is currently set, logging the transition.

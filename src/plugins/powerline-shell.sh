@@ -11,7 +11,7 @@ function _activate_powerline_shell() {
 	local -n __var=$1
 	local -n __error=$2
 	if ! checkInPath "powerline-shell" __var __error; then return; fi
-	POWERLINE_SHELL=$(which "powerline-shell")
+	POWERLINE_SHELL=$(command -v "powerline-shell")
 	export POWERLINE_SHELL
 	# PROMPT_COMMAND="_update_ps1; ${PROMPT_COMMAND}"
 	_bashy_prompt_register _bashy_powerline_shell_prompt
