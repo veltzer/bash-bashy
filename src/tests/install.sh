@@ -86,8 +86,39 @@ function testInstallCheckNoLatestVersion() {
 	# a failed version lookup must not silently look like a fresh install
 	local err
 	err=$(bashy_install_check "packer" "1.16.0" "" 2>&1 > /dev/null)
-	_bashy_assert_equal "${err}" "packer: could not determine the latest version"
-	bashy_install_check "packer" "1.16.0" "" 2>/dev/null && _bashy_assert_fail
+	_bashy_assert_equal "${err}" "packer: could not determine the latest version, not installing or upgrading"
+	# stop: return 0 so the installer returns without downloading anything
+	BASHY_INSTALL_FAILED=0
+	bashy_install_check "packer" "1.16.0" "" 2>/dev/null || _bashy_assert_fail
+	bashy_install_failed || _bashy_assert_fail
+	BASHY_INSTALL_FAILED=0
+	bashy_install_check "packer" "" "" 2>/dev/null || _bashy_assert_fail
+	bashy_install_failed || _bashy_assert_fail
+	return 0
+}
+
+function _test_install_nolatest_installer() {
+	local latest_version=""
+	if bashy_install_check "packer" "1.16.0" "${latest_version}"
+	then
+		return
+	fi
+	echo "downloading"
+}
+
+function testInstallRunFailsWhenLatestIsEmpty() {
+	# the installer returns quietly, bashy_install_run turns that into a failure
+	local out rc=0
+	out=$(bashy_install_run _test_install_nolatest_installer 2>/dev/null) || rc=$?
+	_bashy_assert_equal "${rc}" 1
+	_bashy_assert_equal "${out}" ""
+	# a good run is untouched and resets a failure left by the one before
+	BASHY_INSTALL_FAILED=1
+	bashy_install_run true || _bashy_assert_fail
+	# the installer's own failure code is kept
+	rc=0
+	bashy_install_run false || rc=$?
+	_bashy_assert_equal "${rc}" 1
 	return 0
 }
 

@@ -1,5 +1,8 @@
 source src/core/array.sh
 
+# created by _bashy_array_new inside the tests; declared here so the linter knows
+declare -ga arr
+
 function testSetLen() {
 	_bashy_array_new my_array
 	_bashy_array_set my_array 2 4
@@ -36,7 +39,6 @@ function testPushPop() {
 	_bashy_assert_equal "${elem}" a
 }
 
-# shellcheck disable=SC2154 # arr is created by _bashy_array_new
 function testRemove() {
 	_bashy_array_new arr
 	_bashy_array_push arr a
@@ -51,7 +53,6 @@ function testRemove() {
 	_bashy_assert_equal "${elem}" a
 }
 
-# shellcheck disable=SC2154 # arr is created by _bashy_array_new
 function testRemoveLastElement() {
 	_bashy_array_new arr
 	_bashy_array_push arr only
@@ -59,7 +60,6 @@ function testRemoveLastElement() {
 	_bashy_assert_equal "${#arr[@]}" 0
 }
 
-# shellcheck disable=SC2154 # arr is created by _bashy_array_new
 function testRemoveAbsentValue() {
 	_bashy_array_new arr
 	_bashy_array_push arr keep
@@ -68,7 +68,6 @@ function testRemoveAbsentValue() {
 	_bashy_assert_equal "${arr[0]}" keep
 }
 
-# shellcheck disable=SC2154 # arr is created by _bashy_array_new
 function testRemoveKeepsWhitespace() {
 	_bashy_array_new arr
 	_bashy_array_push arr "two words"

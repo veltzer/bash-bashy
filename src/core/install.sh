@@ -70,7 +70,6 @@ function bashy_install_dir() {
 # on every call, so an installer never inherits a flag from the one before it.
 function bashy_install_args() {
 	BASHY_INSTALL_FORCE=0
-	# shellcheck disable=SC2034 # read by bashy_fetch_latest in latest.sh
 	BASHY_INSTALL_REFRESH=0
 	local arg
 	for arg in "$@"
@@ -78,11 +77,9 @@ function bashy_install_args() {
 		case "${arg}" in
 			--force)
 				BASHY_INSTALL_FORCE=1
-				# shellcheck disable=SC2034 # read by bashy_fetch_latest in latest.sh
 				BASHY_INSTALL_REFRESH=1
 				;;
 			--refresh)
-				# shellcheck disable=SC2034 # read by bashy_fetch_latest in latest.sh
 				BASHY_INSTALL_REFRESH=1
 				;;
 			*)
@@ -114,20 +111,56 @@ function bashy_install_forced() {
 	[[ "${BASHY_INSTALL_FORCE:-0}" -eq 1 ]]
 }
 
+# bashy_install_refreshing
+# Succeed when the running installer was given --refresh or --force, so
+# bashy_fetch_latest must skip its cache.
+function bashy_install_refreshing() {
+	[[ "${BASHY_INSTALL_REFRESH:-0}" -eq 1 ]]
+}
+
+# bashy_install_failed
+# Succeed when an installer in the current run found no latest version, so
+# bashy_install_check told it to stop. The run is reset by bashy_install_run;
+# anything that runs an installer on its own should end with this check and
+# turn a success into a failure.
+function bashy_install_failed() {
+	[[ "${BASHY_INSTALL_FAILED:-0}" -eq 1 ]]
+}
+
+# bashy_install_run <installer> [args...]
+# Run an installer and make a failed latest version lookup a failure of the
+# run: the installer itself stops quietly when bashy_install_check says so (its
+# "if bashy_install_check ...; then return; fi" cannot carry an error), so the
+# failure is read back here. Never exits, only returns non-zero.
+function bashy_install_run() {
+	BASHY_INSTALL_FAILED=0
+	local rc=0
+	"$@" || rc=$?
+	if [[ "${rc}" -eq 0 ]] && bashy_install_failed
+	then
+		rc=1
+	fi
+	return "${rc}"
+}
+
 # bashy_install_check <name> <installed_version> <latest_version>
 # Report what is about to happen and say whether there is anything to do.
 # An empty <installed_version> means the tool is not installed yet.
 # Returns 0 if <name> is already at <latest_version> (caller should return),
 # 1 if the caller should go on and install. Under --force the up to date case
 # says so and still returns 1, so the installer puts the same version back.
+# An empty <latest_version> means the lookup failed: it is reported, recorded
+# for bashy_install_run (bashy_install_failed), and 0 is returned so that the
+# caller returns without installing or upgrading anything.
 function bashy_install_check() {
 	local name=$1
 	local installed=$2
 	local latest=$3
 	if [[ -z "${latest}" ]]
 	then
-		echo "${name}: could not determine the latest version" >&2
-		return 1
+		echo "${name}: could not determine the latest version, not installing or upgrading" >&2
+		BASHY_INSTALL_FAILED=1
+		return 0
 	fi
 	if [[ -z "${installed}" ]]
 	then

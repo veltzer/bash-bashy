@@ -1,7 +1,13 @@
-# shellcheck disable=SC2329 # test doubles are invoked indirectly by plugin installers
 source src/core/assert.sh
 source src/core/pathutils.sh
 source src/core/install.sh
+
+# Define a test double. The plugin code under test calls these by name, which
+# the linter cannot see across the "source", so they are defined through here
+# rather than as functions that look unused. $1 is the name, $2 the body.
+function _test_cursor_stub() {
+	eval "function $1() { $2; }"
+}
 
 function _test_cursor_load() {
 	function register() { :; }
@@ -34,7 +40,7 @@ function testCursorDesktopUsesNativeReleaseAsset() {
 
 function testCursorDesktopRejectsIncompleteMetadata() {
 	_test_cursor_load
-	function uname() { echo "x86_64"; }
+	_test_cursor_stub uname 'echo x86_64'
 	function _bashy_pathutils_is_in_path() { return 0; }
 	function bashy_install_deb() { _bashy_assert_fail; }
 	function bashy_fetch_latest() {
@@ -61,11 +67,11 @@ function testCursorUnsupportedArchitectureDoesNotDownload() {
 
 function testCursorCombinedInstallerForwardsFlagsAndFailures() {
 	_test_cursor_load
-	function _install_cursor_deb() { echo "desktop $1"; }
-	function _install_cursor_agent_tar() { echo "agent $1"; }
+	_test_cursor_stub _install_cursor_deb "echo \"desktop \$1\""
+	_test_cursor_stub _install_cursor_agent_tar "echo \"agent \$1\""
 	_bashy_assert_equal "$(_install_cursor --refresh || true)" $'using _install_cursor_deb\ndesktop --refresh\nusing _install_cursor_agent_tar\nagent --refresh'
-	function _install_cursor_deb() { return 1; }
-	function _install_cursor_agent_tar() { _bashy_assert_fail; }
+	_test_cursor_stub _install_cursor_deb 'return 1'
+	_test_cursor_stub _install_cursor_agent_tar '_bashy_assert_fail'
 	_install_cursor --force > /dev/null 2>&1 && _bashy_assert_fail
 	return 0
 }
@@ -83,13 +89,12 @@ EOF
 	cp "${__dir}/fixture/dist-package/cursor-agent" "${__dir}/fixture/dist-package/node"
 	echo "agent code" > "${__dir}/fixture/dist-package/index.js"
 	tar czf "${__dir}/agent-cli-package.tar.gz" -C "${__dir}/fixture" dist-package
-	function uname() { echo "x86_64"; }
+	_test_cursor_stub uname 'echo x86_64'
 	function bashy_fetch_latest() {
 		_bashy_assert_equal "$1" "https://cursor.com/install"
 		local -n __out=$2
-		# shellcheck disable=SC2016 # literal vendor script, not shell to execute
-		__out='DOWNLOAD_URL="https://downloads.cursor.com/lab/2099.01.01-abcdef0/${OS}/${ARCH}/agent-cli-package.tar.gz"
-exit 99'
+		__out="DOWNLOAD_URL=\"https://downloads.cursor.com/lab/2099.01.01-abcdef0/\${OS}/\${ARCH}/agent-cli-package.tar.gz\"
+exit 99"
 	}
 	function bashy_download() {
 		_bashy_assert_equal "$1" "https://downloads.cursor.com/lab/2099.01.01-abcdef0/linux/x64/agent-cli-package.tar.gz"
@@ -131,16 +136,15 @@ function testCursorAgentFailedReinstallPreservesWorkingVersion() {
 
 function testCursorAgentRejectsUnsafeOrMissingReleaseVersion() {
 	_test_cursor_load
-	function uname() { echo "x86_64"; }
+	_test_cursor_stub uname 'echo x86_64'
 	function bashy_download() { _bashy_assert_fail; }
 	function bashy_fetch_latest() {
 		local -n __out=$2
 		__out="${response}"
 	}
 	local response
-	# shellcheck disable=SC2016 # a release version must never be executed
 	for response in '' 'DOWNLOAD_URL="https://downloads.cursor.com/lab/../linux/x64/agent-cli-package.tar.gz"' \
-		'DOWNLOAD_URL="https://downloads.cursor.com/lab/$(touch unwanted)/linux/x64/agent-cli-package.tar.gz"'
+		"DOWNLOAD_URL=\"https://downloads.cursor.com/lab/\$(touch unwanted)/linux/x64/agent-cli-package.tar.gz\""
 	do
 		_install_cursor_agent_tar > /dev/null 2>&1 && _bashy_assert_fail
 	done

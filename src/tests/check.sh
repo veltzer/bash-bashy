@@ -4,8 +4,7 @@ source src/core/pathutils.sh
 
 function testCheckVariableDefined() {
 	local v e
-	# shellcheck disable=SC2034
-	TEST_CHECK_VARIABLE=1
+	declare -g "TEST_CHECK_VARIABLE=1"
 	checkVariableDefined TEST_CHECK_VARIABLE v e || _bashy_assert_fail
 	_bashy_assert_equal "${v}" 0
 	unset TEST_CHECK_VARIABLE

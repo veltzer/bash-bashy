@@ -17,7 +17,6 @@ function _activate_screen() {
 	if [[ -z ${SCREEN+x} ]]
 	then
 		export SCREEN=yes
-		# shellcheck disable=SC2093
 		exec screen -q -RR
 	fi
 	__var=0

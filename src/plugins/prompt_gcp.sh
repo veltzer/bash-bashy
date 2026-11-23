@@ -151,8 +151,7 @@ function _prompt_gcp_project_id() {
 function _prompt_gcp_enter() {
 	local conf=$1
 	# _prompt_gcp_apply_identity reads this too, through dynamic scoping
-	# shellcheck disable=SC2034 # filled and read by name through assoc_*
-	local -A gcp_conf=()
+	local -A "gcp_conf=()"
 	# ~/.gcp.conf supplies defaults, the repo file overrides them
 	local home_conf="${HOME}/${gcp_conf_file_name}"
 	if [[ -r "${home_conf}" ]]

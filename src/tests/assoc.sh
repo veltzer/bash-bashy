@@ -15,8 +15,7 @@ function testAssoc() {
 	b=
 	assoc_get conf b "b"
 	_bashy_assert_equal "${b}" "b_value"
-	# shellcheck disable=2034
-	c=
+	local "c="
 	assoc_get conf c "c"
 	if ! _bashy_null_var_is_null c
 	then

@@ -15,10 +15,8 @@ function _test_prompt_auto_repo() {
 	__repo=$(mktemp --directory)
 	git -c init.defaultBranch=main init --quiet "${__repo}"
 	mkdir -p "${__repo}/sub"
-	# shellcheck disable=SC2016 # the expansions are meant for the sourced files
-	echo '_test_auto_enters=$((_test_auto_enters + 1)); export _TEST_AUTO_IN=yes' > "${__repo}/.auto.enter.sh"
-	# shellcheck disable=SC2016
-	echo '_test_auto_exits=$((_test_auto_exits + 1)); unset _TEST_AUTO_IN' > "${__repo}/.auto.exit.sh"
+	echo "_test_auto_enters=\$((_test_auto_enters + 1)); export _TEST_AUTO_IN=yes" > "${__repo}/.auto.enter.sh"
+	echo "_test_auto_exits=\$((_test_auto_exits + 1)); unset _TEST_AUTO_IN" > "${__repo}/.auto.exit.sh"
 	_test_auto_enters=0
 	_test_auto_exits=0
 	unset AUTO_ACTIVE PROMPT_AUTO_CONF _TEST_AUTO_IN

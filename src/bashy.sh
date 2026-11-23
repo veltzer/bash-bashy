@@ -421,7 +421,7 @@ function bashy_install() {
 		echo "no installer registered for [${plugin}]"
 		return 1
 	fi
-	"${installer}" "$@"
+	bashy_install_run "${installer}" "$@"
 }
 
 # bashy_upgrade [--force] [--refresh]
@@ -471,7 +471,7 @@ function bashy_upgrade() {
 		fi
 		echo "=== ${plugin} ==="
 		rc=0
-		"${installer}" "$@" || rc=$?
+		bashy_install_run "${installer}" "$@" || rc=$?
 		if [[ "${rc}" -eq 0 ]]
 		then
 			bashy_upgrade_mark "${plugin}"

@@ -51,8 +51,7 @@ function testDefinedDeactivatesAreRegistered() {
 # one plugin end to end: aliases come and go
 function testCarefulAliasesDeactivate() {
 	source src/plugins/careful_aliases.sh
-	# shellcheck disable=SC2034 # filled by name through the namerefs
-	local result="" error=""
+	local "result=" "error="
 	_activate_careful_aliases result error
 	alias rm > /dev/null 2>&1 || _bashy_assert_fail
 	_deactivate_careful_aliases

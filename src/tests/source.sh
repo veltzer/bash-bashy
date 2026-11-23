@@ -7,8 +7,7 @@ function _test_source_file() {
 	local dir
 	dir=$(mktemp --directory)
 	__file="${dir}/counted.sh"
-	# shellcheck disable=SC2016 # the expansion is meant for the sourced file
-	echo '_test_source_count=$((_test_source_count + 1))' > "${__file}"
+	echo "_test_source_count=\$((_test_source_count + 1))" > "${__file}"
 }
 
 function testSourceAbsoluteOnce() {

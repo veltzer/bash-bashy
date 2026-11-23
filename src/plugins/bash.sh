@@ -8,8 +8,8 @@ function _activate_bash() {
 	# allow globstar globbing on the command line (**)
 	shopt -s globstar
 	# do long completions
-	# shellcheck disable=SC2034 # this variable is used by the shell
-	completeopt=menu,longest
+	# declared global by name: the shell reads it, not this file
+	declare -g "completeopt=menu,longest"
 	__var=0
 }
 

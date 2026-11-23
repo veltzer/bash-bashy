@@ -81,24 +81,34 @@ function _bashy_latest_fresh() {
 # The body of <url>, from the cache when it was fetched less than
 # BASHY_LATEST_TTL seconds ago and the installer was not given --refresh or
 # --force, otherwise from the network. Assigns to out_var when given, otherwise
-# echoes. Returns 1 when the fetch fails.
+# echoes. Returns 1 when the fetch fails or the answer is empty.
 function bashy_fetch_latest() {
 	local __latest_url=$1
 	local __latest_file
 	_bashy_latest_file "${__latest_url}" __latest_file
 	local __latest_body __latest_age
 	local __latest_hit=0
-	if [[ "${BASHY_INSTALL_REFRESH:-0}" -ne 1 ]] && _bashy_latest_fresh "${__latest_file}" __latest_age
+	if ! bashy_install_refreshing && _bashy_latest_fresh "${__latest_file}" __latest_age
 	then
 		bashy_log "core/latest" "${BASHY_LOG_INFO}" "cache hit for [${__latest_url}], ${__latest_age}s old"
 		__latest_body=$(< "${__latest_file}")
-		__latest_hit=1
+		# an empty answer left in the cache by an older version is no answer
+		if [[ -n "${__latest_body//[[:space:]]/}" ]]
+		then
+			__latest_hit=1
+		fi
 	fi
 	if [[ "${__latest_hit}" -eq 0 ]]
 	then
 		if ! __latest_body=$(curl --fail --silent --show-error --location "${__latest_url}")
 		then
 			echo "bashy_fetch_latest: could not fetch [${__latest_url}]" >&2
+			return 1
+		fi
+		# a successful fetch of nothing is still no answer, and is not cached
+		if [[ -z "${__latest_body//[[:space:]]/}" ]]
+		then
+			echo "bashy_fetch_latest: [${__latest_url}] answered with an empty body" >&2
 			return 1
 		fi
 		mkdir --parents "${BASHY_LATEST_CACHE}"

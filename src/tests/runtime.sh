@@ -3,6 +3,10 @@ source src/core/null.sh
 source src/core/array.sh
 source src/core/assoc.sh
 
+# created by _test_runtime_reset; declared here so the linter knows
+declare -ga bashy_array_plugin
+declare -gA bashy_assoc_enabled
+
 # The plugin list parser is the code that decides which plugins run and in what
 # order, so it is the piece most able to break a user's shell. It lives in
 # bashy.sh, which is a whole startup when sourced, so pull just that function out
@@ -31,7 +35,6 @@ function _test_runtime_parse() {
 	rm -f "${file}"
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsPlainNames() {
 	_test_runtime_parse 'alpha
 beta
@@ -42,7 +45,6 @@ gamma
 	_bashy_assert_equal "${bashy_array_plugin[2]}" "gamma"
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsKeepsOrder() {
 	# plugins run in file order and some of them depend on it, the aws/gcp/env
 	# comment in bashy.list says so explicitly
@@ -55,14 +57,12 @@ mike
 	_bashy_assert_equal "${bashy_array_plugin[2]}" "mike"
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsEnabledByDefault() {
 	_test_runtime_parse 'alpha
 '
 	_bashy_assert_equal "${bashy_assoc_enabled[alpha]}" 1
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsMinusDisables() {
 	# a leading minus is how a plugin is turned off without deleting the line
 	_test_runtime_parse 'alpha
@@ -77,7 +77,6 @@ gamma
 	_bashy_assert_equal "${bashy_array_plugin[1]}" "beta"
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsSkipsComments() {
 	_test_runtime_parse '# a comment
 alpha
@@ -88,7 +87,6 @@ beta
 	_bashy_assert_equal "${bashy_array_plugin[0]}" "alpha"
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsSkipsBlankLines() {
 	_test_runtime_parse 'alpha
 
@@ -98,7 +96,6 @@ beta
 	_bashy_assert_equal "${#bashy_array_plugin[@]}" 2
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsSkipsWhitespaceOnlyLines() {
 	_test_runtime_parse 'alpha
 
@@ -107,7 +104,6 @@ beta
 	_bashy_assert_equal "${#bashy_array_plugin[@]}" 2
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsLastEntryWins() {
 	# ~/.bashy.list is read after bashy.list precisely so a user can override, which
 	# only works if a later line replaces the earlier setting
@@ -117,13 +113,11 @@ function testReadPluginsLastEntryWins() {
 	_bashy_assert_equal "${bashy_assoc_enabled[alpha]}" 0
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsEmptyFile() {
 	_test_runtime_parse ''
 	_bashy_assert_equal "${#bashy_array_plugin[@]}" 0
 }
 
-# shellcheck disable=SC2154 # globals created by _test_runtime_reset
 function testReadPluginsNoTrailingNewline() {
 	# a hand edited list may well not end in a newline, and "read" returns false on
 	# the last line when it does not

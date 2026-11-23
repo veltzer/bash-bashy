@@ -16,6 +16,8 @@ function _latest_test_setup() {
 		count=$(( $(< "${_latest_test_counter}") + 1 ))
 		echo "${count}" > "${_latest_test_counter}"
 		[[ "${_latest_test_fail:-0}" -eq 1 ]] && return 22
+		# a server that answers 200 with nothing
+		[[ "${_latest_test_empty:-0}" -eq 1 ]] && return 0
 		echo "answer ${count}"
 	}
 }
@@ -29,7 +31,7 @@ function _latest_test_fetches() {
 function _latest_test_teardown() {
 	unset -f curl
 	rm -rf "${BASHY_LATEST_CACHE}" "${_latest_test_counter}"
-	unset _latest_test_fail
+	unset _latest_test_fail _latest_test_empty
 	bashy_install_args
 }
 
@@ -96,6 +98,20 @@ function testLatestFailureIsNotCached() {
 	_latest_test_fail=1
 	bashy_fetch_latest "https://example.com/latest" out 2> /dev/null && _bashy_assert_fail
 	_latest_test_fail=0
+	bashy_fetch_latest "https://example.com/latest" out || _bashy_assert_fail
+	_bashy_assert_equal "${out}" "answer 2"
+	_latest_test_teardown
+	return 0
+}
+
+function testLatestEmptyAnswerIsAnErrorAndNotCached() {
+	_latest_test_setup
+	bashy_install_args
+	local out="untouched"
+	_latest_test_empty=1
+	bashy_fetch_latest "https://example.com/latest" out 2> /dev/null && _bashy_assert_fail
+	_bashy_assert_equal "${out}" "untouched"
+	_latest_test_empty=0
 	bashy_fetch_latest "https://example.com/latest" out || _bashy_assert_fail
 	_bashy_assert_equal "${out}" "answer 2"
 	_latest_test_teardown

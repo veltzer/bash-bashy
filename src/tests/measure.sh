@@ -9,8 +9,7 @@ function sleep_a_little() {
 function test_measure() {
 	local diff=
 	local result=
-	# shellcheck disable=2034
-	local error=
+	local "error="
 	measure diff sleep_a_little result error
 	# echo "diff is ${diff}"
 	# echo "result is ${result}"

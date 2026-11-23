@@ -22,8 +22,7 @@ function testWithSecretSetsVariableForCommand() {
 	local dir
 	_test_secret_pass dir
 	local out
-	# shellcheck disable=SC2016 # the expansion is meant for the child shell
-	out=$(PATH="${dir}/bin:${PATH}" bashy_with_secret THING_TOKEN "keys/thing" sh -c 'echo "[${THING_TOKEN}]"')
+	out=$(PATH="${dir}/bin:${PATH}" bashy_with_secret THING_TOKEN "keys/thing" sh -c "echo \"[\${THING_TOKEN}]\"")
 	_bashy_assert_equal "${out}" "[s3cret]"
 	rm -rf "${dir}"
 }

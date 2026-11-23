@@ -1,6 +1,9 @@
 source src/core/assert.sh
 source src/core/array.sh
 
+# created by _bashy_array_new inside the tests; declared here so the linter knows
+declare -ga _BASHY_PROMPT_FUNCTIONS
+
 # The prompt subsystem decides what runs after every command, so a mistake here
 # either breaks the prompt or silently drops part of it. bashy.sh is a whole shell
 # startup when sourced, so pull the three functions out of the plugin and drive
@@ -19,7 +22,6 @@ function _test_prompt_reset() {
 	_test_prompt_load
 }
 
-# shellcheck disable=SC2154 # created by _bashy_array_new
 function testPromptRegisterAdds() {
 	_test_prompt_reset
 	_bashy_prompt_register "one"
@@ -27,7 +29,6 @@ function testPromptRegisterAdds() {
 	_bashy_assert_equal "${_BASHY_PROMPT_FUNCTIONS[0]}" "one"
 }
 
-# shellcheck disable=SC2154 # created by _bashy_array_new
 function testPromptRegisterPrepends() {
 	_test_prompt_reset
 	_bashy_prompt_register "first"
@@ -39,7 +40,6 @@ function testPromptRegisterPrepends() {
 	_bashy_assert_equal "${_BASHY_PROMPT_FUNCTIONS[1]}" "first"
 }
 
-# shellcheck disable=SC2154 # created by _bashy_array_new
 function testPromptDeregisterRemoves() {
 	_test_prompt_reset
 	_bashy_prompt_register "one"
@@ -55,7 +55,6 @@ function testPromptDeregisterRemoves() {
 	fi
 }
 
-# shellcheck disable=SC2154 # created by _bashy_array_new
 function testPromptDeregisterUnknownIsHarmless() {
 	_test_prompt_reset
 	_bashy_prompt_register "one"
@@ -115,8 +114,7 @@ function testPromptTakesStatusFromStarship() {
 	# STARSHIP_CMD_STATUS. Without starship in PROMPT_COMMAND that variable is
 	# ignored, so a stale one cannot leak in.
 	local PROMPT_COMMAND="starship_precmd"
-	# shellcheck disable=SC2034 # read by bashy_prompt
-	local STARSHIP_CMD_STATUS=5
+	local "STARSHIP_CMD_STATUS=5"
 	true
 	bashy_prompt
 	_bashy_assert_equal "${_test_prompt_seen_status}" 5

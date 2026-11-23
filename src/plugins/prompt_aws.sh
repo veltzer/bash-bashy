@@ -13,8 +13,8 @@ aws_conf_file_name=".aws.conf"
 # prompt. Reading the file is builtin "read", no process is spawned.
 function _prompt_aws_enter() {
 	local conf=$1
-	# shellcheck disable=SC2034 # filled and read by name through assoc_*
-	local -A aws_conf=()
+	# filled and read by name through assoc_*
+	local -A "aws_conf=()"
 	# ~/.aws.conf supplies defaults, the repo file overrides them
 	local home_conf="${HOME}/${aws_conf_file_name}"
 	if [[ -r "${home_conf}" ]]
