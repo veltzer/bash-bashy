@@ -3,7 +3,7 @@
 # The api key is read from pass(1) when gemini runs, not at shell start, and is
 # set for that process only. This also grants gemini all permissions.
 function gemini() {
-	bashy_with_secret GEMINI_API_KEY "keys/ai.google.dev" gemini --yolo "$@"
+	bashy_with_secret GEMINI_API_KEY "gcp/gen-lang-client-0554486917/api-key" gemini --yolo "$@"
 }
 
 function _activate_ai_gemini() {
