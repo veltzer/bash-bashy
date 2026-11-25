@@ -18,7 +18,6 @@ function _activate_complete() {
 	complete -C "pymakehelper complete" pymakehelper
 	complete -C "pygcal complete" pygcal
 	complete -C "pytubekit complete" pytubekit
-	complete -C "pycontacts complete" pycontacts
 
 	# Through the completion cache, so that a shell start does not run all eight
 	# tools. A tool that is not installed is skipped, as "source <(...)" used to.
@@ -36,8 +35,7 @@ function _activate_complete() {
 function _deactivate_complete() {
 	complete -r pypitools pyawskit pycmdtools pypowerline pygitpub pytsv pyscrapers \
 		pyflexebs pydatacheck pymultigit pygooglecloud pymakehelper pygcal pytubekit \
-		pycontacts rsconstruct rsmultigit rscontacts rscalendar rsdedup rsspell rstype \
-		rspass mg 2> /dev/null
+		rsconstruct rsmultigit rscontacts rscalendar rsdedup rsspell rstype rspass mg 2> /dev/null
 }
 
 register_interactive _activate_complete _deactivate_complete
