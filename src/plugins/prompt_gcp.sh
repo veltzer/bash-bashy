@@ -109,40 +109,14 @@ function _prompt_gcp_apply_identity() {
 	export GOOGLE_APPLICATION_CREDENTIALS="${tmpfile}"
 }
 
-# _prompt_gcp_project_id <configuration name> <out variable>
-# The [core] project of the named gcloud configuration, read from its file under
-# ${CLOUDSDK_CONFIG:-~/.config/gcloud}/configurations the way "gcloud config
-# get-value project" would, with the "read" builtin.
-#
-# This used to shell out to "pygooglecloud get_project_id", which does exactly
-# this file read in python. That tool lives in ~/.venv, and inside a uv project
-# prompt_uv has already swapped ~/.venv out for the project's venv by the time a
-# second gcp repo is entered, so PROJECT_ID came back empty there. Reading the
-# file here depends on nothing and costs no process.
-function _prompt_gcp_project_id() {
+# _prompt_gcp_configuration_exists <name>
+# Whether the gcloud configuration <name> exists, i.e. has its file under
+# ${CLOUDSDK_CONFIG:-~/.config/gcloud}/configurations. Every configuration is
+# named after the project ID it points at, so .gcp.conf names only the project
+# (gcp_project) and this is the one thing left to check before activating it.
+function _prompt_gcp_configuration_exists() {
 	local name=$1
-	local -n __prompt_gcp_project=$2
-	__prompt_gcp_project=""
-	local config="${CLOUDSDK_CONFIG:-${HOME}/.config/gcloud}/configurations/config_${name}"
-	if [[ ! -r "${config}" ]]
-	then
-		return 1
-	fi
-	local line section=""
-	while read -r line || [[ -n "${line}" ]]
-	do
-		if [[ "${line}" =~ ^\[([^]]+)\] ]]
-		then
-			section="${BASH_REMATCH[1]}"
-			continue
-		fi
-		if [[ "${section}" = "core" ]] && [[ "${line}" =~ ^project[[:space:]]*=[[:space:]]*(.*[^[:space:]])[[:space:]]*$ ]]
-		then
-			__prompt_gcp_project="${BASH_REMATCH[1]}"
-			return 0
-		fi
-	done < "${config}"
-	return 1
+	[[ -r "${CLOUDSDK_CONFIG:-${HOME}/.config/gcloud}/configurations/config_${name}" ]]
 }
 
 # runs on every prompt inside a repo that has .gcp.conf, so an edit to it shows
@@ -159,38 +133,42 @@ function _prompt_gcp_enter() {
 		assoc_config_read gcp_conf "${home_conf}"
 	fi
 	assoc_config_read gcp_conf "${conf}"
-	local conf_name=""
-	assoc_get gcp_conf conf_name "gcp_configuration_name"
+	# the gcloud configuration is named after the project ID, so gcp_project
+	# names both
+	local project
+	assoc_get gcp_conf project "gcp_project"
+	if _bashy_null_is_null "${project}"
+	then
+		bashy_log "prompt_gcp" "${BASHY_LOG_ERROR}" "no gcp_project in ${conf}"
+	elif ! _prompt_gcp_configuration_exists "${project}"
+	then
+		bashy_log "prompt_gcp" "${BASHY_LOG_ERROR}" \
+			"no gcloud configuration [${project}] for gcp_project in ${conf}"
+		_bashy_null_set_value project
+	fi
 
 	# Export PROJECT_ID while inside a repo that has a .gcp.conf. This replaces
 	# the per-repo .auto.enter.sh/.auto.exit.sh that used to do this.
-	if ! var_is_defined PROJECT_ID
+	if ! var_is_defined PROJECT_ID && ! _bashy_null_is_null "${project}"
 	then
-		local project=""
-		if ! _bashy_null_is_null "${conf_name}" && _prompt_gcp_project_id "${conf_name}" project
-		then
-			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
-			export PROJECT_ID="${project}"
-		else
-			bashy_log "prompt_gcp" "${BASHY_LOG_ERROR}" \
-				"no project in gcloud configuration [${conf_name}] named by ${conf}"
-		fi
+		bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
+		export PROJECT_ID="${project}"
 	fi
 	# Activate the identity (default account or a named service account)
 	# selected by gcp_identity in .gcp.conf.
 	_prompt_gcp_apply_identity
 
-	if [[ "${CLOUDSDK_ACTIVE_CONFIG_NAME-}" != "${conf_name}" ]]
+	if [[ "${CLOUDSDK_ACTIVE_CONFIG_NAME-}" != "${project}" ]]
 	then
 		if var_is_defined CLOUDSDK_ACTIVE_CONFIG_NAME
 		then
 			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "down"
 			unset CLOUDSDK_ACTIVE_CONFIG_NAME
 		fi
-		if ! _bashy_null_is_null "${conf_name}"
+		if ! _bashy_null_is_null "${project}"
 		then
 			bashy_log "prompt_gcp" "${BASHY_LOG_INFO}" "up"
-			export CLOUDSDK_ACTIVE_CONFIG_NAME="${conf_name}"
+			export CLOUDSDK_ACTIVE_CONFIG_NAME="${project}"
 		fi
 	fi
 }
