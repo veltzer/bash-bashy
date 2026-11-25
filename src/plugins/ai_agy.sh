@@ -1,7 +1,7 @@
 # The api key is read from pass(1) when agy runs, not at shell start, and is set
 # for that process only. This also grants agy all permissions.
 function agy() {
-	bashy_with_secret GEMINI_API_KEY "gcp/gen-lang-client-0554486917/api-key" agy --dangerously-skip-permissions "$@"
+	bashy_with_secret GEMINI_API_KEY "gcp/veltzer-gemini-id/api-key" agy --dangerously-skip-permissions "$@"
 }
 
 function _activate_ai_agy() {
