@@ -92,8 +92,11 @@ function bashy_fetch_latest() {
 	then
 		bashy_log "core/latest" "${BASHY_LOG_INFO}" "cache hit for [${__latest_url}], ${__latest_age}s old"
 		__latest_body=$(< "${__latest_file}")
-		# an empty answer left in the cache by an older version is no answer
-		if [[ -n "${__latest_body//[[:space:]]/}" ]]
+		# an empty answer left in the cache by an older version is no answer.
+		# Test for a non blank character rather than stripping the whitespace:
+		# ${body//[[:space:]]/} takes minutes on a large answer such as the
+		# ~900KB oxc releases list, and looks like a hung installer.
+		if [[ "${__latest_body}" == *[![:space:]]* ]]
 		then
 			__latest_hit=1
 		fi
@@ -106,7 +109,7 @@ function bashy_fetch_latest() {
 			return 1
 		fi
 		# a successful fetch of nothing is still no answer, and is not cached
-		if [[ -z "${__latest_body//[[:space:]]/}" ]]
+		if [[ "${__latest_body}" != *[![:space:]]* ]]
 		then
 			echo "bashy_fetch_latest: [${__latest_url}] answered with an empty body" >&2
 			return 1
