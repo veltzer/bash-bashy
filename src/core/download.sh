@@ -169,11 +169,13 @@ function bashy_verify_sha256() {
 			echo "bashy_verify_sha256: could not fetch checksums from [${source}]" >&2
 			return 1
 		fi
-		# some projects publish a bare digest with no filename column at all
-		local stripped="${sums//[[:space:]]/}"
-		if [[ "${stripped}" =~ ^[0-9a-fA-F]{64}$ ]]
+		# some projects publish a bare digest with no filename column at all.
+		# Match it with surrounding whitespace allowed rather than stripping the
+		# whitespace first: ${sums//[[:space:]]/} is very slow on a large
+		# combined checksums file.
+		if [[ "${sums}" =~ ^[[:space:]]*([0-9a-fA-F]{64})[[:space:]]*$ ]]
 		then
-			expected="${stripped}"
+			expected="${BASH_REMATCH[1]}"
 		else
 			# Match on the basename. The listed name may carry a "*" binary marker and
 			# may be a path rather than a bare name - rustup publishes
