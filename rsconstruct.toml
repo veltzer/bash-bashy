@@ -27,6 +27,10 @@ src_dirs = ["src", "scripts"]
 src_extensions = [".sh"]
 batch = true
 
+# lint the TOML files of the repo with taplo
+[processor.checker.taplo]
+src_files = [".rumdl.toml", "rsconstruct.toml"]
+
 # lint the YAML files with yamllint (policy: .yamllint.yaml)
 [processor.checker.iyamllint]
 src_dirs = [".github"]
