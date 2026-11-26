@@ -98,7 +98,24 @@ function bashy_download() {
 	# never leaves a truncated file that would later look like a cache hit
 	local tmp="${target}.part"
 	local rc=0
-	curl --fail --location --silent --show-error "${url}" --output "${tmp}" || rc=$?
+	# show a progress bar when a person is watching, stay quiet in logs and pipes;
+	# BASHY_DOWNLOAD_PROGRESS=0 or 1 overrides the terminal check
+	local progress="${BASHY_DOWNLOAD_PROGRESS:-}"
+	if [[ -z "${progress}" ]]
+	then
+		if [[ -t 2 ]]
+		then
+			progress=1
+		else
+			progress=0
+		fi
+	fi
+	local -a quiet=(--silent --show-error)
+	if [[ "${progress}" = "1" ]]
+	then
+		quiet=(--progress-bar)
+	fi
+	curl --fail --location "${quiet[@]}" "${url}" --output "${tmp}" || rc=$?
 	if [[ "${rc}" -ne 0 ]]
 	then
 		# curl has already printed its own reason above; the exit code says which

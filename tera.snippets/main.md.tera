@@ -449,6 +449,9 @@ which defaults to `~/install/binaries`; set either in `~/.bashy.config` to move 
 rolling `latest` asset that keeps one filename forever is still refetched when it
 changes upstream. Use `bashy_download_clean` to drop the cache.
 
+A download shows curl's progress bar when stderr is a terminal and stays silent
+otherwise; set `BASHY_DOWNLOAD_PROGRESS` to `1` or `0` to force it on or off.
+
 Never pipe a remote script into a shell when the project ships a release asset that
 can be downloaded and verified instead. When a vendor genuinely ships nothing but an
 install script, download it first and run that file, so there is something on disk to
