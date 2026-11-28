@@ -83,6 +83,7 @@ brew
 gradle
 encfs
 node
+bun
 oxlint
 biome
 vnu
